@@ -1,0 +1,47 @@
+{
+  "name": "iae.admin",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "express": "^4.17.1",
+    "express-async-errors": "^3.1.1",
+    "express-static": "^1.2.6",
+    "i3wm": "^1.1.0",
+    "jsonwebtoken": "^8.5.1",
+    "mysql2": "^2.1.0",
+    "nconf": "^0.10.0",
+    "require-dir": "^1.2.0",
+    "serve-favicon": "^2.5.0",
+    "shelljs": "^0.8.4"
+  },
+  "nodemonConfig": {
+    "exec": "npm run dev",
+    "watch": ["server/*", "public/*"],
+    "ignore": ["**/__tests__/**", "*.test.js", "*.spec.js"]
+  },
+  "scripts": {
+    "build": "babel src -d  dist",
+    "start": "npm run build && node dist/index.js",
+    "restart": "rimraf dist && npm run start",
+    "dev2": "nodemon --exec npm run restart",
+    "debug": "cross-env NODE_ENV=development nodemon --inspect -w src --exec \"babel-node src/index.js\"",
+    "dev": "cross-env NODE_ENV=development nodemon src/index.js --exec babel-node "
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6",
+    "@babel/node": "^7.8.7",
+    "@babel/plugin-transform-runtime": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "babel-eslint": "^10.1.0",
+    "cross-env": "^7.0.2",
+    "eslint": "^7.0.0",
+    "eslint-plugin-import": "^2.20.2",
+    "rimraf": "^3.0.2"
+  }
+}

@@ -1,0 +1,15 @@
+{
+    "extends": ["eslint-config-airbnb-base"],
+    "parserOptions": {
+        "ecmaVersion": 8,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "arrowFunctions": true,
+            "modules": true
+        }
+    },
+    "rules": {
+        "semi": "off",
+        "no-console": "off"
+    }
+}

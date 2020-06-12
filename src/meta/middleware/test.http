@@ -1,0 +1,44 @@
+@host = http://localhost:8888
+@v1URL ={{host}}/api/v1
+@v1Token = {{login.response.headers.token}}
+
+###
+# @name postProveedor
+POST {{v1URL}}/proveedor
+content-type: application/json
+
+{
+  "cuit": "20-13551619-9",
+  "id": "62",
+  "nombre": "Garcia Sanitarios",
+  "retencion": "1.75",
+  "retencion_detalle": "",
+  "retencion_fecha": "18/11/2019"
+}
+
+###
+# @name login
+get {{v1URL}}/login?login=jpsala&password=lani0363
+content-type: application/json
+
+###
+# @name token
+get {{v1URL}}/user/session?token={{v1Token}}
+token: {{v1Token}}
+content-type: application/json
+
+###
+# @name proveedores
+GET {{v1URL}}/proveedor
+content-type: application/json
+###
+# @name /
+GET {{host}}/
+content-type: application/json
+token: {{v1Token}}
+
+###
+# @name PDF
+GET {{v1URL}}/pdf?url=print&doc=44&name=pedro-doc
+token: {{v1Token}}
+content-type: application/json
