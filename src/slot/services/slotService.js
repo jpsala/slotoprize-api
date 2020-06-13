@@ -1,5 +1,12 @@
 import getPool from './db';
 
+const fs = require('fs');
+
+export const proccessReelsDataFromFS = async () => {
+  const files = await fs.readdirSync('/var/www/html/public/assets/symbols/food')
+  console.log('files', files);
+  return files;
+}
 export const proccessReelsData = async () => {
   const pool = await getPool();
   const conn = await pool.getConnection();
@@ -60,11 +67,11 @@ export const gameInit = async () => {
             INNER JOIN reel r ON rs.reel_id = r.id AND r.id = ${_reel.id}
             INNER JOIN symbol s ON rs.symbol_id = s.id
         `)
-      const symbolData = [];
+      const symbolsData = [];
       for (const _symbol of symbols) {
-        symbolData.push(_symbol)
+        symbolsData.push(_symbol)
       }
-      resp.reelsData.push({ symbolData })
+      resp.reelsData.push({ symbolsData })
     }
     console.log('sy', resp.reelsData);
     conn.release()
