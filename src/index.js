@@ -4,6 +4,7 @@ import cors from 'cors';
 import bodyparser from 'body-parser';
 import favicon from 'serve-favicon';
 import meta from './meta'
+import ws from './webhooks'
 
 const app = express()
 const staticPath = './public';
@@ -19,6 +20,7 @@ app.use('*', (req, res, next) => {
   next();
 });
 
+app.use('/api/webhooks', ws);
 app.use('/api/meta', meta);
 
 // Static

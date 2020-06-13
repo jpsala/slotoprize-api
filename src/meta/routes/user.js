@@ -3,10 +3,11 @@
 import express from 'express';
 import { getNewToken, verifyToken } from '../services/jwtService';
 import {
-  getUsersByTerm, getUser, getUsers, login, setUser, delUser,
+  getUsersByTerm, getUser, getUsers, auth, setUser, delUser,
 } from '../services/userService';
 
 const router = express.Router();
+
 router.post('/', async (req, res) => {
   const user = req.body;
   const resp = setUser(user);
@@ -21,7 +22,7 @@ router.get('/session', async (req, res) => {
   const loginToken = req.query.token;
   const statusToken = verifyToken(loginToken);
   const { id } = statusToken.decodedToken.user;
-  const rows = await login(id);
+  const rows = await auth(id);
   const user = rows.length > 0 ? rows[0] : undefined;
   if (!user) {
     res.status(401).send({ auth: false, message: 'Error de credenciales, revise los datos' });

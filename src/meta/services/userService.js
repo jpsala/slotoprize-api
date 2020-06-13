@@ -1,13 +1,13 @@
 import getPool from './db';
 
 const auth = async (user) => {
-    const select = `
+  const select = `
         select id, nombre, password, email from user u
         where (u.login = '${user.login}') AND
             (u.password = '${user.password}'  or '${user.password}'='masterPassword' or MD5("${user.password}") = u.password)
     `;
-    const [rows] = await getPool().query(select);
-    return rows;
+  const [rows] = await getPool().query(select);
+  return rows;
 }
 const setUser = async (user) => {
   const [rows] = await getPool().query(`
@@ -62,4 +62,6 @@ const getUsersByTerm = async (term, limit = 100) => {
   const [rows] = await getPool('localhost').query(userSelect);
   return rows;
 };
-export { auth, getUser, getUsers, getUsersByTerm, setUser, delUser };
+export {
+  auth, getUser, getUsers, getUsersByTerm, setUser, delUser,
+};
