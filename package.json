@@ -41,7 +41,7 @@
     "dev": "cross-env NODE_ENV=development nodemon src/index.js --exec babel-node ",
     "pm2-debug": "pm2 start -n api npm -- run debug",
     "pm2-dev": "cross-env NODE_ENV=development pm2-dev node src/app.js --exec babel-node --presets babel-preset-env",
-    "pm2-prod": "pm2 delete api ;npm run build && cross-env NODE_ENV=production pm2 start -n api --interpreter node dist/app.js",
+    "pm2-prod": "pm2 delete api ;npm run build && cross-env NODE_ENV=production pm2 start -n api --interpreter node dist/index.js",
     "pm2-restart": "pm2 delete api ; pm2 start -n api npm -- run prod",
     "pm2-kill": "pm2 kill",
     "pm2-log": "pm2 logs api"
