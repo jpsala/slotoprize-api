@@ -33,4 +33,4 @@ router.post('/', async (req, res) => {
   return undefined;
 });
 
-module.exports = router;
+export default auth;

@@ -44,7 +44,8 @@
     "pm2-prod": "pm2 delete api ;npm run build && cross-env NODE_ENV=production pm2 start -n api --interpreter node dist/index.js",
     "pm2-restart": "pm2 delete api ; pm2 start -n api npm -- run start",
     "pm2-kill": "pm2 kill",
-    "pm2-log": "pm2 logs api"
+    "pm2-log": "pm2 logs api",
+    "dev:nodemon": "nodemon -L --exec babel-node --inspect src/index.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",

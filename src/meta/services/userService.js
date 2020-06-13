@@ -1,4 +1,4 @@
-import getPool from './db';
+import getConnection from './db';
 
 const auth = async (user) => {
   const select = `
@@ -6,11 +6,11 @@ const auth = async (user) => {
         where (u.login = '${user.login}') AND
             (u.password = '${user.password}'  or '${user.password}'='masterPassword' or MD5("${user.password}") = u.password)
     `;
-  const [rows] = await getPool().query(select);
+  const [rows] = await getConnection().query(select);
   return rows;
 }
 const setUser = async (user) => {
-  const [rows] = await getPool().query(`
+  const [rows] = await getConnection().query(`
     update user set
         nombre = "${user.nombre}",
         apellido = "${user.apellido}",
@@ -27,7 +27,7 @@ const getUsers = async () => {
   const userSelect = `
       select *
         from user order by apellido, nombre`;
-  const [rows] = await getPool().query(userSelect);
+  const [rows] = await getConnection().query(userSelect);
   return rows;
 };
 const getUser = async (id) => {
@@ -35,15 +35,15 @@ const getUser = async (id) => {
       select *
         from user u
       where u.id = ${id}`;
-  const [rows] = await getPool().query(userSelect);
+  const [rows] = await getConnection().query(userSelect);
   return rows.length ? rows[0] : rows;
 };
 const delUser = async (id) => {
   const userSelect = `delete from user where id = ${id}`;
   const socioSelect = `delete from socio where empleado_id = ${id}`;
   try {
-    await getPool().query(socioSelect);
-    await getPool().query(userSelect);
+    await getConnection().query(socioSelect);
+    await getConnection().query(userSelect);
     return { error: false };
   } catch (error) {
     console.log('error', error);
@@ -59,7 +59,7 @@ const getUsersByTerm = async (term, limit = 100) => {
       order by u.apellido, u.nombre
       limit ${limit}`;
   console.log('detalle', userSelect);
-  const [rows] = await getPool('localhost').query(userSelect);
+  const [rows] = await getConnection('localhost').query(userSelect);
   return rows;
 };
 export {

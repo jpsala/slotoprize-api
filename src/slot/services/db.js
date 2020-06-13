@@ -10,9 +10,9 @@ export default function getConnection(host = 'localhost') {
   const config = {
     connectionLimit: 100,
     host,
-    user: 'root',
+    user: 'jpsala',
     password: 'lani0363',
-    database: 'iae-nuevo',
+    database: 'slot',
     debug: false,
     waitForConnections: true,
     multipleStatements: true,

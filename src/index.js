@@ -3,7 +3,8 @@ import 'express-async-errors';
 import cors from 'cors';
 import bodyparser from 'body-parser';
 import favicon from 'serve-favicon';
-import meta from './meta'
+import metaRouter from './meta'
+import slotRouter from './slot'
 import ws from './webhooks'
 
 const app = express()
@@ -21,7 +22,8 @@ app.use('*', (req, res, next) => {
 });
 
 app.use('/api/webhooks', ws);
-app.use('/api/meta', meta);
+app.use('/api/meta', metaRouter);
+app.use('/api/slot', slotRouter);
 
 // Static
 console.log('staticPath', staticPath);
