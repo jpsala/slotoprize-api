@@ -5,8 +5,39 @@ const fs = require('fs');
 export const proccessReelsDataFromFS = async () => {
   const files = await fs.readdirSync('/var/www/html/public/assets/symbols/food')
   console.log('files', files);
-  return files;
+  const pool = await getPool();
+  const conn = await pool.getConnection();
+  await conn.beginTransaction();
+  try {
+    await conn.query('delete from reel_symbol');
+    await conn.query('delete from symbol');
+    const [reels] = await conn.query('select * from reel');
+    for (const _file of files) {
+      const filename = _file.split('.')[0];
+      const [result] = await conn.query(`
+    insert into symbol(payment_type, texture_url)
+        values(
+            "${filename}",
+            "http://wopidom.homelinux.com/public/assets/symbols/food/${_file}")
+    `);
+      const symbolId = result.insertId;
+      for (const _reel of reels) {
+        const reelId = _reel.id;
+        await conn.query('insert into reel_symbol(reel_id, symbol_id) values(?,?)',
+          [reelId, symbolId]);
+      }
+    }
+    await conn.query('COMMIT');
+    await conn.release()
+    return { status: 'ok' };
+  } catch (error) {
+    console.log('error', error);
+    await conn.query('ROLLBACK')
+    await conn.release()
+    return { status: 'error' };
+  }
 }
+
 export const proccessReelsData = async () => {
   const pool = await getPool();
   const conn = await pool.getConnection();
@@ -31,10 +62,6 @@ export const proccessReelsData = async () => {
                     "${paymentType}",
                     "http://wopidom.homelinux.com/public/assets/symbols/food/${paymentType}.png")
             `);
-          const [eee] = await conn.query(`
-                select * from symbol
-            `);
-          console.log('detalle', eee);
           const symbolId = result.insertId;
           reels.forEach(async (_reel) => {
             const reelId = _reel.id;
