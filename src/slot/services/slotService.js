@@ -1,6 +1,10 @@
 import fs from 'fs';
 import getConnection from './db';
 
+export * from './useCases/gameInit'
+
+export * from './useCases/spin'
+
 export const proccessReelsDataFromFS = async () => {
     return { status: 'Closed endpoint' }
     // eslint-disable-next-line no-unreachable
@@ -93,67 +97,7 @@ export const proccessReelsData = async () => {
         };
     }
 };
-export const gameInit = async () => {
-    const conn = await getConnection();
-    const resp = {
-        reelsData: [],
-    };
-    try {
-        const [reels] = await conn.query('select * from reel');
-        for (const _reel of reels) {
-            const [symbols] = await conn.query(`
-            SELECT s.payment_type AS paymentType, s.texture_url AS textureUrl FROM reel_symbol rs
-            INNER JOIN reel r ON rs.reel_id = r.id AND r.id = ${_reel.id}
-            INNER JOIN symbol s ON rs.symbol_id = s.id
-            order by rs.order
-        `);
-            const symbolsData = [];
-            for (const _symbol of symbols) {
-                symbolsData.push(_symbol);
-            }
-            resp.reelsData.push({
-                symbolsData,
-            });
-        }
-        conn.release();
-        return resp;
-    } catch (error) {
-        conn.release();
-        console.log('error', error);
-        return {
-            status: 'error',
-        };
-    }
-};
-export const spin = async () => {
-    const conn = await getConnection();
-    try {
-        const [reels] = await conn.query('select * from reel');
-        const spinResult = [];
-        for (const reel of reels) {
-            const [reelSymbolCountRows] = await conn.query(`
-                select count(*) as count FROM reel_symbol rs WHERE rs.reel_id = ${reel.id}
-            `);
-            const reelSymbolCount = reelSymbolCountRows[0].count;
-            const reelSymbolIndex = Math.floor(Math.random() * reelSymbolCount) + 1;
-            const [reelSymbolRows] = await conn.query(`
-                select symbol_id symbolId from reel_symbol where reel_id = ${reel.id} limit 1 offset ${reelSymbolIndex - 1}
-            `)
-            const { symbolId } = reelSymbolRows[0];
-            const [symbolRows] = await conn.query(`select * from symbol where id = ${symbolId}`)
-            spinResult.push({
-                paymentType: symbolRows[0].payment_type,
-                textureUrl: symbolRows[0].texture_url,
-            });
-        }
-        await conn.release();
-        return spinResult
-    } catch (error) {
-        console.error(error)
-        await conn.release();
-        return { status: 'error' }
-    }
-}
+
 const jsonData = {
     reelsData: [
         {

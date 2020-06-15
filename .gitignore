@@ -2,3 +2,4 @@
 dist
 node_modules
 api.bz2
+.vscode/
