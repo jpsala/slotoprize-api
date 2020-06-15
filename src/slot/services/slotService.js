@@ -105,6 +105,7 @@ export const gameInit = async () => {
             SELECT s.payment_type AS paymentType, s.texture_url AS textureUrl FROM reel_symbol rs
             INNER JOIN reel r ON rs.reel_id = r.id AND r.id = ${_reel.id}
             INNER JOIN symbol s ON rs.symbol_id = s.id
+            order by rs.order
         `);
             const symbolsData = [];
             for (const _symbol of symbols) {
