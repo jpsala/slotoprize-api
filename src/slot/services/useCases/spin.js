@@ -40,5 +40,5 @@ export const spin = async () => {
     const spinResults = await runSpin()
     const win = isWin(spinResults)
     console.log('spin -> spinResults', spinResults, win)
-    return { symbolsData: spinResults, isWin: true };
+    return { symbolsData: spinResults, isWin: win };
 }
