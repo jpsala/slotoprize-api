@@ -17,30 +17,28 @@ const runSpin = async () => {
             const { symbolId } = reelSymbolRows[0];
             const [symbolRows] = await conn.query(`select * from symbol where id = ${symbolId}`)
             spinResultData.push({
-                symbolData: {
-                    paymentType: symbolRows[0].payment_type,
-                    textureUrl: symbolRows[0].texture_url,
-                },
+                paymentType: symbolRows[0].payment_type,
+                textureUrl: symbolRows[0].texture_url,
             });
         }
         await conn.release();
-        return { spinResultData }
+        console.log('runSpin -> spinResultData', spinResultData)
+        return spinResultData
     } catch (error) {
         console.error(error)
         await conn.release();
         return { status: 'error' }
     }
 }
-const isWin = (spinResults) => spinResults.spinResultData
-    .map((spinResultData) => spinResultData.symbolData.paymentType)
+const isWin = (spinResults) => spinResults
+    .map((symbolData) => symbolData.paymentType)
     .reduce((ant, sig) => {
         if (!ant) return false
         return ant === sig
     }, true)
 export const spin = async () => {
     const spinResults = await runSpin()
-    console.log('sr', spinResults);
     const win = isWin(spinResults)
     console.log('spin -> spinResults', spinResults, win)
-    return Object.assign({},spinResults, {isWin: win});
+    return { symbolsData: spinResults, isWin: true };
 }
