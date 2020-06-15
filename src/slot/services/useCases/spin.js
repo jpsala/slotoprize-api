@@ -30,12 +30,11 @@ const runSpin = async () => {
         return { status: 'error' }
     }
 }
-const isWin = (spinResults) => spinResults
-    .map((symbolData) => symbolData.paymentType)
-    .reduce((ant, sig) => {
-        if (!ant) return false
-        return ant === sig
-    }, true)
+const isWin = (spinResults) => {
+    const symbols = spinResults
+        .map((symbolData) => symbolData.paymentType);
+    return symbols.every((val, i, arr) => val === arr[0])
+}
 export const spin = async () => {
     const spinResults = await runSpin()
     const win = isWin(spinResults)
