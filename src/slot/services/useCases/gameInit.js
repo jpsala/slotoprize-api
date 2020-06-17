@@ -1,6 +1,7 @@
 import getConnection from '../db';
 
-export const gameInit = async () => {
+export const gameInit = async (deviceId) => {
+    if (!deviceId) return { status: 400, json: 'deviceID is a required paramter' }
     const conn = await getConnection();
     const resp = {
         reelsData: [],
@@ -23,12 +24,12 @@ export const gameInit = async () => {
             });
         }
         conn.release();
-        return resp;
+        return { status: 200, json: reels };
     } catch (error) {
         conn.release();
         console.log('error', error);
         return {
-            status: 'error',
+            status: 500, json: error,
         };
     }
 };

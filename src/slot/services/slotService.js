@@ -5,6 +5,8 @@ export * from './useCases/gameInit'
 
 export * from './useCases/spin'
 
+export * from './useCases/symbolsInDB'
+
 export const proccessReelsDataFromFS = async () => {
     return { status: 'Closed endpoint' }
     // eslint-disable-next-line no-unreachable
@@ -97,6 +99,21 @@ export const proccessReelsData = async () => {
         };
     }
 };
+
+export const delItem = async (itemId/* , file = false */) => {
+    const conn = await getConnection();
+    try {
+        const [respReelSymbol] = await conn.query(`delete from reel_symbol where symbol_id = ${itemId}`);
+        console.log('resp', respReelSymbol.affectedRows);
+        const [respSymbol] = await conn.query(`delete from symbol where id = ${itemId}`);
+        console.log('resp', respSymbol.affectedRows);
+        await conn.release();
+        return { symbols: respSymbol.affectedRows, reelSymbols: respReelSymbol.affectedRows }
+    } catch (error) {
+        await conn.release();
+        return { status: error }
+    }
+}
 
 const jsonData = {
     reelsData: [
