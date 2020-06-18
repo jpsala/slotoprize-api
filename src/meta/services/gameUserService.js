@@ -61,7 +61,7 @@ const getOrSetUserByDeviceId = async (deviceId) => {
         const userSelect = `
           select *
             from game_user
-          where device_id = ${deviceId}`;
+          where device_id = "${deviceId}"`;
         const [rows] = await connection.query(userSelect);
         console.log('rows', rows);
         let user = rows.length ? rows[0] : false;

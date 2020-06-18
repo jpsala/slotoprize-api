@@ -8,7 +8,7 @@ export * from './useCases/spin'
 export * from './useCases/symbolsInDB'
 
 export const proccessReelsDataFromFS = async () => {
-    return { status: 'Closed endpoint' }
+    // return { status: 'Closed endpoint' }
     // eslint-disable-next-line no-unreachable
     const files = fs.readdirSync('/var/www/html/public/assets/symbols/food');
     const conn = await getConnection();
