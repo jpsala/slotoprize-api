@@ -1,5 +1,6 @@
 import fs from 'fs';
 import getConnection from './db';
+import createHttpError from 'http-errors';
 
 export * from './useCases/gameInit'
 
@@ -7,10 +8,11 @@ export * from './useCases/spin'
 
 export * from './useCases/symbolsInDB'
 
-export const proccessReelsDataFromFS = async () => {
+export const proccessReelsDataFromFS = async (path) => {
+    if(!path) throw createHttpError(400, 'path param is mandatory, is the part of the url after assets/, ej. symbols/live')
     // return { status: 'Closed endpoint' }
     // eslint-disable-next-line no-unreachable
-    const files = fs.readdirSync('/var/www/html/public/assets/symbols/food');
+    const files = fs.readdirSync(`/var/www/html/public/assets/${path}`);
     const conn = await getConnection();
     await conn.beginTransaction();
     try {

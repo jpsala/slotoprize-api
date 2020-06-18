@@ -52,7 +52,8 @@ router.delete('/item', async (req, res) => {
     res.status(200).json(resp);
 });
 router.get('/proccess_reels_data_from_fs', async (req, res) => {
-    const resp = await proccessReelsDataFromFS();
+    const { path } = req.query;
+    const resp = await proccessReelsDataFromFS(path);
     res.status(200).json(resp);
 });
 router.post('/proccess_reels_data', async (req, res) => {
