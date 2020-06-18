@@ -19,7 +19,7 @@ router.get('/game_init', async (req, res) => {
         const resp = await gameInit();
         const initData = {
             sessionId: token,
-            profileData: user,
+            profileData: toCamelCase(user),
             reelsData: resp.reelsData,
             walletData: {
                 coins: 10,
