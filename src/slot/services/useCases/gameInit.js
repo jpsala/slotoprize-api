@@ -1,7 +1,6 @@
 import getConnection from '../db';
 
-export const gameInit = async (deviceId) => {
-    if (!deviceId) return { status: 400, json: 'deviceID is a required paramter' }
+export const gameInit = async () => {
     const conn = await getConnection();
     const resp = {
         reelsData: [],
@@ -16,20 +15,14 @@ export const gameInit = async (deviceId) => {
             order by rs.order
         `);
             const symbolsData = [];
-            for (const _symbol of symbols) {
-                symbolsData.push(_symbol);
-            }
-            resp.reelsData.push({
-                symbolsData,
-            });
+            symbols.forEach((_symbol) => symbolsData.push(_symbol))
+            resp.reelsData.push({ symbolsData });
         }
         conn.release();
-        return { status: 200, json: reels };
+        return resp;
     } catch (error) {
         conn.release();
         console.log('error', error);
-        return {
-            status: 500, json: error,
-        };
+        throw new Error(error)
     }
 };

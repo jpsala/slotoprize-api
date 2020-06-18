@@ -1,5 +1,5 @@
 import express from 'express';
-import slotRouter from './routes/slot';
+import slotRouter from './routes/slotRoute';
 
 const router = express.Router();
 

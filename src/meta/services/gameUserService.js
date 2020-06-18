@@ -1,3 +1,4 @@
+import createError from 'http-errors'
 import getConnection from './db';
 
 const auth = async (user) => {
@@ -53,6 +54,48 @@ const getUser = async (id) => {
         return { status: error }
     }
 };
+const getOrSetUserByDeviceId = async (deviceId) => {
+    if (!deviceId) throw createError(400, 'Paramter deviceId missing')
+    const connection = await getConnection();
+    try {
+        const userSelect = `
+          select *
+            from game_user
+          where device_id = ${deviceId}`;
+        const [rows] = await connection.query(userSelect);
+        console.log('rows', rows);
+        let user = rows.length ? rows[0] : false;
+        if (!user) {
+            const [respInsert] = await connection.query(`
+                insert into game_user(device_id) value('${deviceId}')
+            `);
+            console.log('respInsert', respInsert);
+            user = {
+                isNew: true,
+                id: respInsert.insertId,
+            }
+        } else user.isNew = false;
+        await connection.release()
+        return user
+    } catch (error) {
+        await connection.release()
+        throw new Error(error)
+    }
+};
+const getProfile = async (deviceId) => {
+    if (!deviceId) throw createError(400, 'Paramter deviceId missing')
+    const connection = await getConnection();
+    try {
+        const userSelect = `
+          select *
+            from game_user
+          where device_id = ${deviceId}`;
+        const [rows] = await connection.query(userSelect);
+        return rows;
+    } catch (error) {
+        throw new Error(error)
+    }
+}
 const delUser = async (id) => {
     const userSelect = `delete from user where id = ${id}`;
     const socioSelect = `delete from socio where empleado_id = ${id}`;
@@ -78,5 +121,5 @@ const getUsersByTerm = async (term, limit = 100) => {
     return rows;
 };
 export {
-    auth, getUser, getUsers, getUsersByTerm, setUser, delUser,
+    auth, getUser, getUsers, getUsersByTerm, setUser, delUser, getOrSetUserByDeviceId, getProfile,
 };
