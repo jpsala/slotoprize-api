@@ -25,7 +25,7 @@ export const proccessReelsDataFromFS = async (path) => {
                 insert into symbol(payment_type, texture_url)
                     values(
                         "${filename}",
-                        "http://wopidom.homelinux.com/public/assets/symbols/food/${_file}")
+                        "http://wopidom.homelinux.com/public/assets/${path}/${_file}")
                 `);
             const symbolId = result.insertId;
             for (const _reel of reels) {
