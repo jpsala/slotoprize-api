@@ -90,7 +90,9 @@ export const getProfile = async (deviceId) => {
             from game_user
           where device_id ='${deviceId}'`;
         const [rows] = await connection.query(userSelect);
-        return rows[0];
+        const user = rows[0];
+        if (!user) throw createError(400, 'deviceId parameter missing in get profile')
+        return user;
     } finally {
         await connection.release()
     }

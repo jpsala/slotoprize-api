@@ -16,9 +16,10 @@ const router = express.Router();
 router.get('/game_init', async (req, res) => {
     try {
         const { deviceId } = req.query
-        const user = await getOrSetUserByDeviceId(deviceId);
-        await saveLogin(user.id, 'SlotoPrizes', deviceId);
-        const token = getNewToken({ id: user.id, deviceId }, process.env.TOKEN_EXPIRATION_TIME_PEDRO);
+        const rawUser = await getOrSetUserByDeviceId(deviceId);
+        await saveLogin(rawUser.id, 'SlotoPrizes', deviceId);
+        const token = getNewToken({ id: rawUser.id, deviceId }, process.env.TOKEN_EXPIRATION_TIME_PEDRO);
+        const user = { firsName: rawUser.first_name, lastNAme: rawUser.last_name, email: rawUser.email }
         const resp = await gameInit();
         const initData = {
             sessionId: token,
