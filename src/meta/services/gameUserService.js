@@ -1,6 +1,15 @@
 import createError from 'http-errors'
 import getConnection from './db';
 
+const getGame = async (name) => {
+    console.log('game', name, 'SlotoPrizes');
+    const connection = await getConnection()
+    const [gameRows] = await connection.query(`SELECT * FROM game WHERE UPPER(name) = '${name.toUpperCase()}'`)
+    await connection.release()
+    const game = gameRows.length === 0 ? undefined : gameRows[0]
+    console.log('game', game);
+    return game
+}
 export const auth = async (user) => {
     const connection = await getConnection();
     console.log('user', user);
@@ -18,6 +27,21 @@ export const auth = async (user) => {
         return { status: error }
     }
 }
+export const saveLogin = async (userId, gameName, deviceId) => {
+    console.log('game', gameName, 'SlotoPrizes');
+    const game = await getGame(gameName)
+    if (!game) throw createError(400, `Game ${gameName} not found in db`)
+    const connection = await getConnection()
+    try {
+        await connection.query(`
+            insert into game_user_login(game_user_id,game_id,device_id)
+            values(${userId}, ${game.id}, '${deviceId}')
+        `)
+    } finally {
+        await connection.release()
+        console.log('Finally 1');
+    }
+}
 export const getOrSetUserByDeviceId = async (deviceId) => {
     if (!deviceId) throw createError(400, 'Paramter deviceId missing')
     const connection = await getConnection();
@@ -27,23 +51,19 @@ export const getOrSetUserByDeviceId = async (deviceId) => {
             from game_user
           where device_id = "${deviceId}"`;
         const [rows] = await connection.query(userSelect);
-        console.log('rows', rows);
         let user = rows.length ? rows[0] : false;
         if (!user) {
             const [respInsert] = await connection.query(`
                 insert into game_user(device_id) value('${deviceId}')
             `);
-            console.log('respInsert', respInsert);
             user = {
                 isNew: true,
                 id: respInsert.insertId,
             }
         } else user.isNew = false;
-        await connection.release()
         return user
-    } catch (error) {
+    } finally {
         await connection.release()
-        throw new Error(error)
     }
 };
 export const getProfile = async (deviceId) => {
@@ -56,8 +76,8 @@ export const getProfile = async (deviceId) => {
           where device_id = ${deviceId}`;
         const [rows] = await connection.query(userSelect);
         return rows[0];
-    } catch (error) {
-        throw new Error(error)
+    } finally {
+        await connection.release()
     }
 }
 export const setProfile = async (data) => {
@@ -67,7 +87,6 @@ export const setProfile = async (data) => {
         const [userRows] = await connection.query(`select * from game_user where device_id = ${data.deviceId}`);
         const user = userRows[0]
         if (!user) {
-            await connection.release()
             throw createError(400, 'this deviceId was not found')
         }
         console.log('post data', data);
@@ -84,12 +103,9 @@ export const setProfile = async (data) => {
         const [userUpdatedRows] = await connection.query(`
             select id, first_name, last_name, email, device_id from game_user where device_id = ${data.deviceId}
         `);
-        await connection.release();
         const updatedUser = userUpdatedRows[0];
         return updatedUser;
-    } catch (error) {
-        console.dir(error)
-        await connection.release();
-        throw new Error(error)
+    } finally {
+        await connection.release()
     }
 }
