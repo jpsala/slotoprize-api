@@ -4,7 +4,9 @@ import toCamelCase from 'camelcase-keys';
 import {
     proccessReelsData, gameInit, proccessReelsDataFromFS, spin, symbolsInDB, delItem,
 } from '../services/slotService';
-import { getOrSetUserByDeviceId, getProfile, setProfile } from '../../meta/services/gameUserService';
+import {
+    getOrSetUserByDeviceId, getProfile, setProfile, saveLogin,
+} from '../../meta/services/gameUserService';
 import { checkToken } from '../middleware/authMiddleware';
 
 import { getNewToken } from '../services/jwtService';
@@ -15,6 +17,7 @@ router.get('/game_init', async (req, res) => {
     try {
         const { deviceId } = req.query
         const user = await getOrSetUserByDeviceId(deviceId);
+        await saveLogin(user.id, 'SlotoPrizes', deviceId);
         const token = getNewToken({ id: user.id }, process.env.TOKEN_EXPIRATION_TIME_PEDRO);
         const resp = await gameInit();
         const initData = {
