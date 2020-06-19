@@ -18,7 +18,7 @@ const runSpin = async () => {
             const [symbolRows] = await conn.query(`select * from symbol where id = ${symbolId}`)
             spinResultData.push({
                 paymentType: symbolRows[0].payment_type,
-                textureUrl: symbolRows[0].texture_url,
+                // textureUrl: symbolRows[0].texture_url,
             });
         }
         await conn.release();
