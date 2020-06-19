@@ -4,8 +4,6 @@ import { verifyToken, getNewToken } from '../services/jwtService';
 export function checkToken(req, res, next) {
     // console.log('req', req.method, req.baseUrl, req.route, req.headers);
     const { token } = req.headers;
-    const dev = req.headers['Dev-Request'];
-    console.log('dev', dev);
     const { decodedToken, error } = verifyToken(token);
 
     if (error || !decodedToken.user) {

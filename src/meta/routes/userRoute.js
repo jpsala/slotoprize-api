@@ -32,10 +32,6 @@ router.get('/session', async (req, res) => {
         process.env.TOKEN_EXPIRATION_TIME_PEDRO);
     res.setHeader('token', token);
     req.user = user;
-    //   res.cookie('aaa', token, {
-    //     maxAge: 900000,
-    //     // httpOnly: true, // ensure the cookie will not be exposed
-    //   });
     res.status(200).json({ user });
 });
 router.get('/users', async (req, res, next) => {

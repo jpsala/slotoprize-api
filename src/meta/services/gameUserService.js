@@ -28,7 +28,6 @@ export const auth = async (user) => {
     }
 }
 export const saveLogin = async (userId, gameName, deviceId) => {
-    console.log('game', gameName, 'SlotoPrizes');
     const game = await getGame(gameName)
     if (!game) throw createError(400, `Game ${gameName} not found in db`)
     const connection = await getConnection()
@@ -40,6 +39,22 @@ export const saveLogin = async (userId, gameName, deviceId) => {
     } finally {
         await connection.release()
         console.log('Finally 1');
+    }
+}
+export const getUserByDeviceId = async (deviceId) => {
+    if (!deviceId) throw createError(400, 'Parameter deviceId missing in getUserByDeviceId')
+    const connection = await getConnection();
+    try {
+        const userSelect = `
+          select *
+            from game_user
+          where device_id = "${deviceId}"`;
+        const [rows] = await connection.query(userSelect);
+        const user = rows.length ? rows[0] : false;
+        return user
+    } finally {
+        console.log('release ok in getuserbydeviceid');
+        await connection.release()
     }
 }
 export const getOrSetUserByDeviceId = async (deviceId) => {
@@ -71,7 +86,7 @@ export const getProfile = async (deviceId) => {
     const connection = await getConnection();
     try {
         const userSelect = `
-          select first_name, last_name, email, device_id
+          select first_name, last_name, email
             from game_user
           where device_id ='${deviceId}'`;
         const [rows] = await connection.query(userSelect);
