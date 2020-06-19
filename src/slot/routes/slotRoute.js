@@ -4,7 +4,7 @@ import toCamelCase from 'camelcase-keys';
 import {
     proccessReelsData, gameInit, proccessReelsDataFromFS, spin, symbolsInDB, delItem,
 } from '../services/slotService';
-import { getOrSetUserByDeviceId, getProfile } from '../../meta/services/gameUserService';
+import { getOrSetUserByDeviceId, getProfile, setProfile } from '../../meta/services/gameUserService';
 import { checkToken } from '../middleware/authMiddleware';
 
 import { getNewToken } from '../services/jwtService';
@@ -39,6 +39,10 @@ router.get('/spin', checkToken, async (req, res) => {
 router.get('/profile', checkToken, async (req, res) => {
     const resp = await getProfile(req.query.deviceId);
     res.status(200).json(toCamelCase(resp));
+});
+router.post('/profile', checkToken, async (req, res) => {
+    const resp = await setProfile(req.body);
+    res.status(200).json({ profileData: toCamelCase(resp) });
 });
 router.get('/symbols_in_db', async (req, res) => {
     const { fromFS } = req.params;

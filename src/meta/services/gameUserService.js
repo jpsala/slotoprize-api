@@ -1,7 +1,7 @@
 import createError from 'http-errors'
 import getConnection from './db';
 
-const auth = async (user) => {
+export const auth = async (user) => {
     const connection = await getConnection();
     console.log('user', user);
     const select = `
@@ -18,43 +18,7 @@ const auth = async (user) => {
         return { status: error }
     }
 }
-const setUser = async (user) => {
-    const [rows] = await getConnection().query(`
-    update user set
-        nombre = "${user.nombre}",
-        apellido = "${user.apellido}",
-        login = "${user.login}",
-        password = "${user.password}",
-        email = "${user.email}",
-        documento = "${user.documento}",
-        legajo = "${user.legajo}"
-    where id = ${user.id}
-  `);
-    return rows;
-};
-const getUsers = async () => {
-    const userSelect = `
-      select *
-        from user order by apellido, nombre`;
-    const [rows] = await getConnection().query(userSelect);
-    return rows;
-};
-const getUser = async (id) => {
-    const connection = await getConnection();
-    try {
-        const userSelect = `
-          select *
-            from user u
-          where u.id = ${id}`;
-        const [rows] = await connection.query(userSelect);
-        await connection.release()
-        return rows.length ? rows[0] : rows;
-    } catch (error) {
-        await connection.release()
-        return { status: error }
-    }
-};
-const getOrSetUserByDeviceId = async (deviceId) => {
+export const getOrSetUserByDeviceId = async (deviceId) => {
     if (!deviceId) throw createError(400, 'Paramter deviceId missing')
     const connection = await getConnection();
     try {
@@ -82,44 +46,50 @@ const getOrSetUserByDeviceId = async (deviceId) => {
         throw new Error(error)
     }
 };
-const getProfile = async (deviceId) => {
+export const getProfile = async (deviceId) => {
     if (!deviceId) throw createError(400, 'Paramter deviceId missing')
     const connection = await getConnection();
     try {
         const userSelect = `
-          select *
+          select first_name, last_name, email, device_id
             from game_user
           where device_id = ${deviceId}`;
         const [rows] = await connection.query(userSelect);
-        return rows;
+        return rows[0];
     } catch (error) {
         throw new Error(error)
     }
 }
-const delUser = async (id) => {
-    const userSelect = `delete from user where id = ${id}`;
-    const socioSelect = `delete from socio where empleado_id = ${id}`;
+export const setProfile = async (data) => {
+    // if (!deviceId) throw createError(400, 'Paramter deviceId missing')
+    const connection = await getConnection();
     try {
-        await getConnection().query(socioSelect);
-        await getConnection().query(userSelect);
-        return { error: false };
+        const [userRows] = await connection.query(`select * from game_user where device_id = ${data.deviceId}`);
+        const user = userRows[0]
+        if (!user) {
+            await connection.release()
+            throw createError(400, 'this deviceId was not found')
+        }
+        console.log('post data', data);
+        const [respUpdate] = await connection.query(`
+            update game_user set
+                email = '${data.email}',
+                first_name = '${data.firstName}',
+                last_name = '${data.lastName}',
+                device_name = '${data.deviceName}',
+                device_model = '${data.deviceModel}'
+            where device_id = '${data.deviceId}'
+        `)
+        console.log('respUpdate', respUpdate)
+        const [userUpdatedRows] = await connection.query(`
+            select id, first_name, last_name, email, device_id from game_user where device_id = ${data.deviceId}
+        `);
+        await connection.release();
+        const updatedUser = userUpdatedRows[0];
+        return updatedUser;
     } catch (error) {
-        console.log('error', error);
-        return { error: error.sqlMessage };
+        console.dir(error)
+        await connection.release();
+        throw new Error(error)
     }
-};
-const getUsersByTerm = async (term, limit = 100) => {
-    const userSelect = `
-      select *
-        from user u
-      where u.nombre like "%${term}%" or u.apellido like "%${term}%"
-                or u.login like "%${term}%" or u.email like "%${term}%"
-      order by u.apellido, u.nombre
-      limit ${limit}`;
-    console.log('detalle', userSelect);
-    const [rows] = await getConnection('localhost').query(userSelect);
-    return rows;
-};
-export {
-    auth, getUser, getUsers, getUsersByTerm, setUser, delUser, getOrSetUserByDeviceId, getProfile,
-};
+}
