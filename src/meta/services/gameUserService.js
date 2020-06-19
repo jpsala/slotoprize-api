@@ -73,7 +73,7 @@ export const getProfile = async (deviceId) => {
         const userSelect = `
           select first_name, last_name, email, device_id
             from game_user
-          where device_id = ${deviceId}`;
+          where device_id ='${deviceId}'`;
         const [rows] = await connection.query(userSelect);
         return rows[0];
     } finally {
