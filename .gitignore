@@ -1,5 +1,2 @@
-.history
-dist
-node_modules
-api.bz2
-.vscode/
+node_modules/
+.history/
