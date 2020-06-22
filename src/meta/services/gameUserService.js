@@ -82,7 +82,7 @@ export const getOrSetUserByDeviceId = async (deviceId) => {
     }
 };
 export const getProfile = async (deviceId) => {
-    if (!deviceId) throw createError(400, 'Paramter deviceId missing')
+    if (!deviceId) throw createError(400, 'Parameter deviceId missing')
     const connection = await getConnection();
     try {
         const userSelect = `
@@ -90,12 +90,17 @@ export const getProfile = async (deviceId) => {
             from game_user
           where device_id ='${deviceId}'`;
         const [rows] = await connection.query(userSelect);
-        return rows[0];
+        const user = rows[0];
+        if (!user) throw createError(400, 'deviceId parameter missing in get profile')
+        return user;
     } finally {
         await connection.release()
     }
 }
-export const setProfile = async (data) => {
+export /**
+ * @param {{ deviceId: any; email: any; firstName: any; lastName: any; deviceName: any; deviceModel: any; }} data
+ */
+ const setProfile = async (data) => {
     // if (!deviceId) throw createError(400, 'Paramter deviceId missing')
     const connection = await getConnection();
     try {
