@@ -20,7 +20,7 @@ export async function postProfile(req: Request, res: Response): Promise<any> {
 }
 
 export async function spin(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.spin()
+  const resp = await slotService.spin(req.query.deviceId as string)
   res.status(httpStatusCodes.OK).json(resp)
 }
 export async function gameInit(req: Request, res: Response): Promise<any> {
@@ -46,4 +46,15 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
   } catch (error) {
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, error)
   }
+}
+export async function getWallet(req: Request, res: Response): Promise<any> {
+  const resp = await slotService.getWallet(req.query.deviceId as string)
+  res.status(httpStatusCodes.OK).json(resp)
+}
+export async function purchaseTickets(req: Request, res: Response): Promise<any> {
+  const resp = await slotService.purchaseTickets(
+    req.query.deviceId as string,
+    Number(req.query.ticketAmount) as number
+  )
+  res.status(httpStatusCodes.OK).json(resp)
 }
