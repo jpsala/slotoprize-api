@@ -25,8 +25,10 @@ export async function spin(req: Request, res: Response): Promise<any> {
 }
 export async function gameInit(req: Request, res: Response): Promise<any> {
   try {
-    const deviceId = req.query.deviceId
+    const deviceId = req.query.deviceId as string
     const rawUser = await metaService.getOrSetUserByDeviceId(deviceId as string)
+    const wallet = await slotService.getOrSetWallet(deviceId, rawUser.id)
+    console.log('wallet', wallet)
     // @URGENT crear savelogin
     // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
@@ -37,10 +39,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
       sessionId: token,
       profileData: toCamelCase(user),
       reelsData: resp.reelsData,
-      walletData: {
-        coins: 10,
-        tickers: 3,
-      },
+      walletData: wallet,
     }
     return res.status(httpStatusCodes.OK).json(initData)
   } catch (error) {

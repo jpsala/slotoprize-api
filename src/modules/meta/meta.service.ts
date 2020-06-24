@@ -71,3 +71,4 @@ export const getUserByDeviceId = async (deviceId: string): Promise<any> => {
     await connection.release()
   }
 }
+

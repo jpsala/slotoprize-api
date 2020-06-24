@@ -1,10 +1,31 @@
-import createError, {UnsupportedMediaType} from 'http-errors'
+import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
 import * as metaService from '../meta/meta.service'
 import getMetaConnection from '../meta/meta.db'
 import runSpin from "./services/spin"
 import getSlotConnection from './db.slot'
 
+export const getOrSetWallet = async (deviceId: string, userId: string): Promise<any> => {
+  const connMeta = await getMetaConnection()
+  const conn = await getSlotConnection()
+  try {
+    let wallet = await getWallet(deviceId)
+    console.log('wallet', wallet)
+    if (!wallet) {
+      // const [gameUserRows] = await connMeta.query(`select  * from  game_user where device_id = ${deviceId}`)
+      // const gameUser = gameUserRows[0]
+      // console.log('user', gameUser)
+      const [respRows] = await conn.query(`
+        insert into wallet(game_user_id, coins, tickets) value (${userId}, 0, 0)
+      `)
+      console.log('resprows', respRows)
+      wallet = getWallet(deviceId)
+    }
+    return wallet
+  } catch (error) {
+    throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, error)
+  }
+}
 export const gameInit = async (): Promise<any> => {
   const conn = await getSlotConnection()
   const resp: {reelsData: any[]} = {reelsData: []}
