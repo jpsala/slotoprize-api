@@ -73,10 +73,13 @@ export const setProfile = async (deviceId: string, data: any = {}): Promise<any>
     await conn.release()
   }
 }
-export const spin = async (deviceId: string): Promise<any> => {
+export const spin = async (deviceId: string, bet: string): Promise<any> => {
   const wallet = await getWallet(deviceId)
-  const spinData = await runSpin(deviceId)
-  return {spinData, wallet}
+  const spinData = await runSpin(deviceId, bet, wallet)
+  // const walletAfterBet = spinData.wallet
+  // console.log("walletAfterBet", walletAfterBet)
+  // @TODO save spin to DB
+  return {spinData}
 
 }
 export const getWallet = async (deviceId: string): Promise<any> => {
@@ -85,7 +88,7 @@ export const getWallet = async (deviceId: string): Promise<any> => {
   const user = await metaService.getUserByDeviceId(deviceId)
   try {
     const [walletRows] = await conn.query(
-      `select id, coins, tickets from wallet where game_user_id ='${user.id}'`
+      `select coins, tickets from wallet where game_user_id ='${user.id}'`
     )
     const wallet = walletRows[0]
     if (!user) { throw createError(httpStatusCodes.BAD_REQUEST, 'there is no user associated with this deviceId') }

@@ -24,7 +24,6 @@ export const getOrSetUserByDeviceId = async (deviceId: string): Promise<any> => 
     } else { user.isNew = false }
     return user
   } finally {
-    console.log('release ok in getuserbydeviceid')
     await connection.release()
   }
 }
@@ -68,7 +67,7 @@ export const getUserByDeviceId = async (deviceId: string): Promise<any> => {
     const user = rows.length ? rows[0] : false
     return user
   } finally {
-    console.log('release ok in getuserbydeviceid')
+    // console.log('release ok in getuserbydeviceid')
     await connection.release()
   }
 }

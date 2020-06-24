@@ -20,7 +20,7 @@ export async function postProfile(req: Request, res: Response): Promise<any> {
 }
 
 export async function spin(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.spin(req.query.deviceId as string)
+  const resp = await slotService.spin(req.query.deviceId as string, req.query.bet as string)
   res.status(httpStatusCodes.OK).json(resp)
 }
 export async function gameInit(req: Request, res: Response): Promise<any> {

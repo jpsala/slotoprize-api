@@ -21,7 +21,7 @@ export default function getConnection(host = 'localhost'): any {
   pool[host] = createPool(config)
   pool[host].on('acquire', () => {
     acquiredConnections += 1
-    console.info('db meta: acquire', acquiredConnections)
+    // console.info('db meta: acquire', acquiredConnections)
     if (acquiredConnections > 5) { console.error('db meta: verify cant of connections maybe a release is missing') }
   })
   pool[host].on('connection', () => {
@@ -36,7 +36,7 @@ export default function getConnection(host = 'localhost'): any {
   })
   pool[host].on('release', () => {
     acquiredConnections -= 1
-    console.info('db meta:release', acquiredConnections)
+    // console.info('db meta:release', acquiredConnections)
   })
   return pool[host].getConnection()
 }
