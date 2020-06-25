@@ -97,11 +97,9 @@ export const setProfile = async (deviceId: string, data: any = {}): Promise<any>
 export const spin = async (deviceId: string, bet: string): Promise<any> => {
   const wallet = await getWallet(deviceId)
   const spinData = await runSpin(deviceId, bet, wallet)
-  // const walletAfterBet = spinData.wallet
-  // console.log("walletAfterBet", walletAfterBet)
-  // @TODO save spin to DB
+  const walletAfterBet = spinData.wallet
+  if (spinData.isWin) { await updateWallet(deviceId, walletAfterBet) }
   return {spinData}
-
 }
 export const getWallet = async (deviceId: string): Promise<any> => {
   if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
@@ -114,6 +112,23 @@ export const getWallet = async (deviceId: string): Promise<any> => {
     const wallet = walletRows[0]
     if (!user) { throw createError(httpStatusCodes.BAD_REQUEST, 'there is no user associated with this deviceId') }
     return wallet
+  } finally {
+    await conn.release()
+  }
+}
+async function updateWallet(deviceId: string, wallet: any): Promise<any> {
+  // @TODO save spin to DB
+  const conn = await getSlotConnection()
+  try {
+    const user = await metaService.getUserByDeviceId(deviceId)
+    const [respUpdateRow] = await conn.query(`
+      update wallet set coins = ${wallet.coins} where game_user_id = ${user.id}
+  `)
+    if (Number(respUpdateRow.affectedRows) !== 1) {
+      throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, 'Something whent wrong storing the wallet')
+    }
+  } catch (error) {
+    throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, error)
   } finally {
     await conn.release()
   }
@@ -140,3 +155,5 @@ export const purchaseTickets = async (deviceId: string, ticketAmount: number): P
   wallet.tickets = ticketAmountAnt - ticketAmount
   return wallet
 }
+
+

@@ -2,10 +2,11 @@ import {Request, Response} from 'express'
 import * as httpStatusCodes from "http-status-codes"
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
+import {verifyToken, getNewToken} from '../../services/jwtService'
+import {User} from "../meta/meta.types"
 
-import {getNewToken} from '../../services/jwtService'
 import * as metaService from '../meta/meta.service'
-
+// import * as types from '../meta/meta.types'
 import * as slotService from './slot.service'
 
 export async function getProfile(req: Request, res: Response): Promise<any> {
@@ -26,7 +27,7 @@ export async function spin(req: Request, res: Response): Promise<any> {
 export async function gameInit(req: Request, res: Response): Promise<any> {
   try {
     const deviceId = req.query.deviceId as string
-    const rawUser = await metaService.getOrSetUserByDeviceId(deviceId as string)
+    const rawUser = await metaService.getOrSetGameUserByDeviceId(deviceId as string)
     const wallet = await slotService.getOrSetWallet(deviceId, rawUser.id)
     console.log('wallet', wallet)
     // @URGENT crear savelogin
@@ -56,4 +57,40 @@ export async function purchaseTickets(req: Request, res: Response): Promise<any>
     Number(req.query.ticketAmount) as number
   )
   res.status(httpStatusCodes.OK).json(resp)
+}
+export async function withToken(req: Request, res: Response): Promise<any> {
+  console.log('req', req)
+  const loginToken = req.query.token as string
+  const statusToken = verifyToken(loginToken)
+  console.log('st', statusToken.decodedToken.user)
+  const { id } = statusToken.decodedToken.user as User
+  console.log('id', id)
+  const user = await metaService.getUserById(id)
+  console.log('user', user)
+  if (!user) {
+    return res.status(401).send({auth: false, message: 'The user in the token was not found in the db'})
+  }
+  const token = getNewToken({user: {id: user.id, name: user.name}})
+  res.setHeader('token', token)
+  // eslint-disable-next-line require-atomic-updates
+  req.user = user
+  const retUser = {name: user.name, email: user.email, id: user.id}
+  res.status(200).json({user: retUser})
+  return undefined
+}
+export async function auth(req: Request, res: Response): Promise<any> {
+  try {
+    const user = await metaService.auth(req.body)
+    if (!user) { throw createError(httpStatusCodes.BAD_REQUEST, 'Email and/or Password not found') }
+    // const user = rows.length > 0 ? rows[0] : undefined
+    // if (!user) {
+    //   return res.status(401).send({auth: false, message: 'Error de credenciales, revise los datos'})
+    // }
+    const token = getNewToken({user: {id: user.id, name: user.name}})
+    res.setHeader('token', token)
+    // req.user = user
+    res.status(httpStatusCodes.OK).json(user)
+  } catch (error) {
+    res.status(500).json(error)
+  }
 }

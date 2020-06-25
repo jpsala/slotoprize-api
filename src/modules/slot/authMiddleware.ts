@@ -3,7 +3,7 @@ import {NextFunction, Request, Response} from 'express'
 import createError from 'http-errors'
 
 import {verifyToken} from '../../services/jwtService'
-import {getUserByDeviceId} from '../meta/meta.service'
+import {getGameUserByDeviceId} from '../meta/meta.service'
 
 export async function checkToken(req: Request, res: Response, next: NextFunction):Promise<any> {
   const {'dev-request': dev} = req.headers
@@ -16,7 +16,7 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
       console.error(`falta deviceId in req.query in ${req.baseUrl}${req.route.path}`)
       throw createError(400, `deviceId parameter missing ${req.baseUrl}${req.route.path}`)
     }
-    const user = await getUserByDeviceId(deviceId as string)
+    const user = await getGameUserByDeviceId(deviceId as string)
     req.user = deviceId
     req.user = user.id
     return next()

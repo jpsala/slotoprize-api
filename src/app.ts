@@ -1,4 +1,6 @@
 import express, {Express, Request, Response, NextFunction} from 'express'
+import cors from 'cors'
+
 import {HttpError} from 'http-errors'
 import 'express-async-errors'
 
@@ -9,6 +11,12 @@ const createApp = (): Express => {
 
   const app = express()
   app.use(express.json())
+  app.use(cors())
+  app.use('*', (req, res, next) => {
+    res.setHeader('Access-Control-Expose-Headers', '*')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    next()
+  })
   app.use('/api/', routes)
   app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
     // console.log('Error catched in error handler: ', error.status || 500)

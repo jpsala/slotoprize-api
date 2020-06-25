@@ -22,7 +22,8 @@ export default function getConnection(host = 'localhost'): any {
   pool[host].on('acquire', () => {
     acquiredConnections += 1
     // console.info('db meta: acquire', acquiredConnections)
-    if (acquiredConnections > 5) { console.error('db meta: verify cant of connections maybe a release is missing') }
+    if (acquiredConnections > 1) { console.warn('db meta: verify cant of connections maybe a release is missing', acquiredConnections) }
+    if (acquiredConnections > 5) { console.error('db meta: verify cant of connections maybe a release is missing', acquiredConnections) }
   })
   pool[host].on('connection', () => {
         // poolSize += 1;
@@ -31,7 +32,7 @@ export default function getConnection(host = 'localhost'): any {
   pool[host].on('enqueue', () => {
     queueSize += 1
         // export more Prometheus metrics...
-    console.error('db meta: Connection pool is waiting for a connection, posibly a release is missing')
+    console.error('db meta: Connection pool is waiting for a connection, posibly a release is missing', acquiredConnections)
     console.info('db meta: connector.DBConnection.enqueue', {queueSize})
   })
   pool[host].on('release', () => {

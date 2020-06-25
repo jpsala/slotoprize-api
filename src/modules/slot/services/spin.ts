@@ -17,8 +17,12 @@ export default async function spin(deviceId: string, bet: string, wallet: any): 
     const points = winRow.points
     const filltable = await getFillTable(payTable)
     const winRowFilled = await getWinRowWithEmptyFilled(winRow, filltable)
-    // eslint-disable-next-line prefer-object-spread
-    return Object.assign({}, winRowFilled, {points, wallet})
+      // { type: "coins", "ticket", "jackpot" amount: 1...n }
+    const type = "coins"
+    const isWin = true
+    const returnObject = {symbolsData: winRowFilled, points, wallet, isWin, type}
+    // return Object.assign({}, winRowFilled, {points, wallet, isWin, type})
+    return returnObject
   } catch (error) {
     throw createError(500, error)
   }
@@ -51,9 +55,9 @@ const getPayTable = async () => {
   const conn = await getSlotConnection()
   try {
     const [payTable] = await conn.query(`
-    select s.payment_type, pt.symbol_amount, pt.probability, pt.points
-    from pay_table pt
-    inner join symbol s on s.id = pt.symbol_id`)
+      select s.payment_type, pt.symbol_amount, pt.probability, pt.points
+        from pay_table pt
+      inner join symbol s on s.id = pt.symbol_id`)
     return payTable
   } finally {
     await conn.release()
