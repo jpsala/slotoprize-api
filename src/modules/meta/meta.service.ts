@@ -4,7 +4,7 @@ import getConnection from './meta.db'
 import {User} from './meta.types'
 
 export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<any> => {
-  if (!deviceId) { throw createError(400, 'Parameter deviceId missing in getUserByDeviceId') }
+  if (!deviceId) { throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId') }
   const connection = await getConnection()
   try {
     const userSelect = `
@@ -67,12 +67,12 @@ export const getUserById = async (id: number): Promise<User> => {
     const user = rows.length ? rows[0] : false
     return user
   } finally {
-    // console.log('release ok in getuserbydeviceid')
+    // console.log('release ok in getGameUserByDeviceId')
     await connection.release()
   }
 }
 export const getGameUserByDeviceId = async (deviceId: string): Promise<any> => {
-  if (!deviceId) { throw createError(400, 'Parameter deviceId missing in getUserByDeviceId') }
+  if (!deviceId) { throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId') }
   const connection = await getConnection()
   try {
     const userSelect = `
@@ -83,7 +83,7 @@ export const getGameUserByDeviceId = async (deviceId: string): Promise<any> => {
     const user = rows.length ? rows[0] : false
     return user
   } finally {
-    // console.log('release ok in getuserbydeviceid')
+    // console.log('release ok in getGameUserByDeviceId')
     await connection.release()
   }
 }

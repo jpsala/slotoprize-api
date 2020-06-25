@@ -6,7 +6,6 @@ import runSpin from "./services/spin"
 import getSlotConnection from './db.slot'
 
 export const getOrSetWallet = async (deviceId: string, userId: string): Promise<any> => {
-  const connMeta = await getMetaConnection()
   const conn = await getSlotConnection()
   try {
     let wallet = await getWallet(deviceId)
@@ -104,7 +103,7 @@ export const spin = async (deviceId: string, bet: string): Promise<any> => {
 export const getWallet = async (deviceId: string): Promise<any> => {
   if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
   const conn = await getSlotConnection()
-  const user = await metaService.getUserByDeviceId(deviceId)
+  const user = await metaService.getGameUserByDeviceId(deviceId)
   try {
     const [walletRows] = await conn.query(
       `select coins, tickets from wallet where game_user_id ='${user.id}'`
@@ -120,7 +119,7 @@ async function updateWallet(deviceId: string, wallet: any): Promise<any> {
   // @TODO save spin to DB
   const conn = await getSlotConnection()
   try {
-    const user = await metaService.getUserByDeviceId(deviceId)
+    const user = await metaService.getGameUserByDeviceId(deviceId)
     const [respUpdateRow] = await conn.query(`
       update wallet set coins = ${wallet.coins} where game_user_id = ${user.id}
   `)
@@ -139,7 +138,7 @@ export const purchaseTickets = async (deviceId: string, ticketAmount: number): P
   const conn = await getSlotConnection()
   const wallet = await getWallet(deviceId)
   const ticketAmountAnt = wallet.tickets
-  const user = await metaService.getUserByDeviceId(deviceId)
+  const user = await metaService.getGameUserByDeviceId(deviceId)
   // until we have a value for a ticket
   const ticketValue = 1
   const coinsRequired = ticketAmount * ticketValue

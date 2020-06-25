@@ -63,7 +63,7 @@ export async function withToken(req: Request, res: Response): Promise<any> {
   const loginToken = req.query.token as string
   const statusToken = verifyToken(loginToken)
   console.log('st', statusToken.decodedToken.user)
-  const { id } = statusToken.decodedToken.user as User
+  const {id} = statusToken.decodedToken.user as User
   console.log('id', id)
   const user = await metaService.getUserById(id)
   console.log('user', user)
