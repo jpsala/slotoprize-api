@@ -154,5 +154,29 @@ export const purchaseTickets = async (deviceId: string, ticketAmount: number): P
   wallet.tickets = ticketAmountAnt - ticketAmount
   return wallet
 }
-
+export const symbolsInDB = async (): Promise<any> => {
+  const conn = await getSlotConnection()
+  try {
+    const [SymbolsRows] = await conn.query('select * from symbol')
+    const [reelsRows] = await conn.query('select * from reel')
+    const reels: any[] = []
+    for (const reel of reelsRows) {
+      const [reelRows] = await conn.query(`
+              SELECT rs.id as reel_symbol_id, rs.order, s.* FROM reel_symbol rs
+              INNER JOIN symbol s ON s.id = rs.symbol_id
+              order by rs.order
+          `)
+      reels.push({
+        reel,
+        symbols: reelRows,
+      })
+    }
+    await conn.release()
+    return {reels, symbols: SymbolsRows}
+  } catch (error) {
+    console.error(error)
+    await conn.release()
+    return {status: 'error'}
+  }
+}
 

@@ -9,17 +9,19 @@ import * as metaService from '../meta/meta.service'
 // import * as types from '../meta/meta.types'
 import * as slotService from './slot.service'
 
+export async function symbolsInDB(req: Request, res: Response): Promise<any> {
+  const resp = await slotService.symbolsInDB()
+  res.status(httpStatusCodes.OK).json(toCamelCase(resp))
+}
 export async function getProfile(req: Request, res: Response): Promise<any> {
   const resp = await slotService.getProfile(req.query.deviceId as string)
   res.status(httpStatusCodes.OK).json(toCamelCase(resp))
 }
-
 export async function postProfile(req: Request, res: Response): Promise<any> {
   console.log('rq', req.query)
   const resp = await slotService.setProfile(req.query.deviceId as string, req.body)
   res.status(httpStatusCodes.OK).json({profileData: toCamelCase(resp)})
 }
-
 export async function spin(req: Request, res: Response): Promise<any> {
   const resp = await slotService.spin(req.query.deviceId as string, req.query.bet as string)
   res.status(httpStatusCodes.OK).json(resp)
@@ -93,4 +95,7 @@ export async function auth(req: Request, res: Response): Promise<any> {
   } catch (error) {
     res.status(500).json(error)
   }
+}
+export function postman(req: Request, res: Response):any {
+  res.status(httpStatusCodes.OK).json(req.body)
 }
