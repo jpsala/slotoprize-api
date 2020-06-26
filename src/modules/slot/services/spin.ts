@@ -9,7 +9,7 @@ export default async function spin(deviceId: string, multiplier: string | number
   if (!multiplier) { throw createError(httpStatusCodes.BAD_REQUEST, 'multiplier is a required parameter') }
   try {
     const spinCount = await settingGet('spinCount', '0') as number
-    if(Number(spinCount) > 1) return 'Jackpot'
+    if (Number(spinCount) > 10) { return 'Jackpot' }
     // if(Number(spinCount) === 1000000) throw createError(200, 'Jackpot')
     const spinCost = await settingGet('spinCost', '1') as number
     const bet = spinCost * Number(multiplier)

@@ -63,6 +63,7 @@ export const getUserById = async (id: number): Promise<User> => {
         select *
           from user
         where id = "${id}"`
+    console.log('users', userSelect)
     const [rows] = await connection.query(userSelect)
     const user = rows.length ? rows[0] : false
     return user
@@ -74,11 +75,12 @@ export const getUserById = async (id: number): Promise<User> => {
 export const getGameUserByDeviceId = async (deviceId: string): Promise<any> => {
   if (!deviceId) { throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId') }
   const connection = await getConnection()
+  console.log('aca?')
   try {
     const userSelect = `
         select *
           from game_user
-        where device_id = "${deviceId}"`
+        where device_id = '${deviceId}'`
     const [rows] = await connection.query(userSelect)
     const user = rows.length ? rows[0] : false
     return user

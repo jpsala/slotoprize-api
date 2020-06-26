@@ -9,7 +9,6 @@ let queueSize = 0
 let poolSize = 0
 const log = false
 export default async function getConnection(host: string = 'localhost'): Promise<any> {
-  // eslint-disable-next-line no-param-reassign
   if (pool[host]) {
     return pool[host].getConnection()
   }

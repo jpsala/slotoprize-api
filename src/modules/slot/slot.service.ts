@@ -70,7 +70,7 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   if (!user.deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
   const conn = await getMetaConnection()
   try {
-    const [userRows]: any = await conn.query(`select * from game_user where device_id = ${user.deviceId}`)
+    const [userRows]: any = await conn.query(`select * from game_user where device_id = '${user.deviceId}'`)
     const userExists = userRows[0]
     if (!userExists) {
       throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')

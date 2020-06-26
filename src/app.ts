@@ -1,11 +1,15 @@
 import express, {Express, Request, Response, NextFunction} from 'express'
+import bodyParser from "body-parser"
 import cors from 'cors'
 
 import {HttpError} from 'http-errors'
 import 'express-async-errors'
 
 // import errorMiddleware from './middleware/error.middleware'
+import multer from "multer"
 import routes from './routes'
+
+const upload = multer()
 
 const createApp = (): Express => {
 
@@ -17,6 +21,8 @@ const createApp = (): Express => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     next()
   })
+  app.use(bodyParser.urlencoded({extended: true}))
+  app.use(upload.array())
   app.use('/api/', routes)
   app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
     // console.log('Error catched in error handler: ', error.status || 500)
