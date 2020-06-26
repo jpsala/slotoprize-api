@@ -9,14 +9,14 @@ export default async function spin(deviceId: string, multiplier: string | number
   if (!multiplier) { throw createError(httpStatusCodes.BAD_REQUEST, 'multiplier is a required parameter') }
   try {
     const spinCount = await settingGet('spinCount', '0') as number
-    if (Number(spinCount) > 10) { return 'Jackpot' }
+    if (Number(spinCount) > 1000000) { return 'Jackpot' }
     // if(Number(spinCount) === 1000000) throw createError(200, 'Jackpot')
     const spinCost = await settingGet('spinCost', '1') as number
     const bet = spinCost * Number(multiplier)
     const enoughCoins = ((Number(wallet.coins) - Number(bet)) >= 0)
     if (!enoughCoins) { throw createError(400, 'Insufficient funds') }
     const canPlay = checkIfCanPlay()
-    saveSpinToDb()
+    saveSpinToDb(Number(multiplier))
     if (!canPlay) { return {isWin: false, wallet} }
     wallet.coins -= Number(bet)
     const payTable = await getPayTable()
@@ -31,9 +31,9 @@ export default async function spin(deviceId: string, multiplier: string | number
     throw createError(500, error)
   }
 }
-const saveSpinToDb = async (): Promise <void> => {
-  const spinCount = await settingGet('spinCount', '0')
-  settingSet('spinCount', String(Number(spinCount) + 1))
+const saveSpinToDb = async (multiplier: number): Promise <void> => {
+  const spinCount = await settingGet('spinCount', String(multiplier))
+  settingSet('spinCount', String(Number(spinCount) + multiplier))
 }
 const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   const winSymbolAmount = winRow.symbol_amount
