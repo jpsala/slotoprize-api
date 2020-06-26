@@ -45,7 +45,6 @@ export const queryOne = async (query: string, params: any = []): Promise<any> =>
   const conn = await getConnection()
   try {
     const [result] = await conn.query(query, params)
-    console.log('result', result[0], result.length)
     return result.length > 0 ? result[0] : undefined
   } finally {
     await conn.release()

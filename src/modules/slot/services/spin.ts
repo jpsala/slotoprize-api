@@ -17,6 +17,7 @@ export default async function spin(deviceId: string, multiplier: string | number
     wallet.coins -= Number(bet)
     const payTable = await getPayTable()
     const winRow = await getWinRow(payTable)
+    if (!winRow) { throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, 'getWinRow falló!!! reportar a JP :)') }
     const amount = winRow.points * Number(multiplier)
     const filltable = await getFillTable(payTable)
     const symbolsData = await getWinRowWithEmptyFilled(winRow, filltable)
@@ -56,7 +57,8 @@ const getPayTable = async () => {
     const [payTable] = await conn.query(`
       select s.payment_type, pt.symbol_amount, pt.probability, pt.points
         from pay_table pt
-      inner join symbol s on s.id = pt.symbol_id`)
+      inner join symbol s on s.id = pt.symbol_id
+      order by pt.probability asc`)
     return payTable
   } finally {
     await conn.release()
@@ -66,10 +68,16 @@ const getFillTable = (payTable) => payTable.filter((rowOf3) => rowOf3.symbol_amo
 const checkIfCanPlay = () => getRandomNumber() > 20
 const getRandomNumber = (from = 1, to = 100) => Math.floor((Math.random() * (to + 1)) + from)
 const getWinRow = (table) => {
-  let probabilityAcumulation = 0
   const randomNumberBetween1and100 = getRandomNumber(1, 100)
-  return table.find((row) => {
-    probabilityAcumulation += Number(row.probability)
-    return (randomNumberBetween1and100 <= probabilityAcumulation)
-  })
+  console.log("getWinRow -> randomNumberBetween1and100", randomNumberBetween1and100)
+  // @TODO shuffle before run
+  let winRow = table.find((row) => randomNumberBetween1and100 <= Number(row.probability))
+  // let probabilityAcumulation = 0
+  // const winRow = table.find((row) => {
+    // probabilityAcumulation += Number(row.probability)
+    // return (randomNumberBetween1and100 <= probabilityAcumulation)
+    // return (randomNumberBetween1and100 <= Number(row.probability))
+  // })
+  if (!winRow) { winRow = getWinRow(table) }
+  return winRow
 }
