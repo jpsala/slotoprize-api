@@ -42,10 +42,10 @@ export const gameInit = async (): Promise<any> => {
       symbols.forEach((_symbol) => symbolsData.push(_symbol))
       resp.reelsData.push({symbolsData})
     }
-    conn.release()
+    await conn.release()
     return resp
   } catch (error) {
-    conn.release()
+    await conn.release()
     console.log('error', error)
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, error)
   }
