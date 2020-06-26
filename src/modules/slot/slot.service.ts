@@ -2,6 +2,7 @@ import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
 import * as metaService from '../meta/meta.service'
 import getMetaConnection from '../meta/meta.db'
+import {GameUser} from "../meta/meta.types"
 import runSpin from "./services/spin"
 import getSlotConnection from './db.slot'
 
@@ -65,39 +66,40 @@ export const getProfile = async (deviceId: string): Promise<any> => {
     await conn.release()
   }
 }
-export const setProfile = async (deviceId: string, data: any = {}): Promise<any> => {
-  if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
+export const setProfile = async (user: GameUser): Promise<any> => {
+  if (!user.deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
   const conn = await getMetaConnection()
   try {
-    const [userRows]: any = await conn.query(`select * from game_user where device_id = ${data.deviceId}`)
-    const user = userRows[0]
-    if (!user) {
+    const [userRows]: any = await conn.query(`select * from game_user where device_id = ${user.deviceId}`)
+    const userExists = userRows[0]
+    if (!userExists) {
       throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
     }
     const [respUpdate]: any = await conn.query(`
           update game_user set
-              email = '${data.email}',
-              first_name = '${data.firstName}',
-              last_name = '${data.lastName}',
-              device_name = '${data.deviceName}',
-              device_model = '${data.deviceModel}'
-          where device_id = '${deviceId}'
+              email = '${user.email}',
+              first_name = '${user.firstName}',
+              last_name = '${user.lastName}',
+              device_name = '${user.deviceName}',
+              device_model = '${user.deviceModel}'
+          where device_id = '${user.deviceId}'
       `)
     console.log('respUpdate', respUpdate)
     const [userUpdatedRows]: any = await conn.query(`
-          select id, first_name, last_name, email, device_id from game_user where device_id = '${deviceId}'
+          select id, first_name, last_name, email, device_id from game_user where device_id = '${user.deviceId}'
       `)
     const updatedUser = userUpdatedRows[0]
-    return updatedUser
+    return {firstName: updatedUser.first_name, lastName: updatedUser.last_name, email: updatedUser.email}
   } finally {
     await conn.release()
   }
 }
-export const spin = async (deviceId: string, bet: string): Promise<any> => {
+export const spin = async (deviceId: string, multiplier: string): Promise<any> => {
   const wallet = await getWallet(deviceId)
-  const spinData = await runSpin(deviceId, bet, wallet)
-  const walletAfterBet = spinData.wallet
-  if (spinData.isWin) { await updateWallet(deviceId, walletAfterBet) }
+  if (!wallet) { throw createError(httpStatusCodes.BAD_REQUEST, 'Wallet not fount for this user, someting went wrong') }
+  const spinData = await runSpin(deviceId, multiplier, wallet)
+  const walletAfterSpin = spinData.wallet
+  if (spinData.isWin) { await updateWallet(deviceId, walletAfterSpin) }
   return {spinData}
 }
 export const getWallet = async (deviceId: string): Promise<any> => {

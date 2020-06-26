@@ -3,7 +3,7 @@ import * as httpStatusCodes from "http-status-codes"
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import {verifyToken, getNewToken} from '../../services/jwtService'
-import {User} from "../meta/meta.types"
+import {GameUser, User} from "../meta/meta.types"
 
 import * as metaService from '../meta/meta.service'
 // import * as types from '../meta/meta.types'
@@ -18,12 +18,11 @@ export async function getProfile(req: Request, res: Response): Promise<any> {
   res.status(httpStatusCodes.OK).json(toCamelCase(resp))
 }
 export async function postProfile(req: Request, res: Response): Promise<any> {
-  console.log('rq', req.query)
-  const resp = await slotService.setProfile(req.query.deviceId as string, req.body)
+  const resp = await slotService.setProfile(req.body as GameUser)
   res.status(httpStatusCodes.OK).json({profileData: toCamelCase(resp)})
 }
 export async function spin(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.spin(req.query.deviceId as string, req.query.bet as string)
+  const resp = await slotService.spin(req.query.deviceId as string, req.query.multiplier as string)
   res.status(httpStatusCodes.OK).json(resp)
 }
 export async function gameInit(req: Request, res: Response): Promise<any> {

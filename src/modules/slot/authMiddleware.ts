@@ -1,6 +1,6 @@
 /* eslint-disable require-atomic-updates */
 import {NextFunction, Request, Response} from 'express'
-import createError from 'http-errors'
+// import createError from 'http-errors'
 
 import {verifyToken} from '../../services/jwtService'
 import {getGameUserByDeviceId} from '../meta/meta.service'
@@ -11,14 +11,14 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
   // const dev = req.headers['Dev-Request'];
   console.log('dev', isDev)
   if (isDev) {
-    const {deviceId} = req.query
-    if (!deviceId) {
-      console.error(`falta deviceId in req.query in ${req.baseUrl}${req.route.path}`)
-      throw createError(400, `deviceId parameter missing ${req.baseUrl}${req.route.path}`)
-    }
+    let {deviceId} = req.query
+    if (!deviceId) { deviceId = req.body.deviceId }
+    // if (!deviceId) {
+    //   console.error(`falta deviceId in req.query in ${req.baseUrl}${req.route.path}`)
+    //   throw createError(400, `deviceId parameter missing ${req.baseUrl}${req.route.path}`)
+    // }
     const user = await getGameUserByDeviceId(deviceId as string)
-    req.user = deviceId
-    req.user = user.id
+    req.user = {deviceId, user}
     return next()
   }
   const {sessionToken} = req.query

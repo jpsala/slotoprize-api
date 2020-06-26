@@ -1,28 +1,27 @@
 import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
 import getSlotConnection from '../db.slot'
+import {settingGet} from './settings'
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export default async function spin(deviceId: string, bet: string, wallet: any): Promise<any> {
+export default async function spin(deviceId: string, multiplier: string | number, wallet: any): Promise<any> {
   if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
-  if (!bet) { throw createError(httpStatusCodes.BAD_REQUEST, 'bet is a required parameter') }
+  if (!multiplier) { throw createError(httpStatusCodes.BAD_REQUEST, 'multiplier is a required parameter') }
   try {
+    const spinCost = await settingGet('spinCost', 1) as number
+    const bet = spinCost * Number(multiplier)
     const enoughCoins = ((Number(wallet.coins) - Number(bet)) >= 0)
     if (!enoughCoins) { throw createError(400, 'Insufficient funds') }
-    wallet.coins -= Number(bet)
     const canPlay = checkIfCanPlay()
-    if (!canPlay) { return {isWin: false} }
+    if (!canPlay) { return {isWin: false, wallet} }
+    wallet.coins -= Number(bet)
     const payTable = await getPayTable()
     const winRow = await getWinRow(payTable)
-    const points = winRow.points
+    const amount = winRow.points * Number(multiplier)
     const filltable = await getFillTable(payTable)
-    const winRowFilled = await getWinRowWithEmptyFilled(winRow, filltable)
-      // { type: "coins", "ticket", "jackpot" amount: 1...n }
-    const type = "coins"
-    const isWin = true
-    const returnObject = {symbolsData: winRowFilled, points, wallet, isWin, type}
-    // return Object.assign({}, winRowFilled, {points, wallet, isWin, type})
-    return returnObject
+    const symbolsData = await getWinRowWithEmptyFilled(winRow, filltable)
+    const type = winRow.paymentType === 'ticket' ? 'ticket' : 'coins'
+    return {symbolsData, winData: {type, amount}, wallet, isWin: true}
   } catch (error) {
     throw createError(500, error)
   }
