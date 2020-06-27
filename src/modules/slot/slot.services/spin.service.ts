@@ -109,7 +109,7 @@ async function getWinData() {
   let winRow
   let winType
   const spinCount = Number(await settingGet('spinCount', 0))
-  const jackpot = (spinCount >= 2)
+  const jackpot = (spinCount >= 10)
   if (jackpot) {
     winRow = getJackpotRow(payTable)
     winType = 'jackpot'
