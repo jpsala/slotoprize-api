@@ -8,6 +8,7 @@ import {GameUser, User} from "../meta/meta.types"
 import * as metaService from '../meta/meta.service'
 // import * as types from '../meta/meta.types'
 import * as slotService from './slot.service'
+import * as walletService from "./slot.services/wallet.service"
 
 export async function symbolsInDB(req: Request, res: Response): Promise<any> {
   const resp = await slotService.symbolsInDB()
@@ -29,12 +30,11 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
   try {
     const deviceId = req.query.deviceId as string
     const rawUser = await metaService.getOrSetGameUserByDeviceId(deviceId as string)
-    const wallet = await slotService.getOrSetWallet(deviceId, rawUser.id)
-    console.log('wallet', wallet)
+    const wallet = await walletService.getOrSetWallet(deviceId, rawUser.id)
     // @URGENT crear savelogin
     // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
-    const token = getNewToken({id: 1, deviceId: 1})
+    const token = getNewToken({id: rawUser.id, deviceId})
     const user = {firsName: rawUser.first_name, lastNAme: rawUser.last_name, email: rawUser.email}
     const resp = await slotService.gameInit()
     const initData = {
@@ -49,11 +49,11 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
   }
 }
 export async function getWallet(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.getWallet(req.query.deviceId as string)
+  const resp = await walletService.getWallet(req.query.deviceId as string)
   res.status(httpStatusCodes.OK).json(resp)
 }
 export async function purchaseTickets(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.purchaseTickets(
+  const resp = await walletService.purchaseTickets(
     req.query.deviceId as string,
     Number(req.query.ticketAmount) as number
   )

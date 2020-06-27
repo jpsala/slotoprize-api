@@ -13,7 +13,6 @@ export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<any>
         where device_id = "${deviceId}"`
     const [rows] = await connection.query(userSelect)
     let user = rows.length ? rows[0] : false
-    console.log('user', user)
     if (user === false) {
       const [respInsert] = await connection.query(`
           insert into game_user(device_id) value('${deviceId}')
@@ -34,12 +33,10 @@ export async function getAll(): Promise<User> {
   return users
 }
 const getGame = async (name) => {
-  console.log('game', name, 'SlotoPrizes')
   const connection = await getConnection()
   const [gameRows] = await connection.query(`SELECT * FROM game WHERE UPPER(name) = '${name.toUpperCase()}'`)
   await connection.release()
   const game = gameRows.length === 0 ? undefined : gameRows[0]
-  console.log('game', game)
   return game
 }
 export const saveLogin = async (userId: string, gameName: string, deviceId: string): Promise<void> => {
@@ -53,7 +50,6 @@ export const saveLogin = async (userId: string, gameName: string, deviceId: stri
       `)
   } finally {
     await connection.release()
-    console.log('Finally 1')
   }
 }
 export const getUserById = async (id: number): Promise<User> => {
@@ -63,19 +59,16 @@ export const getUserById = async (id: number): Promise<User> => {
         select *
           from user
         where id = "${id}"`
-    console.log('users', userSelect)
     const [rows] = await connection.query(userSelect)
     const user = rows.length ? rows[0] : false
     return user
   } finally {
-    // console.log('release ok in getGameUserByDeviceId')
     await connection.release()
   }
 }
 export const getGameUserByDeviceId = async (deviceId: string): Promise<any> => {
   if (!deviceId) { throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId') }
   const connection = await getConnection()
-  console.log('aca?')
   try {
     const userSelect = `
         select *
@@ -85,7 +78,6 @@ export const getGameUserByDeviceId = async (deviceId: string): Promise<any> => {
     const user = rows.length ? rows[0] : false
     return user
   } finally {
-    // console.log('release ok in getGameUserByDeviceId')
     await connection.release()
   }
 }

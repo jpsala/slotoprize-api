@@ -48,7 +48,7 @@ export default async function getConnection(host: string = 'localhost'): Promise
   return pool[host].getConnection()
 }
 export const queryOne = async (query: string, params: any = []): Promise<any> => {
-  console.log('queryOne', query)
+  log && console.log('queryOne', query)
   const conn = await getConnection()
   try {
     const [result] = await conn.query(query, params)
@@ -62,6 +62,6 @@ export const queryOne = async (query: string, params: any = []): Promise<any> =>
 }
 // eslint-disable-next-line require-await
 export const exec = async (query: string, params: any = []): Promise<any> => {
-  console.log('exec', query)
+  log && console.log('exec', query)
   return queryOne(query, params)
 }
