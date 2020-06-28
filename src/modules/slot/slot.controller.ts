@@ -1,3 +1,4 @@
+/* eslint-disable max-statements-per-line */
 import {Request, Response} from 'express'
 import * as httpStatusCodes from "http-status-codes"
 import createError from 'http-errors'
@@ -9,6 +10,7 @@ import * as metaService from '../meta/meta.service'
 // import * as types from '../meta/meta.types'
 import * as slotService from './slot.service'
 import * as walletService from "./slot.services/wallet.service"
+import {getPayTable} from './slot.services/spin.service'
 
 export async function symbolsInDB(req: Request, res: Response): Promise<any> {
   const resp = await slotService.symbolsInDB()
@@ -31,12 +33,41 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const deviceId = req.query.deviceId as string
     const rawUser = await metaService.getOrSetGameUserByDeviceId(deviceId as string)
     const wallet = await walletService.getOrSetWallet(deviceId, rawUser.id)
+    const payTable = await getPayTable()
     // @URGENT crear savelogin
     // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
     const token = getNewToken({id: rawUser.id, deviceId})
     const user = {firsName: rawUser.first_name, lastNAme: rawUser.last_name, email: rawUser.email}
     const resp = await slotService.gameInit()
+    resp.reelsData.forEach((symbols) => {
+      // console.log('s', symbols.symbolsData
+      symbols.symbolsData.forEach((symbol) => {
+        const pays: any[] = []
+        payTable.filter((s) => {
+          return s.payment_type === symbol.paymentType
+        }).forEach((s) => {
+          pays.push(s)
+        })
+        const paysForReturn: any[] = []
+        for (let index = 1; index < 4; index++) {
+          const row = pays.find((_symbol) => _symbol.symbol_amount === index)
+          if (row) { paysForReturn.push(row.points) } else { paysForReturn.push(0) }
+        }
+        symbol.pays = paysForReturn
+        // console.log('pa', symbol.paymentType, payArr.length)
+
+
+      })
+    })
+    // payTable.forEach((row) => {
+    //   console.log('row', row)
+    //   const length = row.symbol_amount
+    //   const pays: any[] = []
+    //   for (let index = 0; index < length; index++) {
+    //     pays.push
+    //   }
+    // })
     const initData = {
       sessionId: token,
       profileData: toCamelCase(user),

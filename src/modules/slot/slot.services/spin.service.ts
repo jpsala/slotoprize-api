@@ -2,7 +2,7 @@ import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
 import getSlotConnection from '../db.slot'
 import {SpinData} from "../slot.types"
-import {queryOne, exec} from '../../meta/meta.db'
+// import {queryOne, exec} from '../../meta/meta.db'
 import * as walletService from "./wallet.service"
 import {settingGet, settingSet} from './settings.service'
 
@@ -63,7 +63,7 @@ const getSymbolForFilling = (symbolsForFilling) => {
 const getSymbolsForFilling = (symbols, paymentType) =>
   symbols.filter((symbol) => symbol.paymante_type !== paymentType)
     .map((symbol) => symbol.payment_type)
-const getPayTable = async () => {
+export const getPayTable = async ():Promise <any> => {
   const conn = await getSlotConnection()
   try {
     const [payTable] = await conn.query(`

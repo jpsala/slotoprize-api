@@ -2,6 +2,7 @@ import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
 import * as metaService from '../../meta/meta.service'
 import getSlotConnection, {exec} from '../db.slot'
+import {settingGet} from './settings.service'
 
 export const getWallet = async (deviceId: string): Promise<any> => {
   if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
@@ -60,8 +61,10 @@ export const purchaseTickets = async (deviceId: string, ticketAmount: number): P
 export const getOrSetWallet = async (deviceId: string, userId: string): Promise<any> => {
   let wallet = await getWallet(deviceId)
   if (!wallet) {
+    const initialWalletTickets = Number(await settingGet('initialWalletTickets', '10'))
+    const initialWalletCoins = Number(await settingGet('initialWalletCoins', '10'))
     await exec(`
-        insert into wallet(game_user_id, coins, tickets) value (${userId}, 0, 0)
+        insert into wallet(game_user_id, coins, tickets) value (${userId}, ${initialWalletCoins}, ${initialWalletTickets})
       `)
     wallet = await getWallet(deviceId)
   }
