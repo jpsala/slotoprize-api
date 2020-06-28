@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable curly */
 import {queryOne, exec} from '../db.slot'
 // function  gettingGet( defaultValue: string): string
