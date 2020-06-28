@@ -7,6 +7,7 @@ import {verifyToken, getNewToken} from '../../services/jwtService'
 import {GameUser, User} from "../meta/meta.types"
 
 import * as metaService from '../meta/meta.service'
+import {settingGet} from './slot.services/settings.service'
 // import * as types from '../meta/meta.types'
 import * as slotService from './slot.service'
 import * as walletService from "./slot.services/wallet.service"
@@ -34,43 +35,33 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const rawUser = await metaService.getOrSetGameUserByDeviceId(deviceId as string)
     const wallet = await walletService.getOrSetWallet(deviceId, rawUser.id)
     const payTable = await getPayTable()
+    const betPrice = Number(await settingGet('spinCost', '1'))
+    const maxMultiplier = Number(await settingGet('maxMultiplier', '3'))
     // @URGENT crear savelogin
     // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
     const token = getNewToken({id: rawUser.id, deviceId})
-    const user = {firsName: rawUser.first_name, lastNAme: rawUser.last_name, email: rawUser.email}
+    const user = {firsName: rawUser.first_name, lastNAme: rawUser.last_name, email: rawUser.email, isNew: rawUser.isNew}
     const resp = await slotService.gameInit()
-    resp.reelsData.forEach((symbols) => {
-      // console.log('s', symbols.symbolsData
-      symbols.symbolsData.forEach((symbol) => {
-        const pays: any[] = []
-        payTable.filter((s) => {
-          return s.payment_type === symbol.paymentType
-        }).forEach((s) => {
-          pays.push(s)
-        })
-        const paysForReturn: any[] = []
+    resp.reelsData.forEach((reel) => {
+      reel.symbolsData.forEach((reelSymbol) => {
+        const symbolPays: any[] = []
+        payTable.filter((payTableSymbol) =>
+          payTableSymbol.payment_type === reelSymbol.paymentType)
+          .forEach((_symbol) => symbolPays.push(_symbol))
+        const symbolAllPays: any[] = []
         for (let index = 1; index < 4; index++) {
-          const row = pays.find((_symbol) => _symbol.symbol_amount === index)
-          if (row) { paysForReturn.push(row.points) } else { paysForReturn.push(0) }
+          const row = symbolPays.find((_symbol) => _symbol.symbol_amount === index)
+          if (row) { symbolAllPays.push(row.points) } else { symbolAllPays.push(0) }
         }
-        symbol.pays = paysForReturn
-        // console.log('pa', symbol.paymentType, payArr.length)
-
-
+        reelSymbol.pays = symbolAllPays
       })
     })
-    // payTable.forEach((row) => {
-    //   console.log('row', row)
-    //   const length = row.symbol_amount
-    //   const pays: any[] = []
-    //   for (let index = 0; index < length; index++) {
-    //     pays.push
-    //   }
-    // })
     const initData = {
       sessionId: token,
       profileData: toCamelCase(user),
+      betPrice,
+      maxMultiplier,
       reelsData: resp.reelsData,
       walletData: wallet,
     }

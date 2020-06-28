@@ -64,8 +64,9 @@ export const getOrSetWallet = async (deviceId: string, userId: string): Promise<
     const initialWalletTickets = Number(await settingGet('initialWalletTickets', '10'))
     const initialWalletCoins = Number(await settingGet('initialWalletCoins', '10'))
     await exec(`
-        insert into wallet(game_user_id, coins, tickets) value (${userId}, ${initialWalletCoins}, ${initialWalletTickets})
-      `)
+      insert into wallet(game_user_id, coins, tickets) value (${userId}, ${initialWalletCoins}, ${initialWalletTickets})
+    `)
     wallet = await getWallet(deviceId)
   }
+  return wallet
 }

@@ -7,20 +7,14 @@ export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<any>
   if (!deviceId) { throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId') }
   const connection = await getConnection()
   try {
-    const userSelect = `
-        select *
-          from game_user
-        where device_id = "${deviceId}"`
-    const [rows] = await connection.query(userSelect)
-    let user = rows.length ? rows[0] : false
+    let user = await getGameUserByDeviceId(deviceId)
     if (user === false) {
-      const [respInsert] = await connection.query(`
+      await connection.query(`
           insert into game_user(device_id) value('${deviceId}')
       `)
-      user = {
-        isNew: true,
-        id: respInsert.insertId,
-      }
+      user = await getGameUserByDeviceId(deviceId)
+      user.isNew = true
+        // id: respInsert.insertId,
     } else { user.isNew = false }
     return user
   } finally {
