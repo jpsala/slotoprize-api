@@ -39,7 +39,8 @@ const resetSpinCount = async () => {
   await settingSet('spinCount', '0')
 }
 const saveSpinToDb = async (multiplier: number): Promise <void> => {
-  const spinCount = await settingGet('spinCount', String(multiplier))
+  const spinCount = Number(await settingGet('spinCount', multiplier))
+  console.log('spinToDb spinCount', spinCount, typeof spinCount)
   settingSet('spinCount', String(Number(spinCount) + multiplier))
 }
 const getWinRowWithEmptyFilled = (winRow, fillTable) => {

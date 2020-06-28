@@ -29,7 +29,7 @@
     "eslint": "^7.3.0",
     "eslint-plugin-shopify": "^35.1.0",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.5"
+    "typescript": "^4.0.0-beta"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
