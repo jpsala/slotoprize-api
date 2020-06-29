@@ -2,13 +2,14 @@
 import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
 import {createPool} from 'mysql2/promise'
+import camelcaseKeys from 'camelcase-keys'
 
 const pool = []
 let acquiredConnections = 0
 let queueSize = 0
 let poolSize = 0
 const log = false
-export default async function getConnection(host: string = 'localhost'): Promise<any> {
+export default async function getConnection(host = 'localhost'): Promise<any> {
   if (pool[host]) {
     return pool[host].getConnection()
   }
@@ -47,12 +48,27 @@ export default async function getConnection(host: string = 'localhost'): Promise
   })
   return pool[host].getConnection()
 }
-export const queryOne = async (query: string, params: any = []): Promise<any> => {
-  console.log('queryOne', query)
+export const queryOne = async (query: string, params: any = [], camelCase = false): Promise<any> => {
+  log && console.log('queryOne', query)
   const conn = await getConnection()
   try {
     const [result] = await conn.query(query, params)
-    return result.length > 0 ? result[0] : undefined
+    const response = camelCase ? camelcaseKeys(result[0]) : result[0]
+    return response
+  } catch (err) {
+    console.error(err.message)
+    throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, err)
+  } finally {
+    await conn.release()
+  }
+}
+export const query = async (query: string, params: any = [], camelCase = false): Promise<any[]> => {
+  log && console.log('query', query)
+  const conn = await getConnection()
+  try {
+    const [results] = await conn.query(query, params)
+    const response = camelCase ? camelcaseKeys(results) : results
+    return response
   } catch (err) {
     console.error(err.message)
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, err)

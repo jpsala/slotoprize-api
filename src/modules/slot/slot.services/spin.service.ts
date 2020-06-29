@@ -103,8 +103,8 @@ function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: number) {
   if (!multiplier) { throw createError(httpStatusCodes.BAD_REQUEST, 'multiplier is a required parameter') }
 }
 async function getBetAndCheckFunds(multiplier: number, coins: any) {
-  const spinCost = Number(await settingGet('betPrice', 1))
-  const bet = spinCost * multiplier
+  const betPrice = Number(await settingGet('betPrice', 1))
+  const bet = betPrice * multiplier
   const enoughCoins = ((coins - bet) >= 0)
   return {bet, enoughCoins}
 }

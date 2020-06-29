@@ -18,7 +18,8 @@
          "@typescript-eslint/semi": ["off"],
          "@typescript-eslint/no-explicit-any": "off",
          "import/order": ["error", {"newlines-between": "ignore"}],
-         "no-use-before-define":"off"
+         "no-use-before-define":"off",
+         "prefer-spread"
       },
       "env": {
         "browser": true,

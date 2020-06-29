@@ -4,7 +4,8 @@ import * as httpStatusCodes from "http-status-codes"
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import {verifyToken, getNewToken} from '../../services/jwtService'
-import {GameUser, User} from "../meta/meta.types"
+import {GameUser, User, LanguageData} from "../meta/meta.types"
+import * as languageRepo from "../meta/meta.repo/language.repo"
 
 import * as metaService from '../meta/meta.service'
 import {settingGet} from './slot.services/settings.service'
@@ -35,8 +36,10 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const rawUser = await metaService.getOrSetGameUserByDeviceId(deviceId as string)
     const wallet = await walletService.getOrSetWallet(deviceId, rawUser.id)
     const payTable = await getPayTable()
-    const betPrice = Number(await settingGet('spinCost', '1'))
+    const betPrice = Number(await settingGet('betPrice', '1'))
     const maxMultiplier = Number(await settingGet('maxMultiplier', '3'))
+    const languages = (await languageRepo.getLanguages()) as Array<Partial<LanguageData>>
+    // const languageData = (await metaRepo.getLanguageData(rawUser.id + 3)) as Partial<LanguageData>
     // @URGENT crear savelogin
     // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
@@ -59,6 +62,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const initData = {
       sessionId: token,
       profileData: toCamelCase(user),
+      languageData: languages,
       betPrice,
       maxMultiplier,
       reelsData,

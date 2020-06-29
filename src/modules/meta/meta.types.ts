@@ -15,3 +15,9 @@ export interface GameUser {
   deviceName: string;
 }
 
+export interface LanguageData {
+  id: number;
+  languageCode: string;
+  textureUrl: string;
+  localizationUrl: string;
+}
