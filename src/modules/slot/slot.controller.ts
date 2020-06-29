@@ -62,7 +62,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const initData = {
       sessionId: token,
       profileData: toCamelCase(user),
-      languageData: languages,
+      languagesData: languages,
       betPrice,
       maxMultiplier,
       reelsData,
