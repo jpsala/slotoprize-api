@@ -2,25 +2,14 @@ import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
 import getMetaConnection from '../meta/meta.db'
 import {GameUser} from "../meta/meta.types"
+import {getGameUserByDeviceId} from '../meta/meta.repo/user.repo'
+import {pickProps} from '../../helpers'
 import * as spinService from "./slot.services/spin.service"
 import getSlotConnection from './db.slot'
 
 export const getReelsData = async (): Promise<any> => {
   const conn = await getSlotConnection()
-  // const resp: {reelsData: any[]} = {reelsData: []}
   try {
-    // const [reels] = await conn.query('select * from reel')
-    // for (const _reel of reels) {
-    //   const [symbols] = await conn.query(`
-    //         SELECT s.payment_type AS paymentType, s.texture_url AS textureUrl FROM reel_symbol rs
-    //         INNER JOIN reel r ON rs.reel_id = r.id AND r.id = ${_reel.id}
-    //         INNER JOIN symbol s ON rs.symbol_id = s.id
-    //         order by rs.order
-    //     `)
-    //   const symbolsData: string[] = []
-    //   symbols.forEach((_symbol) => symbolsData.push(_symbol))
-    // }
-    // await conn.release()
     const [symbolsData] = await conn.query('SELECT * FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)')
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++) {
@@ -32,21 +21,13 @@ export const getReelsData = async (): Promise<any> => {
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, error)
   }
 }
-export const getProfile = async (deviceId: string): Promise<any> => {
+export const getProfile = async (deviceId: string, fields: string[] | undefined = undefined): Promise<GameUser | Partial<GameUser>> => {
   if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
-  const conn = await getMetaConnection()
-  try {
-    const userSelect = `
-        select first_name, last_name, email
-          from game_user
-        where device_id ='${deviceId}'`
-    const [rows] = await conn.query(userSelect)
-    const user = rows[0]
-    if (!user) { throw createError(httpStatusCodes.BAD_REQUEST, 'there is no user associated with this deviceId') }
-    return user
-  } finally {
-    await conn.release()
-  }
+  let gameUser = await getGameUserByDeviceId(deviceId, fields)
+  gameUser = fields ? pickProps(gameUser, fields) as Partial<GameUser> : gameUser as GameUser
+  console.log('gameUser', gameUser)
+  if (!gameUser) { throw createError(httpStatusCodes.BAD_REQUEST, 'there is no user associated with this deviceId') }
+  return gameUser
 }
 export const setProfile = async (user: GameUser): Promise<any> => {
   if (!user.deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }

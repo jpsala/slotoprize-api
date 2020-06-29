@@ -19,7 +19,7 @@
          "@typescript-eslint/no-explicit-any": "off",
          "import/order": ["error", {"newlines-between": "ignore"}],
          "no-use-before-define":"off",
-         "prefer-spread"
+         "prefer-spread":"off"
       },
       "env": {
         "browser": true,

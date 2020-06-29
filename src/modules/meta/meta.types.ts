@@ -3,7 +3,7 @@ export interface User {
   login: string;
   name: string;
   email: string;
-  password?: string;z
+  password?: string;
 }
 export interface GameUser {
   id: number;

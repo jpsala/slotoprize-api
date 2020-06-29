@@ -19,7 +19,7 @@ export async function symbolsInDB(req: Request, res: Response): Promise<any> {
   res.status(httpStatusCodes.OK).json(toCamelCase(resp))
 }
 export async function getProfile(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.getProfile(req.query.deviceId as string)
+  const resp = await slotService.getProfile(req.query.deviceId as string, ['first_name', 'last_name', 'email'])
   res.status(httpStatusCodes.OK).json(toCamelCase(resp))
 }
 export async function postProfile(req: Request, res: Response): Promise<any> {

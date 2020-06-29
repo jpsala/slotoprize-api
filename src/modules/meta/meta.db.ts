@@ -3,6 +3,7 @@ import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
 import {createPool} from 'mysql2/promise'
 import camelcaseKeys from 'camelcase-keys'
+import { pickProps } from '../../helpers'
 
 const pool = []
 let acquiredConnections = 0
@@ -48,12 +49,16 @@ export default async function getConnection(host = 'localhost'): Promise<any> {
   })
   return pool[host].getConnection()
 }
-export const queryOne = async (query: string, params: any = [], camelCase = false): Promise<any> => {
+export const queryOne = async (query: string, params: any = [], camelCase = false, fields: string[] | undefined = undefined): Promise<any> => {
   log && console.log('queryOne', query)
   const conn = await getConnection()
   try {
     const [result] = await conn.query(query, params)
-    const response = camelCase ? camelcaseKeys(result[0]) : result[0]
+    let response = result[0]
+    if (response) {
+      response = fields ? pickProps(response, fields) : response
+      response = camelCase ? camelcaseKeys(response) : response
+    }
     return response
   } catch (err) {
     console.error(err.message)
