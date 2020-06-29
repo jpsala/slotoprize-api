@@ -18,20 +18,24 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
 
   await saveSpinToDb(multiplier)
 
-  const {winPoints, winType, winSymbolsData, isWin} = await getWinData()
+  const {winPoints, winType, winSymbolsData: payTableSymbolsData, isWin} = await getWinData()
+  if (winType === 'jackpot') { multiplier = 1 }
+  if (winType === 'ticket') { multiplier = 1 }
+  // console.log('is', )
+  const winAmount = winPoints * multiplier
 
-  const amount = isWin ? winPoints * bet : bet
-
+  // siempre se descuenta el costo del spin
+  wallet.coins -= bet
   if (winType === 'jackpot') {
     resetSpinCount()
-  } else {
-    updateWalletTicketsOrCoins(wallet, winType, amount, isWin)
-    walletService.updateWallet(deviceId, wallet)
+  } else if (isWin) {
+    wallet.coins += winAmount
   }
+  walletService.updateWallet(deviceId, wallet)
 
-  const returnData: any = {symbolsData: winSymbolsData, isWin, wallet}
+  const returnData: any = {symbolsData: payTableSymbolsData, isWin, wallet}
 
-  if (isWin) { returnData.winData = {type: winType, amount} }
+  if (isWin) { returnData.winData = {type: winType, amount: winAmount} }
 
   return returnData
 }
@@ -81,7 +85,7 @@ export const getPayTable = async ():Promise <any> => {
 const getFillTable = (payTable) => payTable.filter((rowOf3) => rowOf3.symbol_amount === 3)
 const checkWithRandomIfWins = () => getRandomNumber() > 20
 const getRandomNumber = (from = 1, to = 100) => Math.floor((Math.random() * (to + 1)) + from)
-const getWinRow = (table) => {
+const getWinRow= (table) => {
   const randomNumber = getRandomNumber(1, 100)
   let floor = 0
   const winRow = table.find((row) => {
@@ -91,15 +95,15 @@ const getWinRow = (table) => {
   })
   return winRow
 }
-function updateWalletTicketsOrCoins(wallet: any, winType: string, amount: number, isWin: boolean) {
-  wallet[winType] += (amount * (isWin ? 1 : -1))
-}
+// function updateWalletTicketsOrCoins(wallet: any, winType: string, amount: number, isWin: boolean) {
+//   wallet[winType] += amount
+// }
 function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: number) {
   if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
   if (!multiplier) { throw createError(httpStatusCodes.BAD_REQUEST, 'multiplier is a required parameter') }
 }
 async function getBetAndCheckFunds(multiplier: number, coins: any) {
-  const spinCost = Number(await settingGet('spinCost', 1))
+  const spinCost = Number(await settingGet('betPrice', 1))
   const bet = spinCost * multiplier
   const enoughCoins = ((coins - bet) >= 0)
   return {bet, enoughCoins}
@@ -121,6 +125,7 @@ async function getWinData() {
   }
   const filltable = await getFillTable(payTable)
   const winSymbolsData = await getWinRowWithEmptyFilled(winRow, filltable)
+  // @TODO point = pay
   return {winPoints: winRow.points, winType, winSymbolsData, isWin}
 }
 function getJackpotRow(payTable) {

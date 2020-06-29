@@ -42,12 +42,11 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
     const token = getNewToken({id: rawUser.id, deviceId})
     const user = {firsName: rawUser.first_name, lastNAme: rawUser.last_name, email: rawUser.email, isNew: rawUser.isNew}
-    const resp = await slotService.gameInit()
-    resp.reelsData.forEach((reel) => {
+    const reelsData = await slotService.getReelsData()
+    reelsData.forEach((reel) => {
       reel.symbolsData.forEach((reelSymbol) => {
         const symbolPays: any[] = []
-        payTable.filter((payTableSymbol) =>
-          payTableSymbol.payment_type === reelSymbol.paymentType)
+        payTable.filter((payTableSymbol) => payTableSymbol.payment_type === reelSymbol.payment_type)
           .forEach((_symbol) => symbolPays.push(_symbol))
         const symbolAllPays: any[] = []
         for (let index = 1; index < 4; index++) {
@@ -62,7 +61,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
       profileData: toCamelCase(user),
       betPrice,
       maxMultiplier,
-      reelsData: resp.reelsData,
+      reelsData,
       walletData: wallet,
     }
     return res.status(httpStatusCodes.OK).json(initData)
