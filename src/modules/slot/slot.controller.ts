@@ -4,10 +4,11 @@ import * as httpStatusCodes from "http-status-codes"
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import {verifyToken, getNewToken} from '../../services/jwtService'
-import {GameUser, User, LanguageData} from "../meta/meta.types"
+import {GameUser, User, LanguageData, Country} from "../meta/meta.types"
 import * as languageRepo from "../meta/meta.repo/language.repo"
 
 import * as metaService from '../meta/meta.service'
+import {getCountries as metaGetCountries} from '../meta/meta.repo/country.repo'
 import {settingGet} from './slot.services/settings.service'
 // import * as types from '../meta/meta.types'
 import * as slotService from './slot.service'
@@ -29,6 +30,13 @@ export async function postProfile(req: Request, res: Response): Promise<any> {
 export async function spin(req: Request, res: Response): Promise<any> {
   const resp = await slotService.spin(req.query.deviceId as string, req.query.multiplier as string)
   res.status(httpStatusCodes.OK).json(resp)
+}
+export async function getCountries(req: Request, res: Response): Promise<void> {
+  const countries = await metaGetCountries()
+  console.log("countries", countries)
+  console.log("countries0", countries[0])
+  console.log("countries0s", countries[0].states)
+  res.status(httpStatusCodes.OK).json(countries)
 }
 export async function gameInit(req: Request, res: Response): Promise<any> {
   try {

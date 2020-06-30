@@ -11,6 +11,7 @@ router.route('/profile').get(checkToken, slot.getProfile).post(checkToken, slot.
 router.route('/game_init').get(slot.gameInit)
 router.route('/spin').get(checkToken, slot.spin)
 router.route('/wallet').get(checkToken, slot.getWallet)
+router.route('/countries').get(checkToken, slot.getCountries)
 router.route('/purchase_tickets').get(checkToken, slot.purchaseTickets)
 router.route('/postman').get(slot.postman)
 

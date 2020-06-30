@@ -5,6 +5,17 @@ export interface User {
   email: string;
   password?: string;
 }
+export interface State {
+  id: number;
+  name: string;
+  countryId: number;
+}
+export interface Country {
+  id: number;
+  name: string;
+  phonePrefix: string;
+  states?: State[];
+}
 export interface GameUser {
   id: number;
   firstName: string;
