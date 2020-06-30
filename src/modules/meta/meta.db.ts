@@ -86,6 +86,5 @@ export const query = async (select: string, params: any = [], camelCase = false,
 }
 // eslint-disable-next-line require-await
 export const exec = async (select: string, params: any = []): Promise<any> => {
-  console.log('exec', select)
   return queryOne(select, params)
 }

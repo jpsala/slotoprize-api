@@ -1,14 +1,14 @@
 import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
-import getMetaConnection from '../meta/meta.db'
+import {queryOne as metaQueryOne, exec as metaExec} from '../meta/meta.db'
 import {GameUser} from "../meta/meta.types"
 import {getGameUserByDeviceId} from '../meta/meta.repo/user.repo'
 import * as spinService from "./slot.services/spin.service"
-import {query} from './db.slot'
+import {query as slotQuery} from './db.slot'
 
 export const getReelsData = async (): Promise<any> => {
   try {
-    const symbolsData = await query('SELECT s.texture_url, s.payment_type FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)')
+    const symbolsData = await slotQuery('SELECT s.texture_url, s.payment_type FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)')
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++) {
       reels.push({symbolsData})
@@ -27,14 +27,11 @@ export const getProfile = async (deviceId: string, fields: string[] | undefined 
 }
 export const setProfile = async (user: GameUser): Promise<any> => {
   if (!user.deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
-  const conn = await getMetaConnection()
-  try {
-    const [userRows]: any = await conn.query(`select * from game_user where device_id = '${user.deviceId}'`)
-    const userExists = userRows[0]
-    if (!userExists) {
-      throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
-    }
-    await conn.query(`
+  const userExists = await metaQueryOne(`select * from game_user where device_id = '${user.deviceId}'`)
+  if (!userExists) {
+    throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
+  }
+  await metaExec(`
           update game_user set
               email = '${user.email}',
               first_name = '${user.firstName}',
@@ -43,14 +40,10 @@ export const setProfile = async (user: GameUser): Promise<any> => {
               device_model = '${user.deviceModel}'
           where device_id = '${user.deviceId}'
       `)
-    const [userUpdatedRows]: any = await conn.query(`
+  const updatedUser = await metaQueryOne(`
           select id, first_name, last_name, email, device_id from game_user where device_id = '${user.deviceId}'
       `)
-    const updatedUser = userUpdatedRows[0]
-    return {firstName: updatedUser.first_name, lastName: updatedUser.last_name, email: updatedUser.email}
-  } finally {
-    await conn.release()
-  }
+  return {firstName: updatedUser.first_name, lastName: updatedUser.last_name, email: updatedUser.email}
 }
 // eslint-disable-next-line require-await
 export const spin = async (deviceId: string, multiplier: string): Promise<any> => {
@@ -58,7 +51,7 @@ export const spin = async (deviceId: string, multiplier: string): Promise<any> =
 }
 export const symbolsInDB = async (): Promise<any> => {
   try {
-    const SymbolsRows = await query(
+    const SymbolsRows = await slotQuery(
       'SELECT * FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)'
     )
     const reels: any[] = []

@@ -8,6 +8,7 @@ import {SpinData} from "../slot.types"
 import * as walletService from "./wallet.service"
 import {settingGet, settingSet} from './settings.service'
 
+const randomNumbers: number[] = []
 export async function spin(deviceId: string, multiplier: number): Promise<SpinData> {
   checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
@@ -18,8 +19,18 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   if (!enoughCoins) { throw createError(400, 'Insufficient funds') }
 
   await saveSpinToDb(multiplier)
+  // for (let index = 0; index < 5000; index++) {
+  //   try {
+  //     await getWinData()
+  //   } catch (error) {
+  //     console.error(error)
+  //     throw error
 
-  const {winPoints, winType, winSymbolsData: payTableSymbolsData, isWin} = await getWinData()
+  //   }
+  // }
+  const {winPoints, winType, symbolsData, isWin} = await getWinData()
+  console.log('randomNumbers', randomNumbers)
+
   if (winType === 'jackpot' || winType === 'ticket') { multiplier = 1 }
   const winAmount = winPoints * multiplier
 
@@ -31,8 +42,8 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     wallet.coins += winAmount
   }
   walletService.updateWallet(deviceId, wallet)
-
-  const returnData: any = {symbolsData: payTableSymbolsData, isWin, wallet}
+  console.log('winType', winType)
+  const returnData: any = {symbolsData, isWin, wallet}
 
   if (isWin) { returnData.winData = {type: winType, amount: winAmount} }
 
@@ -43,31 +54,35 @@ const resetSpinCount = async () => {
 }
 const saveSpinToDb = async (multiplier: number): Promise <void> => {
   const spinCount = Number(await settingGet('spinCount', multiplier))
-  console.log('spinToDb spinCount', spinCount, typeof spinCount)
   settingSet('spinCount', String(Number(spinCount) + multiplier))
 }
 const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   const winSymbolAmount = winRow.symbol_amount || 0
   const winSymbolPaymentType = winRow.payment_type || ""
-  const symbolRowToReturn: any[] = []
+  const filledSymbolRowToReturn: any[] = []
   for (let idx = 0; idx < winSymbolAmount; idx++) {
-    symbolRowToReturn.push({paymentType: winSymbolPaymentType})
+    filledSymbolRowToReturn.push({paymentType: winSymbolPaymentType})
   }
   const symbolsAmountToFill = 3 - winSymbolAmount
-  const symbolsForFilling = getSymbolsForFilling(fillTable, winSymbolPaymentType)
   for (let idx = 0; idx < symbolsAmountToFill; idx++) {
-    const symbolForFilling = getSymbolForFilling(symbolsForFilling)
-    symbolRowToReturn.push({paymentType: symbolForFilling})
+    const symbolRowsForFilling = getSymbolRowsForFilling(fillTable, filledSymbolRowToReturn)
+    const symbolRowForFilling = getSymbolForFilling(symbolRowsForFilling)
+    filledSymbolRowToReturn.push({paymentType: symbolRowForFilling.payment_type})
   }
-  return symbolRowToReturn
+  return filledSymbolRowToReturn
 }
 const getSymbolForFilling = (symbolsForFilling) => {
   const randomNumber = getRandomNumber(0, symbolsForFilling.length - 1)
   return symbolsForFilling[randomNumber]
 }
-const getSymbolsForFilling = (symbols, paymentType) =>
-  symbols.filter((symbol) => symbol.paymante_type !== paymentType)
-    .map((symbol) => symbol.payment_type)
+const getSymbolRowsForFilling = (symbolsForFilling, allreadyFilledSymbols) =>
+  symbolsForFilling.filter((fillingSymbolRow) => {
+    if (allreadyFilledSymbols.length === 0) { return true }
+    return allreadyFilledSymbols.find((afSymbol) => {
+      return afSymbol.paymentType !== fillingSymbolRow
+    })
+  })
+    .map((symbol) => symbol)
 export const getPayTable = async ():Promise <any> => {
   const conn = await getSlotConnection()
   try {
@@ -81,11 +96,24 @@ export const getPayTable = async ():Promise <any> => {
     await conn.release()
   }
 }
-const getFillTable = (payTable) => payTable.filter((rowOf3) => rowOf3.symbol_amount === 3)
+const getFillTable = (payTable) => {
+  const rowsWith3 = payTable.filter((payTableRow) => payTableRow.symbol_amount === 3)
+  const rowsWithLessThan3 = payTable.filter((payTableRow) => payTableRow.symbol_amount < 3)
+  return rowsWith3.filter((rowWith3) => {
+    const isInOtherRow = rowsWithLessThan3.find((rowWithLessThan3) => {
+      const found = (rowWithLessThan3.payment_type === rowWith3.payment_type)
+      return found
+    })
+    return !isInOtherRow
+  })
+}
 const checkWithRandomIfWins = () => getRandomNumber() > 20
-const getRandomNumber = (from = 1, to = 100) => Math.floor((Math.random() * (to + 1)) + from)
+const getRandomNumber = (from = 1, to = 100) => Math.floor((Math.random() * (to)) + from)
 const getWinRow = (table) => {
   const randomNumber = getRandomNumber(1, 100)
+  if (!randomNumbers[randomNumber]) { randomNumbers[randomNumber] = 0 }
+  randomNumbers[randomNumber]++
+  // console.log("getWinRow -> randomNumber", randomNumber)
   let floor = 0
   const winRow = table.find((row) => {
     const isWin = ((randomNumber > floor) && (randomNumber <= floor + Number(row.probability)))
@@ -94,9 +122,6 @@ const getWinRow = (table) => {
   })
   return winRow
 }
-// function updateWalletTicketsOrCoins(wallet: any, winType: string, amount: number, isWin: boolean) {
-//   wallet[winType] += amount
-// }
 function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: number) {
   if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
   if (!multiplier) { throw createError(httpStatusCodes.BAD_REQUEST, 'multiplier is a required parameter') }
@@ -109,23 +134,31 @@ async function getBetAndCheckFunds(multiplier: number, coins: any) {
 }
 async function getWinData() {
   const isWin = checkWithRandomIfWins()
-  // const jackpot = (spinCount >= 1000000)
   const payTable = await getPayTable()
   let winRow
   let winType
   const spinCount = Number(await settingGet('spinCount', 0))
+  // const jackpot = (spinCount >= 1000000)
   const jackpot = (spinCount >= 10)
   if (jackpot) {
     winRow = getJackpotRow(payTable)
     winType = 'jackpot'
   } else {
+    // try {
+    //   for (let index = 0; index < 60000; index++) {
+    //     await getWinRow(payTable)
+    //   }
+    // } catch (error) {
+    //   console.error(error)
+    // }
     winRow = isWin ? await getWinRow(payTable) : []
-    winType = winRow.paymentType === 'ticket' ? 'ticket' : 'coins'
+    // @TODO ask if coins is ok for paymante_type when isWin = false
+    winType = winRow.payment_type === 'ticket' ? 'ticket' : 'coins'
   }
   const filltable = await getFillTable(payTable)
-  const winSymbolsData = await getWinRowWithEmptyFilled(winRow, filltable)
-  // @TODO point = pay
-  return {winPoints: winRow.points, winType, winSymbolsData, isWin}
+
+  const symbolsData = await getWinRowWithEmptyFilled(winRow, filltable)
+  return {winPoints: winRow.points, winType, symbolsData, isWin}
 }
 function getJackpotRow(payTable) {
   return payTable[0]
