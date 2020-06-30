@@ -31,13 +31,34 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   if (!userExists) {
     throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
   }
+
+  /* falta:
+              countryPhoneCode: string;
+              phoneNumber: string;
+              isMale: boolean;
+              age: number;
+              address: string;
+              city: string;
+              zipCode: string;
+              state: string;
+              country: string;
+*/
   await metaExec(`
           update game_user set
               email = '${user.email}',
               first_name = '${user.firstName}',
               last_name = '${user.lastName}',
               device_name = '${user.deviceName}',
-              device_model = '${user.deviceModel}'
+              device_model = '${user.deviceModel}',
+              country_phone_code = '${user.countryPhoneCode}',
+              phone_number = '${user.phoneNumber}',
+              is_male = '${user.isMale}',
+              age = '${user.age}',
+              address = '${user.address}',
+              city = '${user.city}',
+              zip_code = '${user.zipCode}',
+              state = '${user.state}',
+              country = '${user.country}'
           where device_id = '${user.deviceId}'
       `)
   const updatedUser = await metaQueryOne(`
@@ -63,3 +84,4 @@ export const symbolsInDB = async (): Promise<any> => {
     return {status: 'error'}
   }
 }
+

@@ -13,6 +13,15 @@ export interface GameUser {
   deviceId: string;
   deviceModel: string;
   deviceName: string;
+  countryPhoneCode: string;
+  phoneNumber: string;
+  isMale: boolean;
+  age: number;
+  address: string;
+  city: string;
+  zipCode: string;
+  state: string;
+  country: string;
 }
 
 export interface LanguageData {

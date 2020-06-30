@@ -44,7 +44,12 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
     const token = getNewToken({id: rawUser.id, deviceId})
-    const user = {firsName: rawUser.first_name, lastNAme: rawUser.last_name, email: rawUser.email, isNew: rawUser.isNew}
+    delete rawUser.id
+    delete rawUser.device_id
+    delete rawUser.created_at
+    delete rawUser.modified_at
+    delete rawUser.device_name
+    delete rawUser.device_model
     const reelsData = await slotService.getReelsData()
     reelsData.forEach((reel) => {
       reel.symbolsData.forEach((reelSymbol) => {
@@ -61,7 +66,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     })
     const initData = {
       sessionId: token,
-      profileData: toCamelCase(user),
+      profileData: toCamelCase(rawUser),
       languagesData: languages,
       betPrice,
       maxMultiplier,

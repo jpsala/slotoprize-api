@@ -19,15 +19,6 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   if (!enoughCoins) { throw createError(400, 'Insufficient funds') }
 
   await saveSpinToDb(multiplier)
-  // for (let index = 0; index < 5000; index++) {
-  //   try {
-  //     await getWinData()
-  //   } catch (error) {
-  //     console.error(error)
-  //     throw error
-
-  //   }
-  // }
   const {winPoints, winType, symbolsData, isWin} = await getWinData()
   console.log('randomNumbers', randomNumbers)
 
@@ -144,15 +135,7 @@ async function getWinData() {
     winRow = getJackpotRow(payTable)
     winType = 'jackpot'
   } else {
-    // try {
-    //   for (let index = 0; index < 60000; index++) {
-    //     await getWinRow(payTable)
-    //   }
-    // } catch (error) {
-    //   console.error(error)
-    // }
     winRow = isWin ? await getWinRow(payTable) : []
-    // @TODO ask if coins is ok for paymante_type when isWin = false
     winType = winRow.payment_type === 'ticket' ? 'ticket' : 'coins'
   }
   const filltable = await getFillTable(payTable)
