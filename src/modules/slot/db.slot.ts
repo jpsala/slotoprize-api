@@ -62,8 +62,22 @@ export const queryOne = async (query: string, params: any = [], camelCase = fals
     await conn.release()
   }
 }
+export const query = async (select: string, params: string[] = [], camelCase = false): Promise<any[]> => {
+  log && console.log('query', select)
+  const conn = await getConnection()
+  try {
+    const [results] = await conn.query(select, params)
+    const response = camelCase ? camelcaseKeys(results) : results
+    return response
+  } catch (err) {
+    console.error(err.message)
+    throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, err)
+  } finally {
+    await conn.release()
+  }
+}
 // eslint-disable-next-line require-await
-export const exec = async (query: string, params: any = []): Promise<any> => {
-  log && console.log('exec', query)
-  return queryOne(query, params)
+export const exec = async (select: string, params: any = []): Promise<any> => {
+  log && console.log('exec', select)
+  return queryOne(select, params)
 }

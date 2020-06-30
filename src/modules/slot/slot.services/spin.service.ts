@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 // @ TODO apply maxMultiplier
 import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
@@ -19,9 +20,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   await saveSpinToDb(multiplier)
 
   const {winPoints, winType, winSymbolsData: payTableSymbolsData, isWin} = await getWinData()
-  if (winType === 'jackpot') { multiplier = 1 }
-  if (winType === 'ticket') { multiplier = 1 }
-  // console.log('is', )
+  if (winType === 'jackpot' || winType === 'ticket') { multiplier = 1 }
   const winAmount = winPoints * multiplier
 
   // siempre se descuenta el costo del spin
@@ -85,7 +84,7 @@ export const getPayTable = async ():Promise <any> => {
 const getFillTable = (payTable) => payTable.filter((rowOf3) => rowOf3.symbol_amount === 3)
 const checkWithRandomIfWins = () => getRandomNumber() > 20
 const getRandomNumber = (from = 1, to = 100) => Math.floor((Math.random() * (to + 1)) + from)
-const getWinRow= (table) => {
+const getWinRow = (table) => {
   const randomNumber = getRandomNumber(1, 100)
   let floor = 0
   const winRow = table.find((row) => {

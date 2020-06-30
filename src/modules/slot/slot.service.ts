@@ -3,29 +3,25 @@ import * as httpStatusCodes from "http-status-codes"
 import getMetaConnection from '../meta/meta.db'
 import {GameUser} from "../meta/meta.types"
 import {getGameUserByDeviceId} from '../meta/meta.repo/user.repo'
-import {pickProps} from '../../helpers'
 import * as spinService from "./slot.services/spin.service"
-import getSlotConnection from './db.slot'
+import {query} from './db.slot'
 
 export const getReelsData = async (): Promise<any> => {
-  const conn = await getSlotConnection()
   try {
-    const [symbolsData] = await conn.query('SELECT * FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)')
+    const symbolsData = await query('SELECT s.texture_url, s.payment_type FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)')
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++) {
-      reels[reel] = {symbolsData}
+      reels.push({symbolsData})
+      console.log('reels', reel, reels)
     }
     return reels
   } catch (error) {
-    await conn.release()
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, error)
   }
 }
 export const getProfile = async (deviceId: string, fields: string[] | undefined = undefined): Promise<GameUser | Partial<GameUser>> => {
   if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
-  let gameUser = await getGameUserByDeviceId(deviceId, fields)
-  gameUser = fields ? pickProps(gameUser, fields) as Partial<GameUser> : gameUser as GameUser
-  console.log('gameUser', gameUser)
+  const gameUser = await getGameUserByDeviceId(deviceId, fields)
   if (!gameUser) { throw createError(httpStatusCodes.BAD_REQUEST, 'there is no user associated with this deviceId') }
   return gameUser
 }
@@ -61,30 +57,16 @@ export const spin = async (deviceId: string, multiplier: string): Promise<any> =
   return spinService.spin(deviceId, Number(multiplier))
 }
 export const symbolsInDB = async (): Promise<any> => {
-  const conn = await getSlotConnection()
   try {
-
-    const [SymbolsRows] = await conn.query('SELECT * FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)')
+    const SymbolsRows = await query(
+      'SELECT * FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)'
+    )
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++) {
-      reels[reel] = SymbolsRows[0]
-
+      reels[reel] = SymbolsRows
     }
-    // for (const reel of reelsRows) {
-    //   const [reelRows] = await conn.query(`
-    //           SELECT rs.id as reel_symbol_id, rs.order, s.* FROM reel_symbol rs
-    //           INNER JOIN symbol s ON s.id = rs.symbol_id
-    //           order by rs.order
-    //       `)
-    //   reels.push({
-    //     reel,
-    //     symbols: reelRows,
-    //   })
-    // }
-    await conn.release()
     return {reels, symbols: SymbolsRows}
   } catch (error) {
-    await conn.release()
     return {status: 'error'}
   }
 }

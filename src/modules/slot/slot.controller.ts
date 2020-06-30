@@ -38,7 +38,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const payTable = await getPayTable()
     const betPrice = Number(await settingGet('betPrice', '1'))
     const maxMultiplier = Number(await settingGet('maxMultiplier', '3'))
-    const languages = (await languageRepo.getLanguages()) as Array<Partial<LanguageData>>
+    const languages = (await languageRepo.getLanguages(['language_code', 'texture_url', 'localization_url'])) as Array<Partial<LanguageData>>
     // const languageData = (await metaRepo.getLanguageData(rawUser.id + 3)) as Partial<LanguageData>
     // @URGENT crear savelogin
     // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)

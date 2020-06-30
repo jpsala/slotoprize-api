@@ -2,6 +2,7 @@ import createError from 'http-errors'
 import * as httpStatusCodes from 'http-status-codes'
 import * as metaService from '../../meta/meta.service'
 import getSlotConnection, {exec} from '../db.slot'
+import {Wallet} from '../slot.types'
 import {settingGet} from './settings.service'
 
 export const getWallet = async (deviceId: string): Promise<any> => {
@@ -29,10 +30,9 @@ export const getWallet = async (deviceId: string): Promise<any> => {
     await conn.release()
   }
 }
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function updateWallet(
     deviceId: string,
-    wallet: any
+    wallet: Wallet
 ): Promise<any> {
     // @TODO save spin to DB
   const conn = await getSlotConnection()

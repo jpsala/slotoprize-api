@@ -10,6 +10,8 @@ export async function getLanguage(userId: number): Promise<LanguageData> {
   `, undefined, true)
   return localizationData
 }
+export async function getGameUserByDeviceId(deviceId: string): Promise<GameUser>;
+export async function getGameUserByDeviceId(deviceId: string, fields: string[] | undefined): Promise<Partial <GameUser> | GameUser>;
 export async function getGameUserByDeviceId(deviceId: string, fields: string[] | undefined = undefined): Promise<Partial <GameUser> | GameUser> {
   const userSelect = `
       select *

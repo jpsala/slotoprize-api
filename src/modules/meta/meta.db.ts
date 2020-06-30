@@ -3,7 +3,7 @@ import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
 import {createPool} from 'mysql2/promise'
 import camelcaseKeys from 'camelcase-keys'
-import { pickProps } from '../../helpers'
+import {pickProps} from '../../helpers'
 
 const pool = []
 let acquiredConnections = 0
@@ -49,11 +49,11 @@ export default async function getConnection(host = 'localhost'): Promise<any> {
   })
   return pool[host].getConnection()
 }
-export const queryOne = async (query: string, params: any = [], camelCase = false, fields: string[] | undefined = undefined): Promise<any> => {
-  log && console.log('queryOne', query)
+export const queryOne = async (select: string, params: any = [], camelCase = false, fields: string[] | undefined = undefined): Promise<any> => {
+  log && console.log('queryOne', select)
   const conn = await getConnection()
   try {
-    const [result] = await conn.query(query, params)
+    const [result] = await conn.query(select, params)
     let response = result[0]
     if (response) {
       response = fields ? pickProps(response, fields) : response
@@ -67,12 +67,15 @@ export const queryOne = async (query: string, params: any = [], camelCase = fals
     await conn.release()
   }
 }
-export const query = async (query: string, params: any = [], camelCase = false): Promise<any[]> => {
-  log && console.log('query', query)
+export const query = async (select: string, params: any = [], camelCase = false, fields: string[] | undefined): Promise<any[]> => {
+  log && console.log('query', select)
   const conn = await getConnection()
   try {
-    const [results] = await conn.query(query, params)
-    const response = camelCase ? camelcaseKeys(results) : results
+    let response
+    const [results] = await conn.query(select, params)
+    if (fields && results && results.length > 0) {
+      response = results.map((row) => pickProps(row, fields))
+    } else { response = camelCase ? camelcaseKeys(results) : results }
     return response
   } catch (err) {
     console.error(err.message)
@@ -82,7 +85,7 @@ export const query = async (query: string, params: any = [], camelCase = false):
   }
 }
 // eslint-disable-next-line require-await
-export const exec = async (query: string, params: any = []): Promise<any> => {
-  console.log('exec', query)
-  return queryOne(query, params)
+export const exec = async (select: string, params: any = []): Promise<any> => {
+  console.log('exec', select)
+  return queryOne(select, params)
 }

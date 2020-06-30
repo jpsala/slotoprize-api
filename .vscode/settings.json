@@ -23,5 +23,32 @@
         //         }
         //     }
         // ]
-    }
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "node_modules/": true,
+        "src-cordova/": true,
+        ".git": true,
+        "**/.history": true,
+        ".idea/": true,
+        "**/.vscode/": true,
+        ".history/": true,
+        "dist/": true,
+        "semantic/": false,
+        "vscode_gist*/": false,
+        "protected/extensions": true,
+        "fonts": true,
+        "assets": true,
+        "framework": true,
+        ".chrome": true,
+        "protected/tcpdf": true,
+        "protected/vendors": true,
+        "tcpdf": true,
+        "build": true
+    },
+    "explorerExclude.backup": null
 }
