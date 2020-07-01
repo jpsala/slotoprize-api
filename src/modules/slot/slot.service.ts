@@ -46,21 +46,21 @@ export const setProfile = async (user: GameUser): Promise<any> => {
 */
   await metaExec(`
           update game_user set
-              email = '${user.email}',
-              first_name = '${user.firstName}',
-              last_name = '${user.lastName}',
-              device_name = '${user.deviceName}',
-              device_model = '${user.deviceModel}',
-              country_phone_code = '${user.countryPhoneCode}',
-              phone_number = '${user.phoneNumber}',
-              is_male = '${user.isMale}',
-              age = '${user.age}',
-              address = '${user.address}',
-              city = '${user.city}',
-              zip_code = '${user.zipCode}',
-              state = '${user.state}',
-              country = '${user.country}'
-          where device_id = '${user.deviceId}'
+              email = '${user.email || ""}',
+              first_name = '${user?.firstName || ""}',
+              last_name = '${user.lastName || ""}',
+              device_name = '${user.deviceName || ""}',
+              device_model = '${user.deviceModel || ""}',
+              country_phone_code = '${user.countryPhoneCode || ""}',
+              phone_number = '${user.phoneNumber || ""}',
+              is_male = '${user.isMale || ""}',
+              age = '${user.age || ""}',
+              address = '${user.address || ""}',
+              city = '${user.city || ""}',
+              zip_code = '${user.zipCode || ""}',
+              state = '${user.state || ""}',
+              country = '${user.country || ""}'
+          where device_id = '${user.deviceId || ""}'
       `)
   const updatedUser = await metaQueryOne(`
           select id, first_name, last_name, email, device_id from game_user where device_id = '${user.deviceId}'
