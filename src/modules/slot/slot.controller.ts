@@ -59,7 +59,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     reelsData.forEach((reel) => {
       reel.symbolsData.forEach((reelSymbol) => {
         const symbolPays: any[] = []
-        payTable.filter((payTableSymbol) => payTableSymbol.payment_type === reelSymbol.payment_type)
+        payTable.filter((payTableSymbol) => payTableSymbol.payment_type === reelSymbol.paymentType)
           .forEach((_symbol) => symbolPays.push(_symbol))
         const symbolAllPays: any[] = []
         for (let index = 1; index < 4; index++) {
@@ -72,7 +72,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const initData = {
       sessionId: token,
       profileData: toCamelCase(rawUser),
-      languagesData: languages,
+      languagesData: toCamelCase(languages),
       betPrice,
       maxMultiplier,
       reelsData,

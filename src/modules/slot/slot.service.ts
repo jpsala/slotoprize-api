@@ -1,3 +1,4 @@
+import toCamelCase from 'camelcase-keys'
 import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
 import {queryOne as metaQueryOne, exec as metaExec} from '../meta/meta.db'
@@ -11,7 +12,7 @@ export const getReelsData = async (): Promise<any> => {
     const symbolsData = await slotQuery('SELECT s.texture_url, s.payment_type FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)')
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++) {
-      reels.push({symbolsData})
+      reels.push({symbolsData: toCamelCase(symbolsData)})
       console.log('reels', reel, reels)
     }
     return reels
