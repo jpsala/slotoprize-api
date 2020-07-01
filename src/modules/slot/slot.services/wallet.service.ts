@@ -67,8 +67,9 @@ export const purchaseTickets = async (
   const conn = await getSlotConnection()
   const wallet = await getWallet(deviceId)
   const ticketAmountAnt = wallet.tickets
+  const coinsAmountAnt = wallet.coins
   const user = await metaService.getGameUserByDeviceId(deviceId)
-    // until we have a value for a ticket
+  // @TODO  until we have a value for a ticket
   const ticketValue = 1
   const coinsRequired = ticketAmount * ticketValue
   if (wallet.coins < coinsRequired) {
@@ -81,7 +82,8 @@ export const purchaseTickets = async (
         where game_user_id = ${user.id}
   `)
   await conn.release()
-  wallet.tickets = ticketAmountAnt - ticketAmount
+  wallet.tickets = ticketAmountAnt + ticketAmount
+  wallet.coins = coinsAmountAnt - coinsRequired
   return wallet
 }
 export const getOrSetWallet = async (
