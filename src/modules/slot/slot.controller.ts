@@ -1,3 +1,4 @@
+import { settingGet } from './slot.services/settings.service';
 /* eslint-disable max-statements-per-line */
 import {Request, Response} from 'express'
 import * as httpStatusCodes from "http-status-codes"
@@ -9,7 +10,6 @@ import * as languageRepo from "../meta/meta.repo/language.repo"
 
 import * as metaService from '../meta/meta.service'
 import {getCountries as metaGetCountries} from '../meta/meta.repo/country.repo'
-import {settingGet} from './slot.services/settings.service'
 // import * as types from '../meta/meta.types'
 import * as slotService from './slot.service'
 import * as walletService from "./slot.services/wallet.service"
@@ -44,6 +44,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const betPrice = Number(await settingGet('betPrice', '1'))
     const maxMultiplier = Number(await settingGet('maxMultiplier', '3'))
     const languages = (await languageRepo.getLanguages(['language_code', 'texture_url', 'localization_url'])) as Array<Partial<LanguageData>>
+    const requireProfileData = Number(await settingGet('requireProfileData', 0))
     // const languageData = (await metaRepo.getLanguageData(rawUser.id + 3)) as Partial<LanguageData>
     // @URGENT crear savelogin
     // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
@@ -71,6 +72,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     })
     const initData = {
       sessionId: token,
+      requireProfileData,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
       betPrice,
