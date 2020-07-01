@@ -25,7 +25,7 @@ export async function getProfile(req: Request, res: Response): Promise<any> {
 }
 export async function postProfile(req: Request, res: Response): Promise<any> {
   const resp = await slotService.setProfile(req.body as GameUser)
-  res.status(httpStatusCodes.OK).json({profileData: toCamelCase(resp)})
+  res.status(httpStatusCodes.OK).json(toCamelCase(resp))
 }
 export async function spin(req: Request, res: Response): Promise<any> {
   const resp = await slotService.spin(req.query.deviceId as string, req.query.multiplier as string)
@@ -33,9 +33,6 @@ export async function spin(req: Request, res: Response): Promise<any> {
 }
 export async function getCountries(req: Request, res: Response): Promise<void> {
   const countries = await metaGetCountries()
-  console.log("countries", countries)
-  console.log("countries0", countries[0])
-  console.log("countries0s", countries[0].states)
   res.status(httpStatusCodes.OK).json(countries)
 }
 export async function gameInit(req: Request, res: Response): Promise<any> {

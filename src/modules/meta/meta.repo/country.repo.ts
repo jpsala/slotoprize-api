@@ -1,5 +1,3 @@
-/* eslint-disable guard-for-in */
-/* eslint-disable require-atomic-updates */
 // import createError from 'http-errors'
 import {query} from '../meta.db'
 import {Country, State} from '../meta.types'
