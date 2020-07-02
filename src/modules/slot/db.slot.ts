@@ -1,7 +1,7 @@
 /* eslint-disable babel/no-unused-expressions */
 import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
-import {createPool} from 'mysql2/promise'
+import {createPool, ResultSetHeader} from 'mysql2/promise'
 import camelcaseKeys from 'camelcase-keys'
 
 const pool = []
@@ -10,9 +10,9 @@ let queueSize = 0
 let poolSize = 0
 const log = false
 export default async function getConnection(host = 'localhost'): Promise<any> {
-  if (pool[host]) {
+  if (pool[host])
     return pool[host].getConnection()
-  }
+
   const config = {
     connectionLimit: 10,
     host,
@@ -29,8 +29,8 @@ export default async function getConnection(host = 'localhost'): Promise<any> {
   pool[host].on('acquire', () => {
     acquiredConnections += 1
     log && console.info('db slot: acquire', acquiredConnections)
-    if (acquiredConnections > 2) { console.warn('db slot: verify cant of connections maybe a release is missing', acquiredConnections) }
-    if (acquiredConnections > 5) { console.error('db slot: verify cant of connections maybe a release is missing', acquiredConnections) }
+    if (acquiredConnections > 2) console.warn('db slot: verify cant of connections maybe a release is missing', acquiredConnections)
+    if (acquiredConnections > 5) console.error('db slot: verify cant of connections maybe a release is missing', acquiredConnections)
   })
   pool[host].on('connection', () => {
     poolSize += 1
@@ -76,8 +76,15 @@ export const query = async (select: string, params: string[] = [], camelCase = f
     await conn.release()
   }
 }
-// eslint-disable-next-line require-await
-export const exec = async (select: string, params: any = []): Promise<any> => {
-  log && console.log('exec', select)
-  return queryOne(select, params)
+export const exec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
+  const conn = await getConnection()
+  try {
+    const [respExec] = await conn.query(select, params)
+    return respExec as ResultSetHeader
+  } catch (err) {
+    console.error(err.message)
+    throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, err)
+  } finally {
+    await conn.release()
+  }
 }

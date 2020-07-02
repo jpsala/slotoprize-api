@@ -4,8 +4,11 @@ import * as httpStatusCodes from "http-status-codes"
 import {queryOne as metaQueryOne, exec as metaExec} from '../meta/meta.db'
 import {GameUser} from "../meta/meta.types"
 import {getGameUserByDeviceId} from '../meta/meta.repo/user.repo'
+import * as raffleRepo from '../meta/meta.repo/raffle.repo'
+import {Wallet} from './slot.types'
 import * as spinService from "./slot.services/spin.service"
 import {query as slotQuery} from './db.slot'
+import {getWallet, updateWallet} from './slot.services/wallet.service'
 
 export const getReelsData = async (): Promise<any> => {
   try {
@@ -21,17 +24,17 @@ export const getReelsData = async (): Promise<any> => {
   }
 }
 export const getProfile = async (deviceId: string, fields: string[] | undefined = undefined): Promise<GameUser | Partial<GameUser>> => {
-  if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
+  if (!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
   const gameUser = await getGameUserByDeviceId(deviceId, fields)
-  if (!gameUser) { throw createError(httpStatusCodes.BAD_REQUEST, 'there is no user associated with this deviceId') }
+  if (!gameUser) throw createError(httpStatusCodes.BAD_REQUEST, 'there is no user associated with this deviceId')
   return gameUser
 }
 export const setProfile = async (user: GameUser): Promise<any> => {
-  if (!user.deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
+  if (!user.deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
   const userExists = await metaQueryOne(`select * from game_user where device_id = '${user.deviceId}'`)
-  if (!userExists) {
+  if (!userExists)
     throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
-  }
+
 
   /* falta:
               countryPhoneCode: string;
@@ -77,12 +80,48 @@ export const symbolsInDB = async (): Promise<any> => {
       'SELECT * FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)'
     )
     const reels: any[] = []
-    for (let reel = 1; reel < 4; reel++) {
+    for (let reel = 1; reel < 4; reel++)
       reels[reel] = SymbolsRows
-    }
+
     return {reels, symbols: SymbolsRows}
   } catch (error) {
     return {status: 'error'}
   }
 }
+export const purchaseRaffles = async (
+  deviceId: string,
+  id: number,
+  amount: number
+): Promise<any> => {
+  if(!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
+  if(!amount) throw createError(httpStatusCodes.BAD_REQUEST, 'amount is a required parameter')
+  if(amount < 1) throw createError(httpStatusCodes.BAD_REQUEST, 'amount can not be less than 1')
+  if(!id) throw createError(httpStatusCodes.BAD_REQUEST, 'raffleId is a required parameter')
 
+  // @TODO trycatch
+  const user = await getGameUserByDeviceId(deviceId)
+  const wallet = await getWallet(deviceId)
+  const raffle = await raffleRepo.getRaffle(id)
+  if(!raffle) throw createError(httpStatusCodes.BAD_REQUEST, 'there is no raffle with that ID')
+  const raffleCostInTickets = raffle.raffleNumberPrice
+  const totalTicketsNeeded = raffleCostInTickets * amount
+  if (totalTicketsNeeded > wallet.tickets) throw createError(createError.BadRequest, 'Insufficient tickets')
+  const raffleId = await raffleRepo.saveRaffle(raffle, user, totalTicketsNeeded, amount)
+  if(raffleId < 0) throw createError(createError.InternalServerError, 'Error saving raffle to db')
+  wallet.tickets -= totalTicketsNeeded
+  const resp = await updateWallet(deviceId, wallet)
+  console.log('resp', resp)
+//   const ticketAmountAnt = wallet.tickets
+//   if (wallet.tic < coinsRequired)
+//     throw createError(400, 'There are no sufficient funds')
+
+//   await conn.query(`
+//   update wallet set
+//       coins = coins - ${coinsRequired},
+//       tickets = tickets + ${ticketAmount}
+//       where game_user_id = ${user.id}
+// `)
+  // wallet.tickets = ticketAmountAnt + ticketAmount
+  // wallet.coins = coinsAmountAnt - coinsRequired
+  return raffle
+}

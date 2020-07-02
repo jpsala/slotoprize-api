@@ -9,7 +9,7 @@ import * as languageRepo from "../meta/meta.repo/language.repo"
 
 import * as metaService from '../meta/meta.service'
 import {getCountries as metaGetCountries} from '../meta/meta.repo/country.repo'
-import {getRaffles} from '../meta/meta.repo/raffle.repo'
+import * as raffleRepo from '../meta/meta.repo/raffle.repo'
 import {settingGet} from './slot.services/settings.service'
 // import * as types from '../meta/meta.types'
 import * as slotService from './slot.service'
@@ -41,7 +41,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const deviceId = req.query.deviceId as string
     const rawUser = await metaService.getOrSetGameUserByDeviceId(deviceId as string)
     const wallet = await walletService.getOrSetWallet(deviceId, rawUser.id)
-    const rafflePrizeData = await getRaffles(['id'], true)
+    const rafflePrizeData = await raffleRepo.getRaffles(['id'], true)
     const payTable = await getPayTable()
     const betPrice = Number(await settingGet('betPrice', '1'))
     const ticketPrice = Number(await settingGet('ticketPrice', '1'))
@@ -68,7 +68,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
         const symbolAllPays: any[] = []
         for (let index = 1; index < 4; index++) {
           const row = symbolPays.find((_symbol) => _symbol.symbol_amount === index)
-          if (row) { symbolAllPays.push(row.points) } else { symbolAllPays.push(0) }
+          if (row) { symbolAllPays.push(row.points) } else symbolAllPays.push(0)
         }
         reelSymbol.pays = symbolAllPays
       })
@@ -101,6 +101,14 @@ export async function purchaseTickets(req: Request, res: Response): Promise<any>
   )
   res.status(httpStatusCodes.OK).json(resp)
 }
+export async function purchaseRaffles(req: Request, res: Response): Promise<any> {
+  const resp = await slotService.purchaseRaffles(
+    req.query.deviceId as string,
+    Number(req.query.id),
+    Number(req.query.amount)
+  )
+  res.status(httpStatusCodes.OK).json(resp)
+}
 export async function withToken(req: Request, res: Response): Promise<any> {
   console.log('req', req)
   const loginToken = req.query.token as string
@@ -110,9 +118,9 @@ export async function withToken(req: Request, res: Response): Promise<any> {
   console.log('id', id)
   const user = await metaService.getUserById(id)
   console.log('user', user)
-  if (!user) {
+  if (!user)
     return res.status(401).send({auth: false, message: 'The user in the token was not found in the db'})
-  }
+
   const token = getNewToken({user: {id: user.id, name: user.name}})
   res.setHeader('token', token)
   // eslint-disable-next-line require-atomic-updates
@@ -124,7 +132,7 @@ export async function withToken(req: Request, res: Response): Promise<any> {
 export async function auth(req: Request, res: Response): Promise<any> {
   try {
     const user = await metaService.auth(req.body)
-    if (!user) { throw createError(httpStatusCodes.BAD_REQUEST, 'Email and/or Password not found') }
+    if (!user) throw createError(httpStatusCodes.BAD_REQUEST, 'Email and/or Password not found')
     // const user = rows.length > 0 ? rows[0] : undefined
     // if (!user) {
     //   return res.status(401).send({auth: false, message: 'Error de credenciales, revise los datos'})

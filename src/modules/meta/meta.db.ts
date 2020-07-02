@@ -1,7 +1,7 @@
 /* eslint-disable babel/no-unused-expressions */
 import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
-import {createPool} from 'mysql2/promise'
+import {createPool, ResultSetHeader} from 'mysql2/promise'
 import camelcaseKeys from 'camelcase-keys'
 import {pickProps} from '../../helpers'
 
@@ -11,9 +11,7 @@ let queueSize = 0
 let poolSize = 0
 const log = false
 export default async function getConnection(host = 'localhost'): Promise<any> {
-  if (pool[host]) {
-    return pool[host].getConnection()
-  }
+  if (pool[host]) return pool[host].getConnection()
   const config = {
     connectionLimit: 10,
     host,
@@ -84,7 +82,15 @@ export const query = async (select: string, params: any = [], camelCase = false,
     await conn.release()
   }
 }
-// eslint-disable-next-line require-await
-export const exec = async (select: string, params: any = []): Promise<any> => {
-  return queryOne(select, params)
+export const exec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
+  const conn = await getConnection()
+  try {
+    const [respExec] = await conn.query(select, params)
+    return respExec as ResultSetHeader
+  } catch (err) {
+    console.error(err.message)
+    throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, err)
+  } finally {
+    await conn.release()
+  }
 }

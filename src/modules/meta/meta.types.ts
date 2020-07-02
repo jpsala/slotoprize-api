@@ -1,3 +1,4 @@
+import { User } from './meta.types';
 export interface User {
   id: number;
   login: string;
@@ -55,4 +56,14 @@ export interface RafflePrizeLocalizationData{
   languageCode: string;
   name: string;
   description: string;
+}
+
+export interface RaffleHistory {
+  id: number;
+  gameUser: GameUser;
+  raffle: RafflePrizeData;
+  transactionDate: Date;
+  ticketsUsed: number;
+  expirationDate: Date;
+  participations: number;
 }

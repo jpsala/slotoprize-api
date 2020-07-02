@@ -4,14 +4,15 @@ import * as metaService from '../../meta/meta.service'
 import getSlotConnection, {exec} from '../db.slot'
 import {Wallet} from '../slot.types'
 import {settingGet} from './settings.service'
+import { ResultSetHeader } from 'mysql2'
 
-export const getWallet = async (deviceId: string): Promise<any> => {
-  if (!deviceId) {
+export const getWallet = async (deviceId: string): Promise<Wallet> => {
+  if (!deviceId)
     throw createError(
             httpStatusCodes.BAD_REQUEST,
             'deviceId is a required parameter'
         )
-  }
+
   const conn = await getSlotConnection()
   const user = await metaService.getGameUserByDeviceId(deviceId)
   try {
@@ -19,12 +20,12 @@ export const getWallet = async (deviceId: string): Promise<any> => {
             `select coins, tickets from wallet where game_user_id ='${user.id}'`
         )
     const wallet = walletRows[0]
-    if (!user) {
+    if (!user)
       throw createError(
                 httpStatusCodes.BAD_REQUEST,
                 'there is no user associated with this deviceId'
             )
-    }
+
     return wallet
   } finally {
     await conn.release()
@@ -33,20 +34,20 @@ export const getWallet = async (deviceId: string): Promise<any> => {
 export async function updateWallet(
     deviceId: string,
     wallet: Wallet
-): Promise<any> {
-    // @TODO save spin to DB
+): Promise<ResultSetHeader> {
   const conn = await getSlotConnection()
   try {
     const user = await metaService.getGameUserByDeviceId(deviceId)
     const [respUpdateRow] = await conn.query(`
-      update wallet set coins = ${wallet.coins} where game_user_id = ${user.id}
-  `)
-    if (Number(respUpdateRow.affectedRows) !== 1) {
+      update wallet set coins = ${wallet.coins}, tickets = ${wallet.tickets} where game_user_id = ${user.id}
+  `) as ResultSetHeader[]
+    if (Number(respUpdateRow.affectedRows) !== 1)
       throw createError(
                 httpStatusCodes.INTERNAL_SERVER_ERROR,
                 'Something whent wrong storing the wallet'
-            )
-    }
+      )
+    return respUpdateRow
+
   } catch (error) {
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, error)
   } finally {
@@ -57,24 +58,19 @@ export const purchaseTickets = async (
     deviceId: string,
     ticketAmount: number
 ): Promise<any> => {
-  if (!deviceId) {
-    throw createError(
-            httpStatusCodes.BAD_REQUEST,
-            'deviceId is a required parameter'
-        )
-  }
+  if (!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
+
     // @TODO trycatch
   const conn = await getSlotConnection()
   const wallet = await getWallet(deviceId)
   const ticketAmountAnt = wallet.tickets
-  const coinsAmountAnt = wallet.coins
   const user = await metaService.getGameUserByDeviceId(deviceId)
-  const ticketPrice = Number(await settingGet('ticketPrice', '1'))
-
-  const coinsRequired = ticketAmount * ticketPrice
-  if (wallet.coins < coinsRequired) {
+    // until we have a value for a ticket
+  const ticketValue = 1
+  const coinsRequired = ticketAmount * ticketValue
+  if (wallet.coins < coinsRequired)
     throw createError(400, 'There are no sufficient funds')
-  }
+
   await conn.query(`
     update wallet set
         coins = coins - ${coinsRequired},
@@ -82,10 +78,10 @@ export const purchaseTickets = async (
         where game_user_id = ${user.id}
   `)
   await conn.release()
-  wallet.tickets = ticketAmountAnt + ticketAmount
-  wallet.coins = coinsAmountAnt - coinsRequired
+  wallet.tickets = ticketAmountAnt - ticketAmount
   return wallet
 }
+
 export const getOrSetWallet = async (
     deviceId: string,
     userId: string

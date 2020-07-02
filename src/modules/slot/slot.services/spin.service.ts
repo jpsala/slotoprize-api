@@ -87,17 +87,6 @@ const getSymbolForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
   // console.log("getSymbolForFilling -> symbolsForFilling[randomNumber]", symbolsForFilling[randomNumber].payment_type)
   return symbolsToReturn[randomNumber]
 }
-// const getSymbolRowsForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
-//   // console.log('allreadyFilledSymbols', JSON.stringify(allreadyFilledSymbols))
-//   const symbolsToReturn = symbolsForFilling.filter((fillingSymbolRow) => {
-//     if (allreadyFilledSymbols.length === 0) { return true }
-//     return allreadyFilledSymbols.find((afSymbol) => {
-//       // console.log('find', afSymbol.paymentType, fillingSymbolRow.payment_type, afSymbol.paymentType !== fillingSymbolRow.payment_type)
-//       return afSymbol.paymentType !== fillingSymbolRow.payment_type
-//     })
-//   })
-//   return symbolsToReturn
-// }
 export const getPayTable = async ():Promise <any> => {
   const conn = await getSlotConnection()
   try {

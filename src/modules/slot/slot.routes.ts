@@ -13,6 +13,7 @@ router.route('/spin').get(checkToken, slot.spin)
 router.route('/wallet').get(checkToken, slot.getWallet)
 router.route('/countries').get(checkToken, slot.getCountries)
 router.route('/purchase_tickets').get(checkToken, slot.purchaseTickets)
+router.route('/purchase_raffles').get(checkToken, slot.purchaseRaffles)
 router.route('/postman').get(slot.postman)
 
 export default router

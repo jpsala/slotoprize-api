@@ -19,7 +19,9 @@
          "@typescript-eslint/no-explicit-any": "off",
          "import/order": ["error", {"newlines-between": "ignore"}],
          "no-use-before-define":"off",
-         "prefer-spread":"off"
+         "prefer-spread":"off",
+         "keyword-spacing": "off",
+         "curly": ["error", "multi"]
       },
       "env": {
         "browser": true,

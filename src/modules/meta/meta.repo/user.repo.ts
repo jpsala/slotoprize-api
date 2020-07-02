@@ -29,4 +29,3 @@ export async function getGameUser(userId: number): Promise<GameUser> {
   const user = rows[0] as GameUser
   return user
 }
-
