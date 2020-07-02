@@ -1,4 +1,3 @@
-import { User } from './meta.types';
 export interface User {
   id: number;
   login: string;
