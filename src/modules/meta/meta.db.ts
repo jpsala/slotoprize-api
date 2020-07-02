@@ -67,7 +67,7 @@ export const queryOne = async (select: string, params: any = [], camelCase = fal
     await conn.release()
   }
 }
-export const query = async (select: string, params: any = [], camelCase = false, fields: string[] | undefined): Promise<any[]> => {
+export const query = async (select: string, params: any = [], camelCase = false, fields: string[] | undefined = undefined): Promise<any[]> => {
   log && console.log('query', select)
   const conn = await getConnection()
   try {

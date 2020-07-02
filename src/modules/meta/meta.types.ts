@@ -41,3 +41,18 @@ export interface LanguageData {
   textureUrl: string;
   localizationUrl: string;
 }
+export interface RafflePrizeData {
+  id: number;
+  closingDate: Date;
+  textureUr: string;
+  raffleNumberPrice: number
+  itemHighlight: boolean;
+  rafflePrizesLocalizationData: RafflePrizeLocalizationData[];
+}
+export interface RafflePrizeLocalizationData{
+  id: number;
+  raffleId: number;
+  languageCode: string;
+  name: string;
+  description: string;
+}

@@ -1,15 +1,16 @@
-import { settingGet } from './slot.services/settings.service';
 /* eslint-disable max-statements-per-line */
 import {Request, Response} from 'express'
 import * as httpStatusCodes from "http-status-codes"
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import {verifyToken, getNewToken} from '../../services/jwtService'
-import {GameUser, User, LanguageData, Country} from "../meta/meta.types"
+import {GameUser, User, LanguageData} from "../meta/meta.types"
 import * as languageRepo from "../meta/meta.repo/language.repo"
 
 import * as metaService from '../meta/meta.service'
 import {getCountries as metaGetCountries} from '../meta/meta.repo/country.repo'
+import {getRaffles} from '../meta/meta.repo/raffle.repo'
+import {settingGet} from './slot.services/settings.service'
 // import * as types from '../meta/meta.types'
 import * as slotService from './slot.service'
 import * as walletService from "./slot.services/wallet.service"
@@ -40,6 +41,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const deviceId = req.query.deviceId as string
     const rawUser = await metaService.getOrSetGameUserByDeviceId(deviceId as string)
     const wallet = await walletService.getOrSetWallet(deviceId, rawUser.id)
+    const rafflePrizeData = await getRaffles(['id'], true)
     const payTable = await getPayTable()
     const betPrice = Number(await settingGet('betPrice', '1'))
     const ticketPrice = Number(await settingGet('ticketPrice', '1'))
@@ -76,6 +78,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
       requireProfileData,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
+      rafflePrizeData,
       ticketPrice,
       betPrice,
       maxMultiplier,
