@@ -10,7 +10,7 @@ import {settingGet, settingSet} from './settings.service'
 
 const randomNumbers: number[] = []
 export async function spin(deviceId: string, multiplier: number): Promise<SpinData> {
-  checkParamsAndThrowErrorIfFail(deviceId, multiplier)
+  await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
   const wallet = await walletService.getWallet(deviceId)
   if (!wallet) { throw createError(httpStatusCodes.BAD_REQUEST, 'Something went wrong, Wallet not found for this user, someting went wrong') }
@@ -19,6 +19,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   if (!enoughCoins) { throw createError(400, 'Insufficient funds') }
 
   await saveSpinToDb(multiplier)
+  // eslint-disable-next-line prefer-const
   let {winPoints, winType, symbolsData, isWin} = await getWinData()
   console.log('randomNumbers', randomNumbers)
 
@@ -86,17 +87,17 @@ const getSymbolForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
   // console.log("getSymbolForFilling -> symbolsForFilling[randomNumber]", symbolsForFilling[randomNumber].payment_type)
   return symbolsToReturn[randomNumber]
 }
-const getSymbolRowsForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
-  // console.log('allreadyFilledSymbols', JSON.stringify(allreadyFilledSymbols))
-  const symbolsToReturn = symbolsForFilling.filter((fillingSymbolRow) => {
-    if (allreadyFilledSymbols.length === 0) { return true }
-    return allreadyFilledSymbols.find((afSymbol) => {
-      // console.log('find', afSymbol.paymentType, fillingSymbolRow.payment_type, afSymbol.paymentType !== fillingSymbolRow.payment_type)
-      return afSymbol.paymentType !== fillingSymbolRow.payment_type
-    })
-  })
-  return symbolsToReturn
-}
+// const getSymbolRowsForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
+//   // console.log('allreadyFilledSymbols', JSON.stringify(allreadyFilledSymbols))
+//   const symbolsToReturn = symbolsForFilling.filter((fillingSymbolRow) => {
+//     if (allreadyFilledSymbols.length === 0) { return true }
+//     return allreadyFilledSymbols.find((afSymbol) => {
+//       // console.log('find', afSymbol.paymentType, fillingSymbolRow.payment_type, afSymbol.paymentType !== fillingSymbolRow.payment_type)
+//       return afSymbol.paymentType !== fillingSymbolRow.payment_type
+//     })
+//   })
+//   return symbolsToReturn
+// }
 export const getPayTable = async ():Promise <any> => {
   const conn = await getSlotConnection()
   try {
@@ -135,9 +136,13 @@ const getWinRow = (table) => {
   })
   return winRow
 }
-function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: number) {
+async function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: number): Promise<void> {
   if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
   if (!multiplier) { throw createError(httpStatusCodes.BAD_REQUEST, 'multiplier is a required parameter') }
+  const maxMultiplier = Number(await settingGet('maxMultiplier', '1'))
+  console.log('multiplier > maxMultiplier', multiplier, maxMultiplier)
+  if (multiplier > maxMultiplier) { throw createError(createError[502], `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`) }
+
 }
 async function getBetAndCheckFunds(multiplier: number, coins: any) {
   const betPrice = Number(await settingGet('betPrice', 1))

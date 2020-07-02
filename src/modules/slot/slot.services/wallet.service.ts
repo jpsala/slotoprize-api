@@ -69,9 +69,9 @@ export const purchaseTickets = async (
   const ticketAmountAnt = wallet.tickets
   const coinsAmountAnt = wallet.coins
   const user = await metaService.getGameUserByDeviceId(deviceId)
-  // @TODO  until we have a value for a ticket
-  const ticketValue = 1
-  const coinsRequired = ticketAmount * ticketValue
+  const ticketPrice = Number(await settingGet('ticketPrice', '1'))
+
+  const coinsRequired = ticketAmount * ticketPrice
   if (wallet.coins < coinsRequired) {
     throw createError(400, 'There are no sufficient funds')
   }
