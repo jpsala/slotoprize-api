@@ -62,7 +62,7 @@ export const purchaseTickets = async (
 
     // @TODO trycatch
   const conn = await getSlotConnection()
-  const wallet = await getWallet(deviceId)
+  let wallet = await getWallet(deviceId)
   const ticketAmountAnt = wallet.tickets
   const user = await metaService.getGameUserByDeviceId(deviceId)
     // until we have a value for a ticket
@@ -78,7 +78,7 @@ export const purchaseTickets = async (
         where game_user_id = ${user.id}
   `)
   await conn.release()
-  wallet.tickets = ticketAmountAnt - ticketAmount
+  wallet = await getWallet(deviceId)
   return wallet
 }
 

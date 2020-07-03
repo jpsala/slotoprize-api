@@ -38,6 +38,7 @@
         "**/.vscode/": true,
         ".history/": true,
         "dist/": true,
+        "build/": true,
         "semantic/": false,
         "vscode_gist*/": false,
         "protected/extensions": true,
@@ -48,7 +49,8 @@
         "protected/tcpdf": true,
         "protected/vendors": true,
         "tcpdf": true,
-        "build": true
+        "build": true,
+        ".history": true
     },
     "explorerExclude.backup": null
 }
