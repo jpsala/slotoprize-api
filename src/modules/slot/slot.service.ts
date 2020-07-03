@@ -5,7 +5,6 @@ import {queryOne as metaQueryOne, exec as metaExec} from '../meta/meta.db'
 import {GameUser} from "../meta/meta.types"
 import {getGameUserByDeviceId} from '../meta/meta.repo/user.repo'
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
-import {Wallet} from './slot.types'
 import * as spinService from "./slot.services/spin.service"
 import {query as slotQuery} from './db.slot'
 import {getWallet, updateWallet} from './slot.services/wallet.service'
@@ -88,7 +87,7 @@ export const symbolsInDB = async (): Promise<any> => {
     return {status: 'error'}
   }
 }
-export const purchaseRaffles = async (
+export const rafflePurchase = async (
   deviceId: string,
   id: number,
   amount: number
@@ -102,8 +101,9 @@ export const purchaseRaffles = async (
   const user = await getGameUserByDeviceId(deviceId)
   const wallet = await getWallet(deviceId)
   const raffle = await raffleRepo.getRaffle(id)
-  if(!raffle) throw createError(httpStatusCodes.BAD_REQUEST, 'there is no raffle with that ID')
+  if (!raffle) throw createError(httpStatusCodes.BAD_REQUEST, 'there is no raffle with that ID')
   const raffleCostInTickets = raffle.raffleNumberPrice
+  console.log('raffle', raffle, raffleCostInTickets)
   const totalTicketsNeeded = raffleCostInTickets * amount
   if (totalTicketsNeeded > wallet.tickets) throw createError(createError.BadRequest, 'Insufficient tickets')
   const raffleId = await raffleRepo.saveRaffle(raffle, user, totalTicketsNeeded, amount)

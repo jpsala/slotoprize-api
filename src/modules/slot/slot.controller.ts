@@ -1,4 +1,3 @@
-/* eslint-disable max-statements-per-line */
 import {Request, Response} from 'express'
 import * as httpStatusCodes from "http-status-codes"
 import createError from 'http-errors'
@@ -68,7 +67,8 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
         const symbolAllPays: any[] = []
         for (let index = 1; index < 4; index++) {
           const row = symbolPays.find((_symbol) => _symbol.symbol_amount === index)
-          if (row) { symbolAllPays.push(row.points) } else symbolAllPays.push(0)
+          if (row) symbolAllPays.push(row.points)
+          else symbolAllPays.push(0)
         }
         reelSymbol.pays = symbolAllPays
       })
@@ -101,8 +101,17 @@ export async function purchaseTickets(req: Request, res: Response): Promise<any>
   )
   res.status(httpStatusCodes.OK).json(resp)
 }
-export async function purchaseRaffles(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.purchaseRaffles(
+export async function getRaffles(req: Request, res: Response): Promise<any> {
+  const resp = await raffleRepo.getRaffles(['id'])
+  res.status(httpStatusCodes.OK).json(resp)
+}
+export async function getRafflePurchaseHistory(req: Request, res: Response): Promise<any> {
+  const resp = await raffleRepo.getRafflePurchaseHistory(req.query.deviceId as string)
+  console.log('rh', resp)
+  res.status(httpStatusCodes.OK).json({raffleRecordsData: resp})
+}
+export async function rafflePurchase(req: Request, res: Response): Promise<any> {
+  const resp = await slotService.rafflePurchase(
     req.query.deviceId as string,
     Number(req.query.id),
     Number(req.query.amount)
