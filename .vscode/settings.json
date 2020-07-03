@@ -52,5 +52,24 @@
         "build": true,
         ".history": true
     },
+    "search.exclude": {
+        "node_modules/": true,
+        "*/**/.history/": true,
+        "tcpdf": true,
+        ".git": true,
+        ".history/": true,
+        "**/.history": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/.history/": true,
+        ".idea/": true,
+        ".vscode/": true,
+        "dist/": true,
+        "build/": true,
+        "semantic/": true,
+        ".chrome": true,
+        "/.history/**": true
+      },
     "explorerExclude.backup": null
 }

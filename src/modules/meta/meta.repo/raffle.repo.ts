@@ -41,7 +41,7 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
   const gameUser = await getGameUserByDeviceId(deviceId)
   const raffleHistory = await query(`
   SELECT rh.raffle_id as raffle_item_id, DATE_FORMAT(rh.transaction_date, '%Y/%m/%d') AS transaction_date, rh.tickets,
-  DATE_FORMAT(rh.closing_date, '%Y/%m/%d') AS closing_date, rh.raffle_id, rh.raffle_numbers
+  DATE_FORMAT(rh.closing_date, '%Y/%m/%d') AS closing_date, rh.raffle_numbers
   FROM raffle_history rh where rh.game_user_id = ${gameUser.id}
   order by id desc
   limit 20
