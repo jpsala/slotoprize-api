@@ -109,19 +109,7 @@ export const rafflePurchase = async (
   const raffleId = await raffleRepo.saveRaffle(raffle, user, totalTicketsNeeded, amount)
   if(raffleId < 0) throw createError(createError.InternalServerError, 'Error saving raffle to db')
   wallet.tickets -= totalTicketsNeeded
-  const resp = await updateWallet(deviceId, wallet)
-  console.log('resp', resp)
-//   const ticketAmountAnt = wallet.tickets
-//   if (wallet.tic < coinsRequired)
-//     throw createError(400, 'There are no sufficient funds')
-
-//   await conn.query(`
-//   update wallet set
-//       coins = coins - ${coinsRequired},
-//       tickets = tickets + ${ticketAmount}
-//       where game_user_id = ${user.id}
-// `)
-  // wallet.tickets = ticketAmountAnt + ticketAmount
-  // wallet.coins = coinsAmountAnt - coinsRequired
-  return raffle
+  updateWallet(deviceId, wallet)
+  // eslint-disable-next-line no-return-await
+  return await getWallet(deviceId)
 }
