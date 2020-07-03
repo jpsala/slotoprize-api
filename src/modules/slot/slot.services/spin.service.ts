@@ -13,17 +13,17 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
   const wallet = await walletService.getWallet(deviceId)
-  if (!wallet) { throw createError(httpStatusCodes.BAD_REQUEST, 'Something went wrong, Wallet not found for this user, someting went wrong') }
+  if (!wallet) throw createError(httpStatusCodes.BAD_REQUEST, 'Something went wrong, Wallet not found for this user, someting went wrong')
   const {coins: coinsInWallet} = wallet
   const {bet, enoughCoins} = await getBetAndCheckFunds(multiplier, coinsInWallet)
-  if (!enoughCoins) { throw createError(400, 'Insufficient funds') }
+  if (!enoughCoins) throw createError(400, 'Insufficient funds')
 
   await saveSpinToDb(multiplier)
   // eslint-disable-next-line prefer-const
   let {winPoints, winType, symbolsData, isWin} = await getWinData()
   console.log('randomNumbers', randomNumbers)
 
-  if (winType === 'jackpot' || winType === 'ticket') { multiplier = 1 }
+  if (winType === 'jackpot' || winType === 'ticket') multiplier = 1
   const winAmount = winPoints * multiplier
 
   // siempre se descuenta el costo del spin
@@ -31,14 +31,14 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   if (winType === 'jackpot') {
     resetSpinCount()
     isWin = true
-  } else if (isWin) {
+  } else if (isWin)
     wallet.coins += winAmount
-  }
+
   walletService.updateWallet(deviceId, wallet)
   console.log('winType', winType)
   const returnData: any = {symbolsData, isWin, wallet}
 
-  if (isWin) { returnData.winData = {type: winType, amount: winAmount} }
+  if (isWin) returnData.winData = {type: winType, amount: winAmount}
 
   return returnData
 }
@@ -70,14 +70,14 @@ const getWinRowWithEmptyFilled = (winRow, fillTable) => {
 const getSymbolForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
   console.log('allreadyFilledSymbols', JSON.stringify(allreadyFilledSymbols))
   const symbolsToReturn = symbolsForFilling.filter((fillingSymbolRow) => {
-    if (allreadyFilledSymbols.length === 0) {
+    if (allreadyFilledSymbols.length === 0)
       return fillingSymbolRow
-    }
+
     const isInValid = allreadyFilledSymbols.find((afSymbol) => {
       const encontrado = (afSymbol.paymentType === fillingSymbolRow.payment_type)
-      if (!encontrado) {
+      if (!encontrado)
         console.log('symbol', fillingSymbolRow.payment_type)
-      }
+
       return encontrado
     })
     return !isInValid
@@ -115,7 +115,7 @@ const checkWithRandomIfWins = () => getRandomNumber() > 20
 const getRandomNumber = (from = 1, to = 100) => Math.floor((Math.random() * (to)) + from)
 const getWinRow = (table) => {
   const randomNumber = getRandomNumber(1, 100)
-  if (!randomNumbers[randomNumber]) { randomNumbers[randomNumber] = 0 }
+  if (!randomNumbers[randomNumber]) randomNumbers[randomNumber] = 0
   randomNumbers[randomNumber]++
   let floor = 0
   const winRow = table.find((row) => {
@@ -126,11 +126,11 @@ const getWinRow = (table) => {
   return winRow
 }
 async function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: number): Promise<void> {
-  if (!deviceId) { throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter') }
-  if (!multiplier) { throw createError(httpStatusCodes.BAD_REQUEST, 'multiplier is a required parameter') }
+  if (!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
+  if (!multiplier) throw createError(httpStatusCodes.BAD_REQUEST, 'multiplier is a required parameter')
   const maxMultiplier = Number(await settingGet('maxMultiplier', '1'))
   console.log('multiplier > maxMultiplier', multiplier, maxMultiplier)
-  if (multiplier > maxMultiplier) { throw createError(createError[502], `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`) }
+  if (multiplier > maxMultiplier) throw createError(createError[502], `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`)
 
 }
 async function getBetAndCheckFunds(multiplier: number, coins: any) {

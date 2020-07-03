@@ -108,7 +108,7 @@ export async function getRaffles(req: Request, res: Response): Promise<any> {
 export async function getRafflePurchaseHistory(req: Request, res: Response): Promise<any> {
   const resp = await raffleRepo.getRafflePurchaseHistory(req.query.deviceId as string)
   console.log('rh', resp)
-  res.status(httpStatusCodes.OK).json({raffleRecordsData: resp})
+  res.status(httpStatusCodes.OK).json(resp)
 }
 export async function rafflePurchase(req: Request, res: Response): Promise<any> {
   const resp = await slotService.rafflePurchase(
