@@ -2,5 +2,6 @@
   "tabWidth": 4,
   "useTabs": false,
   "singleQuote": true,
-  "parser":"babel"
+  "parser": "babel",
+  "semi": false
 }

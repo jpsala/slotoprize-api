@@ -1,10 +1,10 @@
 import createError from 'http-errors'
 import * as httpStatusCodes from 'http-status-codes'
+import {ResultSetHeader} from 'mysql2'
 import * as metaService from '../../meta/meta.service'
 import getSlotConnection, {exec} from '../db.slot'
 import {Wallet} from '../slot.types'
 import {settingGet} from './settings.service'
-import { ResultSetHeader } from 'mysql2'
 
 export const getWallet = async (deviceId: string): Promise<Wallet> => {
   if (!deviceId)

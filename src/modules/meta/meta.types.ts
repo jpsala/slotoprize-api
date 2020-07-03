@@ -41,15 +41,15 @@ export interface LanguageData {
   textureUrl: string;
   localizationUrl: string;
 }
-export interface RafflePrizeData {
+export interface RafflePrizesData {
   id: number;
   closingDate: Date;
   textureUr: string;
   raffleNumberPrice: number
   itemHighlight: boolean;
-  rafflePrizesLocalizationData: RafflePrizeLocalizationData[];
+  localizationData: LocalizationData[];
 }
-export interface RafflePrizeLocalizationData{
+export interface LocalizationData{
   id: number;
   raffleId: number;
   languageCode: string;
@@ -60,7 +60,7 @@ export interface RafflePrizeLocalizationData{
 export interface RaffleHistory {
   id: number;
   gameUser: GameUser;
-  raffle: RafflePrizeData;
+  raffle: RafflePrizesData;
   transactionDate: Date;
   ticketsUsed: number;
   expirationDate: Date;

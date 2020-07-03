@@ -41,7 +41,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
     const deviceId = req.query.deviceId as string
     const rawUser = await metaService.getOrSetGameUserByDeviceId(deviceId as string)
     const wallet = await walletService.getOrSetWallet(deviceId, rawUser.id)
-    const rafflePrizeData = await raffleRepo.getRaffles(['id'], true)
+    const rafflePrizesData = await raffleRepo.getRaffles(['id'], true)
     const payTable = await getPayTable()
     const betPrice = Number(await settingGet('betPrice', '1'))
     const ticketPrice = Number(await settingGet('ticketPrice', '1'))
@@ -78,7 +78,7 @@ export async function gameInit(req: Request, res: Response): Promise<any> {
       requireProfileData,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
-      rafflePrizeData,
+      rafflePrizesData,
       ticketPrice,
       betPrice,
       maxMultiplier,
