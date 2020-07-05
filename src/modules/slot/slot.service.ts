@@ -103,7 +103,6 @@ export const rafflePurchase = async (
   const raffle = await raffleRepo.getRaffle(id)
   if (!raffle) throw createError(httpStatusCodes.BAD_REQUEST, 'there is no raffle with that ID')
   const raffleCostInTickets = raffle.raffleNumberPrice
-  console.log('raffle', raffle, raffleCostInTickets)
   const totalTicketsNeeded = raffleCostInTickets * amount
   if (totalTicketsNeeded > wallet.tickets) throw createError(createError.BadRequest, 'Insufficient tickets')
   const raffleId = await raffleRepo.saveRaffle(raffle, user, totalTicketsNeeded, amount)

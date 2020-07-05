@@ -8,6 +8,7 @@ import 'express-async-errors'
 // import errorMiddleware from './middleware/error.middleware'
 import multer from "multer"
 import routes from './routes'
+import './modules/meta/meta-services/cron'
 
 const upload = multer()
 
@@ -26,9 +27,10 @@ const createApp = (): Express => {
   app.use('/api/', routes)
   app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
     // console.log('Error catched in error handler: ', error.status || 500)
-    console.log("%cError catched in error handler", "color: red; font-size: large")
-    console.warn(`%c${JSON.stringify(error, null, 2)}\r{JSON.stringify(error.stack, null, 2)}`, "color: red; font-size: 100%")
-    console.warn(`%c${JSON.stringify(error.stack, null, 2)}`, "color: red; font-size: 100%")
+    // console.log("%cError catched in error handler", "color: red; font-size: large")
+    console.error(error)
+    // console.warn(`%c${JSON.stringify(error, null, 2)}\r{JSON.stringify(error.stack, null, 2)}`, "color: red; font-size: 100%")
+    // console.warn(`%c${JSON.stringify(error.stack, null, 2)}`, "color: red; font-size: 100%")
     res.status(error.status || 500).json({message: error.message})
   })
 

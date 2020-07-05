@@ -1,3 +1,4 @@
+import { getRandomNumber } from './../../../helpers';
 /* eslint-disable no-param-reassign */
 // @ TODO apply maxMultiplier
 import createError from 'http-errors'
@@ -21,7 +22,6 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   await saveSpinToDb(multiplier)
   // eslint-disable-next-line prefer-const
   let {winPoints, winType, symbolsData, isWin} = await getWinData()
-  console.log('randomNumbers', randomNumbers)
 
   if (winType === 'jackpot' || winType === 'ticket') multiplier = 1
   const winAmount = winPoints * multiplier
@@ -112,7 +112,6 @@ const getFillTable = (payTable) => {
   })
 }
 const checkWithRandomIfWins = () => getRandomNumber() > 20
-const getRandomNumber = (from = 1, to = 100) => Math.floor((Math.random() * (to)) + from)
 const getWinRow = (table) => {
   const randomNumber = getRandomNumber(1, 100)
   if (!randomNumbers[randomNumber]) randomNumbers[randomNumber] = 0

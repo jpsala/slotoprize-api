@@ -69,7 +69,6 @@
         "build/": true,
         "semantic/": true,
         ".chrome": true,
-        "/.history/**": true
-      },
-    "explorerExclude.backup": null
+        "/.history/**": true,
+      }
 }
