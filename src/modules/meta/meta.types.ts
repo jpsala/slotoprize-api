@@ -1,3 +1,4 @@
+/* eslint-disable babel/camelcase */
 export interface User {
   id: number;
   login: string;
@@ -44,15 +45,30 @@ export interface LanguageData {
 export interface RafflePrizeData {
   id: number;
   closingDate: Date;
-  textureUr: string;
+  textureUrl: string;
   raffleNumberPrice: number
   itemHighlight: boolean;
   localizationData: LocalizationData[];
+}
+export interface RafflePrizeDataDB {
+  id: number;
+  closing_date: Date;
+  texture_url: string;
+  raffle_number_price: number
+  item_highlight: boolean;
+  localization_data: LocalizationDataDB[];
 }
 export interface LocalizationData{
   id: number;
   raffleId: number;
   languageCode: string;
+  name: string;
+  description: string;
+}
+export interface LocalizationDataDB{
+  id: number;
+  raffle_id: number;
+  language_code: string;
   name: string;
   description: string;
 }

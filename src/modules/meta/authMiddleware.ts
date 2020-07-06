@@ -1,25 +1,19 @@
 import {NextFunction, Request, Response} from 'express'
+// import createError from 'http-errors'
 
-import {verifyToken, getNewToken} from '../../services/jwtService'
+import {verifyToken} from '../../services/jwtService'
 
+// eslint-disable-next-line import/no-mutable-exports
+export let reqUser: string
 export function checkToken(req: Request, res: Response, next: NextFunction):any {
-    // console.log('req', req.method, req.baseUrl, req.route, req.headers);
-  const {token} = req.headers
-  const {decodedToken, error} = verifyToken(token as string)
-
-  if (error || !decodedToken.user) {
+  const {sessionToken} = req.query
+  const {decodedToken, error} = verifyToken(sessionToken as string)
+  if (error || !decodedToken.id) {
     const message = error ? error.message : 'no hay usuario en el token'
-    console.log(`checkToken: ${message}`, req.baseUrl, token)
+    console.log(`checkToken: ${message}`, req.baseUrl, sessionToken)
     return res.status(401).send({auth: false, message})
   }
-  req.user = decodedToken.user
-
-   // @TODO ver abajo que cambié el código
-   // const seconds = Math.floor(decodedToken.exp - (new Date().getTime() + 1) / 1000)
-  const seconds = Math.floor(decodedToken.exp - ((new Date().getTime() + 1) / 1000))
-  if (seconds < 60) {
-    const newToken = getNewToken({user: decodedToken.user})
-    res.setHeader('token', newToken)
-  }
+  req.user = decodedToken.id
+  reqUser = decodedToken.id
   return next()
 }

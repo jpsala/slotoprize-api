@@ -1,41 +1,41 @@
 import {Request, Response} from 'express'
-import * as httpStatusCodes from "http-status-codes"
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import {verifyToken, getNewToken} from '../../services/jwtService'
-import {GameUser, User, LanguageData, RafflePrizeData} from "../meta/meta.types"
+import {GameUser, User, LanguageData, RafflePrizeDataDB} from "../meta/meta.types"
 import * as languageRepo from "../meta/meta.repo/language.repo"
 
 import * as metaService from '../meta/meta.service'
 import {getCountries as metaGetCountries} from '../meta/meta.repo/country.repo'
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
 import {getPendingTasks} from '../meta/meta-services/cron'
+import {setProfile} from './slot.services/profile.service'
 
 import {settingGet} from './slot.services/settings.service'
 // import * as types from '../meta/meta.types'
-import * as slotService from './slot.service'
 import * as walletService from "./slot.services/wallet.service"
-import {getPayTable} from './slot.services/spin.service'
+import {getPayTable, spin} from './slot.services/spin.service'
+import {symbolsInDB, getReelsData} from './slot.services/symbol.service'
 
 export async function symbolsInDBGet(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.symbolsInDB()
-  res.status(httpStatusCodes.OK).json(toCamelCase(resp))
+  const resp = await symbolsInDB()
+  res.status(200).json(toCamelCase(resp))
 }
 export async function profileGet(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.getProfile(req.query.deviceId as string, ['first_name', 'last_name', 'email'])
-  res.status(httpStatusCodes.OK).json(toCamelCase(resp))
+  const resp = await (req.query.deviceId as string, ['first_name', 'last_name', 'email'])
+  res.status(200).json(toCamelCase(resp))
 }
 export async function profilePost(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.setProfile(req.body as GameUser)
-  res.status(httpStatusCodes.OK).json(toCamelCase(resp))
+  const resp = await setProfile(req.body as GameUser)
+  res.status(200).json(toCamelCase(resp))
 }
 export async function spinGet(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.spin(req.query.deviceId as string, req.query.multiplier as string)
-  res.status(httpStatusCodes.OK).json(resp)
+  const resp = await spin(req.query.deviceId as string, Number(req.query.multiplier))
+  res.status(200).json(resp)
 }
 export async function countriesGet(req: Request, res: Response): Promise<void> {
   const countries = await metaGetCountries()
-  res.status(httpStatusCodes.OK).json(countries)
+  res.status(200).json(countries)
 }
 export async function gameInitGet(req: Request, res: Response): Promise<any> {
   try {
@@ -60,7 +60,7 @@ export async function gameInitGet(req: Request, res: Response): Promise<any> {
     delete rawUser.modified_at
     delete rawUser.device_name
     delete rawUser.device_model
-    const reelsData = await slotService.getReelsData()
+    const reelsData = await getReelsData()
     reelsData.forEach((reel) => {
       reel.symbolsData.forEach((reelSymbol) => {
         const symbolPays: any[] = []
@@ -87,43 +87,42 @@ export async function gameInitGet(req: Request, res: Response): Promise<any> {
       reelsData,
       walletData: wallet,
     }
-    return res.status(httpStatusCodes.OK).json(initData)
+    return res.status(200).json(initData)
   } catch (error) {
-    throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, error)
+    throw createError(createError.InternalServerError, error)
   }
 }
 export async function walletGet(req: Request, res: Response): Promise<any> {
   const resp = await walletService.getWallet(req.query.deviceId as string)
-  res.status(httpStatusCodes.OK).json(resp)
+  res.status(200).json(resp)
 }
 export async function purchaseTicketsGet(req: Request, res: Response): Promise<any> {
   const resp = await walletService.purchaseTickets(
     req.query.deviceId as string,
     Number(req.query.ticketAmount) as number
   )
-  res.status(httpStatusCodes.OK).json(resp)
+  res.status(200).json(resp)
 }
 export async function rafflePost(req: Request, res: Response): Promise<any> {
-  const resp = await raffleRepo.newRaffle(req.body as RafflePrizeData)
-  res.status(httpStatusCodes.OK).json(resp)
+  const resp = await raffleRepo.newRaffle(req.body as RafflePrizeDataDB)
+  res.status(200).json(resp)
 }
 
 export async function rafflesGet(req: Request, res: Response): Promise<any> {
   const resp = await raffleRepo.getRaffles(['id'])
-  res.status(httpStatusCodes.OK).json(resp)
+  res.status(200).json(resp)
 }
-export async function getRafflePurchaseHistoryGet(req: Request, res: Response): Promise<any> {
+export async function rafflePurchaseHistoryGet(req: Request, res: Response): Promise<any> {
   const resp = await raffleRepo.getRafflePurchaseHistory(req.query.deviceId as string)
-  console.log('rh', resp)
-  res.status(httpStatusCodes.OK).json(resp)
+  res.status(200).json(resp)
 }
 export async function rafflePurchaseGet(req: Request, res: Response): Promise<any> {
-  const resp = await slotService.rafflePurchase(
+  const resp = await raffleRepo.rafflePurchase(
     req.query.deviceId as string,
     Number(req.query.id),
     Number(req.query.amount)
   )
-  res.status(httpStatusCodes.OK).json(resp)
+  res.status(200).json(resp)
 }
 export async function withTokenGet(req: Request, res: Response): Promise<any> {
   console.log('req', req)
@@ -148,7 +147,7 @@ export async function withTokenGet(req: Request, res: Response): Promise<any> {
 export async function authPos(req: Request, res: Response): Promise<any> {
   try {
     const user = await metaService.auth(req.body)
-    if (!user) throw createError(httpStatusCodes.BAD_REQUEST, 'Email and/or Password not found')
+    if (!user) throw createError(createError.BadRequest, 'Email and/or Password not found')
     // const user = rows.length > 0 ? rows[0] : undefined
     // if (!user) {
     //   return res.status(401).send({auth: false, message: 'Error de credenciales, revise los datos'})
@@ -156,7 +155,7 @@ export async function authPos(req: Request, res: Response): Promise<any> {
     const token = getNewToken({user: {id: user.id, name: user.name}})
     res.setHeader('token', token)
     // req.user = user
-    res.status(httpStatusCodes.OK).json(user)
+    res.status(200).json(user)
   } catch (error) {
     res.status(500).json(error)
   }
@@ -165,6 +164,11 @@ export function testSchedGet(req: Request, res: Response): any {
   const resp = getPendingTasks()
   res.status(200).json(resp)
 }
+export async function raffleWinnersGet(req: Request, res: Response): Promise<any> {
+  const resp: string[] = await raffleRepo.getWinners()
+  console.log('resp', resp)
+  res.status(200).json(resp)
+}
 export function postmanGet(req: Request, res: Response):any {
-  res.status(httpStatusCodes.OK).json(req.body)
+  res.status(200).json(req.body)
 }

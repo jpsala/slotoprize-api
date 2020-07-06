@@ -1,10 +1,11 @@
 import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
+import ParamRequiredException from '../../error'
 import getConnection from './meta.db'
 import {User} from './meta.types'
 
 export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<any> => {
-  if (!deviceId) { throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId') }
+  if (!deviceId) throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId')
   const connection = await getConnection()
   try {
     let user = await getGameUserByDeviceId(deviceId)
@@ -15,7 +16,7 @@ export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<any>
       user = await getGameUserByDeviceId(deviceId)
       user.isNew = true
         // id: respInsert.insertId,
-    } else { user.isNew = false }
+    } else user.isNew = false
     return user
   } finally {
     await connection.release()
@@ -35,7 +36,7 @@ const getGame = async (name) => {
 }
 export const saveLogin = async (userId: string, gameName: string, deviceId: string): Promise<void> => {
   const game = await getGame(gameName)
-  if (!game) { throw createError(400, `Game ${gameName} not found in db`) }
+  if (!game) throw createError(400, `Game ${gameName} not found in db`)
   const connection = await getConnection()
   try {
     await connection.query(`
@@ -61,7 +62,7 @@ export const getUserById = async (id: number): Promise<User> => {
   }
 }
 export const getGameUserByDeviceId = async (deviceId: string): Promise<any> => {
-  if (!deviceId) { throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId') }
+  if (!deviceId) throw new ParamRequiredException('deviceId in getGameUserByDeviceId')
   const connection = await getConnection()
   try {
     const userSelect = `

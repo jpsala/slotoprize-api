@@ -1,5 +1,6 @@
+import createError from 'http-errors'
 import camelcaseKeys from 'camelcase-keys'
-import {compareAsc, formatDistanceToNow, format} from 'date-fns'
+import {compareAsc, formatDistanceToNow} from 'date-fns'
 import {RafflePrizeData} from "../meta.types"
 import {query} from "../meta.db"
 import {raffleTime} from '../meta.repo/raffle.repo'
@@ -48,7 +49,13 @@ const addRafflesAsTasks = async (): Promise<void> => {
     select * from raffle r
     where winner is null
   `)
-  for (const raffle of rafflesRows) addRaffleAsTask(raffle)
+  for (const raffle of rafflesRows) {
+    raffle.localizationData = await query(`
+      select * from raffle_localization where raffle_id = ${raffle.id}
+    `)
+    if(raffle.localizationData.length < 1) throw createError(createError.InternalServerError, 'raffle whithout localiztion data')
+    addRaffleAsTask(raffle)
+  }
 }
 export const getPendingTasks = (): Task[] => {
   return tasks

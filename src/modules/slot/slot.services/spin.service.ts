@@ -1,11 +1,8 @@
-import { getRandomNumber } from './../../../helpers';
 /* eslint-disable no-param-reassign */
-// @ TODO apply maxMultiplier
 import createError from 'http-errors'
-import * as httpStatusCodes from "http-status-codes"
 import getSlotConnection from '../db.slot'
 import {SpinData} from "../slot.types"
-// import {queryOne, exec} from '../../meta/meta.db'
+import {getRandomNumber} from "../../../helpers"
 import * as walletService from "./wallet.service"
 import {settingGet, settingSet} from './settings.service'
 
@@ -14,7 +11,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
   const wallet = await walletService.getWallet(deviceId)
-  if (!wallet) throw createError(httpStatusCodes.BAD_REQUEST, 'Something went wrong, Wallet not found for this user, someting went wrong')
+  if (!wallet) throw createError(createError.BadRequest, 'Something went wrong, Wallet not found for this user, someting went wrong')
   const {coins: coinsInWallet} = wallet
   const {bet, enoughCoins} = await getBetAndCheckFunds(multiplier, coinsInWallet)
   if (!enoughCoins) throw createError(400, 'Insufficient funds')
@@ -125,10 +122,9 @@ const getWinRow = (table) => {
   return winRow
 }
 async function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: number): Promise<void> {
-  if (!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
-  if (!multiplier) throw createError(httpStatusCodes.BAD_REQUEST, 'multiplier is a required parameter')
+  if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
+  if (!multiplier) throw createError(createError.BadRequest, 'multiplier is a required parameter')
   const maxMultiplier = Number(await settingGet('maxMultiplier', '1'))
-  console.log('multiplier > maxMultiplier', multiplier, maxMultiplier)
   if (multiplier > maxMultiplier) throw createError(createError[502], `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`)
 
 }

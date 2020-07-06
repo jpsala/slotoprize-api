@@ -5,6 +5,7 @@ import {NextFunction, Request, Response} from 'express'
 import {verifyToken} from '../../services/jwtService'
 import {getGameUserByDeviceId} from '../meta/meta.service'
 
+export const reqUser: { deviceId?: string, user?: number } = {}
 export async function checkToken(req: Request, res: Response, next: NextFunction):Promise<any> {
   const {'dev-request': dev} = req.headers
   const isDev = (dev === 'true')
@@ -12,13 +13,15 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
   console.log('dev', isDev)
   if (isDev) {
     let {deviceId} = req.query
-    if (!deviceId) { deviceId = req.body.deviceId }
+    if (!deviceId) deviceId = req.body.deviceId
     // if (!deviceId) {
     //   console.error(`falta deviceId in req.query in ${req.baseUrl}${req.route.path}`)
     //   throw createError(400, `deviceId parameter missing ${req.baseUrl}${req.route.path}`)
     // }
-    const user = await getGameUserByDeviceId(deviceId as string)
-    req.user = {deviceId, user}
+    const _user = await getGameUserByDeviceId(deviceId as string)
+    req.user = {deviceId, user: _user.id}
+    reqUser.deviceId = deviceId as string
+    reqUser.user = _user.id
     return next()
   }
   const {sessionToken} = req.query
@@ -32,5 +35,7 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     deviceId: decodedToken.deviceID,
     id: decodedToken.id,
   }
+  reqUser.deviceId = decodedToken.devicdID
+  reqUser.user = decodedToken.id
   return next()
 }
