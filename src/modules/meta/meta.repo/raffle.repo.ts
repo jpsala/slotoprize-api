@@ -42,6 +42,7 @@ async function getRaffleLocalizationData(raffleId: number): Promise<Localization
     select * from raffle_localization
       where raffle_id = ${raffleId} and language_code = "${languageCode}"
   `)
+  console.log('localizationData', localizationData)
   return camelcaseKeys(localizationData) as LocalizationData
 }
 export async function getRaffles(fieldsToExclude: string[] | undefined = undefined, camelCased = true): Promise<RafflePrizeData[]> {
