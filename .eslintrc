@@ -21,7 +21,8 @@
          "no-use-before-define":"off",
          "prefer-spread":"off",
          "keyword-spacing": "off",
-         "curly": ["error", "multi"]
+         "curly": ["error", "multi"],
+         "require-atomic-updates": "off"
       },
       "env": {
         "browser": true,

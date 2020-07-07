@@ -1,15 +1,17 @@
+import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
 import ParamRequiredException from '../../error'
-import getConnection from './meta.db'
-import {User} from './meta.types'
+import getConnection, {queryOneMeta} from './meta.db'
+import {GameUser, User} from './meta.types'
 
-export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<any> => {
+export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<GameUser> => {
   if (!deviceId) throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId')
   const connection = await getConnection()
   try {
     let user = await getGameUserByDeviceId(deviceId)
-    if (user === false) {
+    // eslint-disable-next-line no-negated-condition
+    if (!user) {
       await connection.query(`
           insert into game_user(device_id) value('${deviceId}')
       `)
@@ -61,20 +63,14 @@ export const getUserById = async (id: number): Promise<User> => {
     await connection.release()
   }
 }
-export const getGameUserByDeviceId = async (deviceId: string): Promise<any> => {
+export const getGameUserByDeviceId = async (deviceId: string): Promise<GameUser> => {
   if (!deviceId) throw new ParamRequiredException('deviceId in getGameUserByDeviceId')
-  const connection = await getConnection()
-  try {
-    const userSelect = `
+  const userSelect = `
         select *
           from game_user
         where device_id = '${deviceId}'`
-    const [rows] = await connection.query(userSelect)
-    const user = rows.length ? rows[0] : false
-    return user
-  } finally {
-    await connection.release()
-  }
+  const user = await queryOneMeta(userSelect)
+  return camelcaseKeys(user) as GameUser
 }
 export const auth = async (user: User): Promise<User> => {
   const connection = await getConnection()

@@ -47,7 +47,7 @@ export default async function getConnection(host = 'localhost'): Promise<any> {
   })
   return pool[host].getConnection()
 }
-export const queryOne = async (select: string, params: any = [], camelCase = false, fields: string[] | undefined = undefined): Promise<any> => {
+export const queryOneMeta = async (select: string, params: any = [], camelCase = false, fields: string[] | undefined = undefined): Promise<any> => {
   log && console.log('queryOne', select, params)
   const conn = await getConnection()
   try {
@@ -65,7 +65,7 @@ export const queryOne = async (select: string, params: any = [], camelCase = fal
     await conn.release()
   }
 }
-export const query = async (select: string, params: any = [], camelCase = false, fields: string[] | undefined = undefined): Promise<any[]> => {
+export const queryMeta = async (select: string, params: any = [], camelCase = false, fields: string[] | undefined = undefined): Promise<any[]> => {
   log && console.log('query', select, params)
   const conn = await getConnection()
   try {
@@ -82,7 +82,7 @@ export const query = async (select: string, params: any = [], camelCase = false,
     await conn.release()
   }
 }
-export const exec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
+export const execMeta = async (select: string, params: any = []): Promise<ResultSetHeader> => {
   log && console.log('query', select, params)
   const conn = await getConnection()
   try {

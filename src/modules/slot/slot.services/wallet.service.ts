@@ -2,7 +2,7 @@ import createError from 'http-errors'
 import * as httpStatusCodes from 'http-status-codes'
 import {ResultSetHeader} from 'mysql2'
 import * as metaService from '../../meta/meta.service'
-import getSlotConnection, {exec} from '../db.slot'
+import getSlotConnection, {execSlot} from '../db.slot'
 import {Wallet} from '../slot.types'
 import {settingGet} from './settings.service'
 
@@ -93,7 +93,7 @@ export const getOrSetWallet = async (
     const initialWalletCoins = Number(
             await settingGet('initialWalletCoins', '10')
         )
-    await exec(`
+    await execSlot(`
       insert into wallet(game_user_id, coins, tickets) value (${userId}, ${initialWalletCoins}, ${initialWalletTickets})
     `)
     wallet = await getWallet(deviceId)

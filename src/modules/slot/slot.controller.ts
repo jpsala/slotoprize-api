@@ -2,20 +2,19 @@ import {Request, Response} from 'express'
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import {verifyToken, getNewToken} from '../../services/jwtService'
-import {GameUser, User, LanguageData, RafflePrizeDataDB} from "../meta/meta.types"
-import * as languageRepo from "../meta/meta.repo/language.repo"
+import {GameUser, User, RafflePrizeDataDB} from "../meta/meta.types"
 
 import * as metaService from '../meta/meta.service'
 import {getCountries as metaGetCountries} from '../meta/meta.repo/country.repo'
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
 import {getPendingTasks} from '../meta/meta-services/cron'
+import {gameInit} from '../meta/slot.repo/game-init.repo'
 import {setProfile} from './slot.services/profile.service'
 
-import {settingGet} from './slot.services/settings.service'
 // import * as types from '../meta/meta.types'
 import * as walletService from "./slot.services/wallet.service"
-import {getPayTable, spin} from './slot.services/spin.service'
-import {symbolsInDB, getReelsData} from './slot.services/symbol.service'
+import {spin} from './slot.services/spin.service'
+import {symbolsInDB} from './slot.services/symbol.service'
 
 export async function symbolsInDBGet(req: Request, res: Response): Promise<any> {
   const resp = await symbolsInDB()
@@ -38,59 +37,9 @@ export async function countriesGet(req: Request, res: Response): Promise<void> {
   res.status(200).json(countries)
 }
 export async function gameInitGet(req: Request, res: Response): Promise<any> {
-  try {
-    const deviceId = req.query.deviceId as string
-    const rawUser = await metaService.getOrSetGameUserByDeviceId(deviceId as string)
-    const wallet = await walletService.getOrSetWallet(deviceId, rawUser.id)
-    const rafflePrizesData = await raffleRepo.getRaffles(['id'], true)
-    const payTable = await getPayTable()
-    const betPrice = Number(await settingGet('betPrice', '1'))
-    const ticketPrice = Number(await settingGet('ticketPrice', '1'))
-    const maxMultiplier = Number(await settingGet('maxMultiplier', '3'))
-    const languages = (await languageRepo.getLanguages(['language_code', 'texture_url', 'localization_url'])) as Array<Partial<LanguageData>>
-    const requireProfileData = Number(await settingGet('requireProfileData', 0))
-    // const languageData = (await metaRepo.getLanguageData(rawUser.id + 3)) as Partial<LanguageData>
-    // @URGENT crear savelogin
-    // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
-    // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
-    const token = getNewToken({id: rawUser.id, deviceId})
-    delete rawUser.id
-    delete rawUser.device_id
-    delete rawUser.created_at
-    delete rawUser.modified_at
-    delete rawUser.device_name
-    delete rawUser.device_model
-    const reelsData = await getReelsData()
-    reelsData.forEach((reel) => {
-      reel.symbolsData.forEach((reelSymbol) => {
-        const symbolPays: any[] = []
-        payTable.filter((payTableSymbol) => payTableSymbol.payment_type === reelSymbol.paymentType)
-          .forEach((_symbol) => symbolPays.push(_symbol))
-        const symbolAllPays: any[] = []
-        for (let index = 1; index < 4; index++) {
-          const row = symbolPays.find((_symbol) => _symbol.symbol_amount === index)
-          if (row) symbolAllPays.push(row.points)
-          else symbolAllPays.push(0)
-        }
-        reelSymbol.pays = symbolAllPays
-      })
-    })
-    const initData = {
-      sessionId: token,
-      requireProfileData,
-      profileData: toCamelCase(rawUser),
-      languagesData: toCamelCase(languages),
-      rafflePrizesData,
-      ticketPrice,
-      betPrice,
-      maxMultiplier,
-      reelsData,
-      walletData: wallet,
-    }
-    return res.status(200).json(initData)
-  } catch (error) {
-    throw createError(createError.InternalServerError, error)
-  }
+  const initData = await gameInit(req.query.deviceId as string)
+  res.status(200).json(initData)
+
 }
 export async function walletGet(req: Request, res: Response): Promise<any> {
   const resp = await walletService.getWallet(req.query.deviceId as string)
@@ -103,12 +52,12 @@ export async function purchaseTicketsGet(req: Request, res: Response): Promise<a
   )
   res.status(200).json(resp)
 }
+// Raffles
 export async function rafflePost(req: Request, res: Response): Promise<any> {
   const resp = await raffleRepo.newRaffle(req.body as RafflePrizeDataDB)
   res.status(200).json(resp)
 }
-
-export async function rafflesGet(req: Request, res: Response): Promise<any> {
+export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any> {
   const resp = await raffleRepo.getRaffles(['id'])
   res.status(200).json(resp)
 }
@@ -119,11 +68,22 @@ export async function rafflePurchaseHistoryGet(req: Request, res: Response): Pro
 export async function rafflePurchaseGet(req: Request, res: Response): Promise<any> {
   const resp = await raffleRepo.rafflePurchase(
     req.query.deviceId as string,
-    Number(req.query.id),
+    Number(req.query.raffleId),
     Number(req.query.amount)
   )
   res.status(200).json(resp)
 }
+export async function prizeNotifiedPost(req: Request, res: Response): Promise<any> {
+  await raffleRepo.prizeNotified(Number(req.query.raffleId as string))
+  res.status(200).json({status: 'ok'})
+
+}
+export async function raffleWinnersGet(req: Request, res: Response): Promise<any> {
+  const resp: string[] = await raffleRepo.getWinners()
+  console.log('resp', resp)
+  res.status(200).json(resp)
+}
+// End Raffles
 export async function withTokenGet(req: Request, res: Response): Promise<any> {
   console.log('req', req)
   const loginToken = req.query.token as string
@@ -138,7 +98,6 @@ export async function withTokenGet(req: Request, res: Response): Promise<any> {
 
   const token = getNewToken({user: {id: user.id, name: user.name}})
   res.setHeader('token', token)
-  // eslint-disable-next-line require-atomic-updates
   req.user = user
   const retUser = {name: user.name, email: user.email, id: user.id}
   res.status(200).json({user: retUser})
@@ -162,11 +121,6 @@ export async function authPos(req: Request, res: Response): Promise<any> {
 }
 export function testSchedGet(req: Request, res: Response): any {
   const resp = getPendingTasks()
-  res.status(200).json(resp)
-}
-export async function raffleWinnersGet(req: Request, res: Response): Promise<any> {
-  const resp: string[] = await raffleRepo.getWinners()
-  console.log('resp', resp)
   res.status(200).json(resp)
 }
 export function postmanGet(req: Request, res: Response):any {

@@ -27,6 +27,11 @@ export interface GameUser {
   deviceName: string;
   countryPhoneCode: string;
   phoneNumber: string;
+  createdAt?: Date;
+  modifiedAt?: Date;
+  password: string;
+  phoneCode: string;
+  languageCode: string;
   isMale: boolean;
   age: number;
   address: string;
@@ -34,6 +39,7 @@ export interface GameUser {
   zipCode: string;
   state: string;
   country: string;
+  isNew: boolean;
 }
 
 export interface LanguageData {
@@ -48,6 +54,8 @@ export interface RafflePrizeData {
   textureUrl: string;
   raffleNumberPrice: number
   itemHighlight: boolean;
+  name?: string;
+  description?: string;
   localizationData: LocalizationData[];
 }
 export interface RafflePrizeDataDB {
