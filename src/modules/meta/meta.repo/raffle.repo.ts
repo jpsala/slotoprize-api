@@ -42,7 +42,6 @@ async function getRaffleLocalizationData(raffleId: number): Promise<Localization
     select * from raffle_localization
       where raffle_id = ${raffleId} and language_code = "${languageCode}"
   `)
-  console.log('localizationData', localizationData)
   return camelcaseKeys(localizationData) as LocalizationData
 }
 export async function getRaffles(fieldsToExclude: string[] | undefined = undefined, camelCased = true): Promise<RafflePrizeData[]> {
@@ -73,7 +72,7 @@ export async function prizeNotified(raffleId: number): Promise<string> {
     where win = 1 and raffle_id = ${raffleId} and notified = 0
   `)
   console.log('resp.affectedRows', resp.affectedRows)
-  if(resp.affectedRows < 1) throw createError(createError.BadRequest, 'Ningún registro fué modificado')
+  if(resp.affectedRows < 1) throw createError(createError.BadRequest, 'No modifications, check raffleId')
   return 'ok'
 }
 export async function getRaffle(id: number,
