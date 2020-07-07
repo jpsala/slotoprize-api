@@ -1,1 +1,1 @@
-git ca "$*" &&  push && ./deploy.sh
+git ca "$*" &&  git push && ./deploy.sh
