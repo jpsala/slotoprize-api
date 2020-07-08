@@ -149,7 +149,7 @@ async function getWinData() {
     winType = 'jackpot'
   } else {
     winRow = isWin ? await getWinRow(payTable) : []
-    winType = winRow.payment_type === 'ticket' ? 'ticket' : 'coins'
+    winType = winRow.payment_type === 'ticket' ? 'ticket' : 'coin'
   }
   const filltable = await getFillTable(payTable)
 

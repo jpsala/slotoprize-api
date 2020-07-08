@@ -39,6 +39,7 @@ const checkIfTimeForTask = async ():Promise<void> => {
 export const addRaffleAsTask = (raffle: RafflePrizeData): void => {
   const camelCasedRaffle = camelcaseKeys(raffle) as RafflePrizeData
   const closingDate = new Date(camelCasedRaffle.closingDate)
+  console.log('task added', raffle, formatDistanceToNow(closingDate))
   tasks.push({
     distance: formatDistanceToNow(closingDate),
     raffle: camelCasedRaffle
