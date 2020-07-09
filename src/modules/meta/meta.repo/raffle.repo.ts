@@ -18,7 +18,7 @@ export const rafflePurchase = async (deviceId: string, raffleId: number, amount:
   if(!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
   if(!amount) throw createError(createError.BadRequest, 'amount is a required parameter')
   if(amount < 1) throw createError(createError.BadRequest, 'amount can not be less than 1')
-  if(!raffleId) throw createError(createError.BadRequest, 'raffleId is a required parameter')
+  if(isNaN(raffleId)) throw createError(createError.BadRequest, 'raffleId is a required parameter')
 
   // @TODO trycatch
   const user = await getGameUserByDeviceId(deviceId)
@@ -37,7 +37,6 @@ export const rafflePurchase = async (deviceId: string, raffleId: number, amount:
 }
 async function getRaffleLocalizationData(raffleId: number): Promise<LocalizationData> {
   const {languageCode} = await getGameUser(reqUser.user as number)
-  console.log('l', languageCode)
   const localizationData = await queryOneMeta(`
     select * from raffle_localization
       where raffle_id = ${raffleId} and language_code = "${languageCode}"

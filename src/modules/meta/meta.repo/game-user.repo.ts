@@ -1,7 +1,8 @@
 import camelcaseKeys from 'camelcase-keys'
 // import createError from 'http-errors'
-import {queryOneMeta} from '../meta.db'
+import {queryOneMeta, execMeta} from '../meta.db'
 import {LanguageData, GameUser} from '../meta.types'
+import {execSlot} from "../../slot/db.slot"
 
 export async function getLanguage(userId: number): Promise<LanguageData> {
   const localizationData = await queryOneMeta(`
@@ -41,6 +42,14 @@ export async function getHaveWinRaffle(userId: number): Promise<boolean> {
 }
 export async function getHaveProfile(userId: number): Promise<boolean> {
   const profileData = await getGameUser(userId)
-  console.log('pd', profileData)
   return profileData.lastName !== "" && profileData.firstName !== ""
+}
+export async function delUser(deviceId: string): Promise < void > {
+  const {id} = await getGameUserByDeviceId(deviceId)
+  await execSlot(`
+    delete from wallet where game_user_id = ${id}
+  `)
+  await execMeta(`
+    delete from game_user  where id = ${id}
+  `)
 }

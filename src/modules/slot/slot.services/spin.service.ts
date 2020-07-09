@@ -32,7 +32,6 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     wallet.coins += winAmount
 
   walletService.updateWallet(deviceId, wallet)
-  console.log('winType', winType)
   const returnData: any = {symbolsData, isWin, wallet}
 
   if (isWin) returnData.winData = {type: winType, amount: winAmount}

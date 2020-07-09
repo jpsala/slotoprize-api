@@ -6,7 +6,6 @@ import {getGameUserByDeviceId} from "./meta.service"
 
 export const reqUser: { deviceId?: string, user?: number } = {}
 export const setReqUser = (deviceId: string, user: number): void => {
-  console.log('setReqUSer', deviceId, user)
   reqUser.deviceId = deviceId
   reqUser.user = user
 }
