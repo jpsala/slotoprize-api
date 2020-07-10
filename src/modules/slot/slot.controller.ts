@@ -6,9 +6,9 @@ import {GameUser, User, RafflePrizeDataDB} from "../meta/meta.types"
 
 import * as metaService from '../meta/meta.service'
 import {getCountries as metaGetCountries} from '../meta/meta.repo/country.repo'
-import * as raffleRepo from '../meta/meta.repo/raffle.repo'
+import {raffleRepo} from '../meta/meta.repo'
 import {getPendingTasks} from '../meta/meta-services/cron'
-import {gameInit} from '../meta/slot.repo/game-init.repo'
+import {gameInit} from './slot.services/game-init.service'
 import {setProfile} from './slot.services/profile.service'
 
 // import * as types from '../meta/meta.types'

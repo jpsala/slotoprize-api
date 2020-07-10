@@ -4,7 +4,7 @@ import {ResultSetHeader} from 'mysql2'
 import * as metaService from '../../meta/meta.service'
 import getSlotConnection, {execSlot} from '../db.slot'
 import {Wallet} from '../slot.types'
-import {settingGet} from './settings.service'
+import {getSetting} from './settings.service'
 
 export const getWallet = async (deviceId: string): Promise<Wallet> => {
   if (!deviceId)
@@ -65,7 +65,7 @@ export const purchaseTickets = async (
   let wallet = await getWallet(deviceId)
   const user = await metaService.getGameUserByDeviceId(deviceId)
     // until we have a value for a ticket
-  const ticketValue = Number(await settingGet('ticketPrice', 1))
+  const ticketValue = Number(await getSetting('ticketPrice', 1))
   const coinsRequired = ticketAmount * ticketValue
   if (wallet.coins < coinsRequired)
     throw createError(400, 'There are no sufficient funds')
@@ -88,10 +88,10 @@ export const getOrSetWallet = async (
   let wallet = await getWallet(deviceId)
   if (!wallet) {
     const initialWalletTickets = Number(
-            await settingGet('initialWalletTickets', '10')
+            await getSetting('initialWalletTickets', '10')
         )
     const initialWalletCoins = Number(
-            await settingGet('initialWalletCoins', '10')
+            await getSetting('initialWalletCoins', '10')
         )
     await execSlot(`
       insert into wallet(game_user_id, coins, tickets) value (${userId}, ${initialWalletCoins}, ${initialWalletTickets})

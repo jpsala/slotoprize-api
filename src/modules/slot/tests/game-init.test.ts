@@ -5,7 +5,7 @@ import supertest from 'supertest'
 import chai, {expect} from 'chai'
 import createApp from "../../../app"
 import {verifyToken} from '../../../services/jwtService'
-import {settingGet} from "../slot.services/settings.service"
+import {getSetting} from "../slot.services/settings.service"
 import {getWallet} from '../slot.services/wallet.service'
 import {delUser} from '../../meta/meta.repo/game-user.repo'
 
@@ -51,20 +51,23 @@ for (const device of devices)
         })
       })
     })
-    it('languageCode to be en-US', () => {
+    it('languageCode to be en-US ', () => {
       expect(resp.body.languageCode, 'languageCode to be en-US').to.be.eq('en-US')
     })
     it('ticketPrice to be equal to the setting', async () => {
-      const ticketPrice = await settingGet('ticketPrice', '2')
+      const ticketPrice = await getSetting('ticketPrice', '2')
       expect(resp.body.ticketPrice).to.be.eq(Number(ticketPrice))
     })
     it('betPrice to be equal to the setting', async () => {
-      const betPrice = await settingGet('betPrice', '2')
+      const betPrice = await getSetting('betPrice', '2')
       expect(resp.body.betPrice).to.be.eq(Number(betPrice))
     })
     it('maxMultiplier to be equal to the setting', async () => {
-      const maxMultiplier = await settingGet('maxMultiplier', '2')
+      const maxMultiplier = await getSetting('maxMultiplier', '2')
       expect(resp.body.maxMultiplier).to.be.eq(Number(maxMultiplier))
+    })
+    it('userId to be there', () => {
+      expect(resp.body.profileData).to.have.property('id')
     })
     it('languagesData to be an array', () => {
       expect(resp.body.languagesData, 'languagesData to be an array').to.be.an('array')
@@ -84,8 +87,8 @@ for (const device of devices)
     })
     if (device.isNew)
       it('walletData to have coins and tickets equal to initialWalletTickets and initialWalletCoins', async () => {
-        const coins = Number(await settingGet('initialWalletTickets', 1))
-        const tickets = Number(await settingGet('initialWalletCoins', 1))
+        const coins = Number(await getSetting('initialWalletTickets', 1))
+        const tickets = Number(await getSetting('initialWalletCoins', 1))
         expect(resp.body.walletData.coins, '.to.be.eq(coins)').to.be.eq(coins)
         expect(resp.body.walletData.tickets, '.to.be.eq(tickets)').to.be.eq(tickets)
       })

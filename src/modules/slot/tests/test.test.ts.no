@@ -1,11 +1,25 @@
+
 /* eslint-disable no-undef */
 import supertest from 'supertest'
 import chai, {expect} from 'chai'
+import sinon from 'ts-sinon'
+
 import createApp from "../../../app"
+
 
 chai.config.showDiff = true
 chai.config.includeStack = false
 const app = createApp()
+
+
+describe(`sinon`, () => {
+  it('const mock = sinon.stub()', () => {
+    const mock = sinon.stub()
+    mock('a', 'b', 'c')
+    expect(mock.called).to.be.eq(true)
+    expect(mock.calledWith('a', 'b', 'd')).to.be.eq(true)
+  })
+})
 
 describe(`/api/slot/raffle_prize_data?deviceId=borrar1`, () => {
   let resp; let sessionToken

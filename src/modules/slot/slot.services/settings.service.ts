@@ -1,13 +1,6 @@
 import {queryOneSlot, execSlot} from '../db.slot'
-// function  gettingGet( defaultValue: string): string
-// function  gettingGet( defaultValue: number): number
-// function  gettingGet( defaultValue: number |string): number|string {
-//   return null  as any
-// }
-// var a = gettingGet("div")
-// var b = gettingGet(3)
-type SettingValue = number | string | boolean
-export const settingGet = async (key: string, defaultValue : string | number | undefined = undefined): Promise<string> => {
+
+export const getSetting = async (key: string, defaultValue: string | number | undefined = undefined): Promise<string> => {
   if (typeof defaultValue === 'number' && isNaN(defaultValue)) throw new Error('SetttingGet defaultValue is NaN')
   const setting = await queryOneSlot(`select value from setting where name = ?`, [key])
   if (setting === undefined && defaultValue !== undefined) {
@@ -18,7 +11,7 @@ export const settingGet = async (key: string, defaultValue : string | number | u
   return setting?.value
 }
 
-export const settingSet = async (key: string, value : string | number): Promise<void> => {
+export const setSetting = async (key: string, value : string | number): Promise<void> => {
   if (typeof (value) === 'number' && isNaN(Number(value))) throw new Error('settingSet value can not be NaN')
   const setting = await queryOneSlot(`select value from setting where name = ?`, [key])
   if (setting) await execSlot(`update setting set value = '${value}' where name = '${key}'`)

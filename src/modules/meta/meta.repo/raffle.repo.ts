@@ -12,15 +12,15 @@ import {reqUser} from "../authMiddleware"
 
 
 import ParamRequiredException from '../../../error'
+import {Wallet} from "../../slot/slot.types"
 import {getGameUser} from './game-user.repo'
 
-export const rafflePurchase = async (deviceId: string, raffleId: number, amount: number): Promise<any> => {
+export const rafflePurchase = async (deviceId: string, raffleId: number, amount: number): Promise<Wallet> => {
   if(!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
   if(!amount) throw createError(createError.BadRequest, 'amount is a required parameter')
   if(amount < 1) throw createError(createError.BadRequest, 'amount can not be less than 1')
   if(isNaN(raffleId)) throw createError(createError.BadRequest, 'raffleId is a required parameter')
 
-  // @TODO trycatch
   const user = await getGameUserByDeviceId(deviceId)
   const wallet = await getWallet(deviceId)
   const raffle = await getRaffle(raffleId)

@@ -4,7 +4,7 @@ import getSlotConnection from '../db.slot'
 import {SpinData} from "../slot.types"
 import {getRandomNumber} from "../../../helpers"
 import * as walletService from "./wallet.service"
-import {settingGet, settingSet} from './settings.service'
+import {getSetting, setSetting} from './settings.service'
 
 const randomNumbers: number[] = []
 export async function spin(deviceId: string, multiplier: number): Promise<SpinData> {
@@ -39,11 +39,11 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   return returnData
 }
 const resetSpinCount = async () => {
-  await settingSet('spinCount', '0')
+  await setSetting('spinCount', '0')
 }
 const saveSpinToDb = async (multiplier: number): Promise <void> => {
-  const spinCount = Number(await settingGet('spinCount', multiplier))
-  settingSet('spinCount', String(Number(spinCount) + multiplier))
+  const spinCount = Number(await getSetting('spinCount', multiplier))
+  setSetting('spinCount', String(Number(spinCount) + multiplier))
 }
 const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   console.log("getWinRowWithEmptyFilled -> winRow", winRow)
@@ -51,7 +51,7 @@ const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   const winSymbolPaymentType = winRow.payment_type || ""
   const filledSymbolRowToReturn: any[] = []
   for (let idx = 0; idx < winSymbolAmount; idx++) {
-    filledSymbolRowToReturn.push({paymentType: winSymbolPaymentType})
+    filledSymbolRowToReturn.push({paymentType: winSymbolPaymentType, isPaying: true})
     console.log("getWinRowWithEmptyFilled -> winSymbolPaymentType", winSymbolPaymentType.payment_type)
   }
   console.log('filledSymbolRowToReturn', filledSymbolRowToReturn)
@@ -59,7 +59,7 @@ const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   for (let idx = 0; idx < symbolsAmountToFill; idx++) {
     // const symbolRowsForFilling = getSymbolRowsForFilling(fillTable)
     const symbolRowForFilling = getSymbolForFilling(fillTable, filledSymbolRowToReturn)
-    filledSymbolRowToReturn.push({paymentType: symbolRowForFilling.payment_type})
+    filledSymbolRowToReturn.push({paymentType: symbolRowForFilling.payment_type, isPaying: false})
   }
   return filledSymbolRowToReturn
 }
@@ -123,12 +123,12 @@ const getWinRow = (table) => {
 async function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: number): Promise<void> {
   if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
   if (!multiplier) throw createError(createError.BadRequest, 'multiplier is a required parameter')
-  const maxMultiplier = Number(await settingGet('maxMultiplier', '1'))
+  const maxMultiplier = Number(await getSetting('maxMultiplier', '1'))
   if (multiplier > maxMultiplier) throw createError(createError[502], `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`)
 
 }
 async function getBetAndCheckFunds(multiplier: number, coins: any) {
-  const betPrice = Number(await settingGet('betPrice', 1))
+  const betPrice = Number(await getSetting('betPrice', 1))
   const bet = betPrice * multiplier
   const enoughCoins = ((coins - bet) >= 0)
   return {bet, enoughCoins}
@@ -140,7 +140,7 @@ async function getWinData() {
   const payTable = await getPayTable()
   let winRow
   let winType
-  const spinCount = Number(await settingGet('spinCount', 0))
+  const spinCount = Number(await getSetting('spinCount', 0))
   // const jackpot = (spinCount >= 1000000)
   const jackpot = (spinCount >= 10)
   if (jackpot) {

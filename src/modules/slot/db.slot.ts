@@ -24,7 +24,6 @@ export default async function getConnection(host = 'localhost'): Promise<any> {
     multipleStatements: true,
   }
   log && console.warn('Get new connection for ', host, pool)
-  // eslint-disable-next-line require-atomic-updates
   pool[host] = await createPool(config)
   pool[host].on('acquire', () => {
     acquiredConnections += 1
