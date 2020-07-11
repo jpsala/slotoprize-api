@@ -1,3 +1,4 @@
+
 import express, {Express, Request, Response, NextFunction} from 'express'
 import bodyParser from "body-parser"
 import cors from 'cors'
@@ -31,6 +32,7 @@ const createApp = (): Express => {
     res.status(404).json({message: `${req.path} not found!`})
   })
   app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
+    console.log('yesssss error')
     // console.log('Error catched in error handler: ', error.status || 500)
     // console.log("%cError catched in error handler", "color: red; font-size: large")
     // eslint-disable-next-line no-process-env

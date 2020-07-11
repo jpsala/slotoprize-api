@@ -93,7 +93,7 @@ export const getPayTable = async ():Promise <any> => {
       order by pt.probability asc`)
     return payTable
   } finally {
-    await conn.release()
+    await conn.destroy()
   }
 }
 const getFillTable = (payTable) => {

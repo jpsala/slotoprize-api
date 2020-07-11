@@ -8,7 +8,7 @@ import {addRaffleAsTask} from '../meta-services/cron'
 import {getRandomNumber} from "../../../helpers"
 import {getWallet, updateWallet} from '../../slot/slot.services/wallet.service'
 
-import {reqUser} from "../authMiddleware"
+import {getReqUser} from "../authMiddleware"
 
 
 import ParamRequiredException from '../../../error'
@@ -36,7 +36,7 @@ export const rafflePurchase = async (deviceId: string, raffleId: number, amount:
   return await getWallet(deviceId)
 }
 async function getRaffleLocalizationData(raffleId: number): Promise<LocalizationData> {
-  const {languageCode} = await getGameUser(reqUser.user as number)
+  const {languageCode} = await getGameUser(getReqUser().user as number)
   const localizationData = await queryOneMeta(`
     select * from raffle_localization
       where raffle_id = ${raffleId} and language_code = "${languageCode}"

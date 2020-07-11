@@ -17,3 +17,4 @@ export const setSetting = async (key: string, value : string | number): Promise<
   if (setting) await execSlot(`update setting set value = '${value}' where name = '${key}'`)
   else await execSlot(`insert into setting(value, name) values('${value}', '${key}')`)
 }
+

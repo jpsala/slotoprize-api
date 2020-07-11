@@ -1,9 +1,11 @@
+/* eslint-disable no-return-await */
 import createError from 'http-errors'
 import * as httpStatusCodes from 'http-status-codes'
 import {ResultSetHeader} from 'mysql2'
 import * as metaService from '../../meta/meta.service'
 import getSlotConnection, {execSlot} from '../db.slot'
 import {Wallet} from '../slot.types'
+import * as walletRepo from "../slot.repo"
 import {getSetting} from './settings.service'
 
 export const getWallet = async (deviceId: string): Promise<Wallet> => {
@@ -12,24 +14,8 @@ export const getWallet = async (deviceId: string): Promise<Wallet> => {
             httpStatusCodes.BAD_REQUEST,
             'deviceId is a required parameter'
         )
+  return await walletRepo.getWalletByDeviceId(deviceId)
 
-  const conn = await getSlotConnection()
-  const user = await metaService.getGameUserByDeviceId(deviceId)
-  try {
-    const [walletRows] = await conn.query(
-            `select coins, tickets from wallet where game_user_id ='${user.id}'`
-        )
-    const wallet = walletRows[0]
-    if (!user)
-      throw createError(
-                httpStatusCodes.BAD_REQUEST,
-                'there is no user associated with this deviceId'
-            )
-
-    return wallet
-  } finally {
-    await conn.release()
-  }
 }
 export async function updateWallet(
     deviceId: string,
@@ -51,7 +37,7 @@ export async function updateWallet(
   } catch (error) {
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, error)
   } finally {
-    await conn.release()
+    await conn.destroy()
   }
 }
 export const purchaseTickets = async (
@@ -76,11 +62,10 @@ export const purchaseTickets = async (
         tickets = tickets + ${ticketAmount}
         where game_user_id = ${user.id}
   `)
-  await conn.release()
+  await conn.destroy()
   wallet = await getWallet(deviceId)
   return wallet
 }
-
 export const getOrSetWallet = async (
     deviceId: string,
     userId: string

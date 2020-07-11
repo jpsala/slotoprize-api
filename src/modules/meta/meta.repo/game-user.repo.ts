@@ -45,7 +45,9 @@ export async function getHaveProfile(userId: number): Promise<boolean> {
   return profileData.lastName !== "" && profileData.firstName !== ""
 }
 export async function delUser(deviceId: string): Promise < void > {
-  const {id} = await getGameUserByDeviceId(deviceId)
+  const user = await getGameUserByDeviceId(deviceId)
+  if(!user) return
+  const {id} = user
   await execSlot(`
     delete from wallet where game_user_id = ${id}
   `)

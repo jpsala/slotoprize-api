@@ -39,7 +39,7 @@ export async function countriesGet(req: Request, res: Response): Promise<void> {
 export async function gameInitGet(req: Request, res: Response): Promise<any> {
   const initData = await gameInit(req.query.deviceId as string)
   res.status(200).json(initData)
-
+  return initData
 }
 export async function walletGet(req: Request, res: Response): Promise<any> {
   const resp = await walletService.getWallet(req.query.deviceId as string)
@@ -60,6 +60,7 @@ export async function rafflePost(req: Request, res: Response): Promise<any> {
 export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any> {
   const resp = await raffleRepo.getRaffles(['id'])
   res.status(200).json(resp)
+  return resp
 }
 export async function rafflePurchaseHistoryGet(req: Request, res: Response): Promise<any> {
   const resp = await raffleRepo.getRafflePurchaseHistory(req.query.deviceId as string)

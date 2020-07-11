@@ -4,7 +4,11 @@ import createError from 'http-errors'
 import {verifyToken} from '../../services/jwtService'
 import {getGameUserByDeviceId} from "./meta.service"
 
-export const reqUser: { deviceId?: string, user?: number } = {}
+const reqUser: { deviceId?: string, user?: number } = {}
+
+export const getReqUser = (): any => {
+  return reqUser
+}
 export const setReqUser = (deviceId: string, user: number): void => {
   reqUser.deviceId = deviceId
   reqUser.user = user
@@ -12,14 +16,13 @@ export const setReqUser = (deviceId: string, user: number): void => {
 export async function checkToken(req: Request, res: Response, next: NextFunction):Promise<any> {
   const {'dev-request': dev} = req.headers
   const isDev = (dev === 'true')
-  // const dev = req.headers['Dev-Request'];
-  console.log('dev', isDev)
   if (isDev) {
+    // console.log('have a dev-request')
     let {deviceId} = req.query
-    if (!deviceId) deviceId = req.body.deviceId
+    if (!deviceId) deviceId = req.body?.deviceId
     if (!deviceId) {
-      console.error(`falta deviceId in req.query in ${req.baseUrl}${req.route.path}`)
-      throw createError(400, `deviceId parameter missing ${req.baseUrl}${req.route.path}`)
+      console.error(`falta deviceId in req.query in ${req.baseUrl}${req.route?.path}`)
+      throw createError(createError.BadRequest, `deviceId parameter missing ${req.baseUrl}${req.route?.path}`)
     }
     const _user = await getGameUserByDeviceId(deviceId as string)
     if(!_user) throw createError(createError.BadRequest, 'There is not user registered with that deviceId')

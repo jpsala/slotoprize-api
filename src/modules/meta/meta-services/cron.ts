@@ -1,3 +1,4 @@
+/* eslint-disable no-process-env */
 import createError from 'http-errors'
 import camelcaseKeys from 'camelcase-keys'
 import {compareAsc, formatDistanceToNow} from 'date-fns'
@@ -13,12 +14,14 @@ interface Task {
 type Tasks = Task[]
 const tasks: Task[] = []
 async function cron():Promise<void> {
-  console.log('Cron initialized')
   await addRafflesAsTasks()
-  setInterval(await checkIfTimeForTask, interval)
+  if (process.env.NODE_ENV !== 'test') {
+    console.log('Cron initialized')
+    setInterval(checkIfTimeForTask, interval)
+  }
   await checkIfTimeForTask()
 }
-const checkIfTimeForTask = async ():Promise<void> => {
+const checkIfTimeForTask = ():void => {
   for (const task of tasks) {
     const closingDate = new Date(task.raffle.closingDate)
     const now = new Date()
@@ -28,12 +31,15 @@ const checkIfTimeForTask = async ():Promise<void> => {
     // const closingDateFormatted = format(closingDate, 'dd/MM hh:mm:ss')
     task.distance = distance
     if (isPending) console.log('Pendiente, falta %O', task.distance)
-    else {
-      const resp = await raffleTime(task.raffle)
-      const taskIdx = tasks.findIndex((taskToDelete) => taskToDelete.raffle.id === task.raffle.id)
-      tasks.splice(taskIdx, 1)
-      console.log('Procesado, vencido, ganador ', resp)
-    }
+    else
+      raffleTime(task.raffle).then((resp) => {
+        const taskIdx = tasks.findIndex((taskToDelete) => taskToDelete.raffle.id === task.raffle.id)
+        tasks.splice(taskIdx, 1)
+        console.log('Procesado, vencido, ganador ', resp)
+      }).catch((err) => {
+        console.log('error en checkIfTimeForTask', err)
+      })
+
   }
 }
 export const addRaffleAsTask = (raffle: RafflePrizeData): void => {

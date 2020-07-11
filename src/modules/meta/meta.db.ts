@@ -1,51 +1,23 @@
 /* eslint-disable babel/no-unused-expressions */
 import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
-import {createPool, ResultSetHeader} from 'mysql2/promise'
+import {createConnection, ResultSetHeader} from 'mysql2/promise'
 import camelcaseKeys from 'camelcase-keys'
 import {pickProps} from '../../helpers'
 
-const pool = []
-let acquiredConnections = 0
-let queueSize = 0
-let poolSize = 0
 const log = false
-export default async function getConnection(host = 'localhost'): Promise<any> {
-  if (pool[host]) return pool[host].getConnection()
+export default function getConnection(host = 'localhost'): Promise<any> {
   const config = {
-    connectionLimit: 10,
     host,
     user: 'jpsala',
     password: 'lani0363',
     database: 'meta',
+    charset: 'utf8mb4',
     debug: false,
-    waitForConnections: true,
+    waitForConnections: false,
     multipleStatements: true,
   }
-  log && console.warn('Get new connection for ', host, pool)
-  // eslint-disable-next-line require-atomic-updates
-  pool[host] = await createPool(config)
-  pool[host].on('acquire', () => {
-    acquiredConnections += 1
-    log && console.info('db meta: acquire', acquiredConnections)
-    if (acquiredConnections > 2) { console.warn('db meta: verify cant of connections maybe a release is missing', acquiredConnections) }
-    if (acquiredConnections > 5) { console.error('db meta: verify cant of connections maybe a release is missing', acquiredConnections) }
-  })
-  pool[host].on('connection', () => {
-    poolSize += 1
-    log && console.info('db meta: connector.DBConnection.connection', {poolSize, host})
-  })
-  pool[host].on('enqueue', () => {
-    queueSize += 1
-        // export more Prometheus metrics...
-    console.error('db meta: Connection pool is waiting for a connection, posibly a release is missing', acquiredConnections)
-    console.info('db meta: connector.DBConnection.enqueue', {queueSize})
-  })
-  pool[host].on('release', () => {
-    acquiredConnections -= 1
-    log && console.info('db meta:release', acquiredConnections)
-  })
-  return pool[host].getConnection()
+  return createConnection(config)
 }
 export const queryOneMeta = async (select: string, params: any = [], camelCase = false, fields: string[] | undefined = undefined): Promise<any> => {
   log && console.log('queryOne', select, params)
@@ -62,7 +34,7 @@ export const queryOneMeta = async (select: string, params: any = [], camelCase =
     console.error(err.message)
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, err)
   } finally {
-    await conn.release()
+    await conn.destroy()
   }
 }
 export const queryMeta = async (select: string, params: any = [], camelCase = false, fields: string[] | undefined = undefined): Promise<any[]> => {
@@ -71,15 +43,15 @@ export const queryMeta = async (select: string, params: any = [], camelCase = fa
   try {
     let response
     const [results] = await conn.query(select, params)
-    if (fields && results && results.length > 0) {
+    if (fields && results && results.length > 0)
       response = results.map((row) => pickProps(row, fields))
-    } else { response = camelCase ? camelcaseKeys(results) : results }
+    else response = camelCase ? camelcaseKeys(results) : results
     return response
   } catch (err) {
     console.error(err.message)
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, err)
   } finally {
-    await conn.release()
+    await conn.destroy()
   }
 }
 export const execMeta = async (select: string, params: any = []): Promise<ResultSetHeader> => {
@@ -92,6 +64,6 @@ export const execMeta = async (select: string, params: any = []): Promise<Result
     console.error(err.message)
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, err)
   } finally {
-    await conn.release()
+    await conn.destroy()
   }
 }
