@@ -1,11 +1,11 @@
 // import createError from 'http-errors'
-import {queryMeta} from '../meta.db'
+import {query} from '../../../db'
 import {LanguageData} from '../meta.types'
 
 export async function getLanguages(fields: string[] | undefined = undefined): Promise<LanguageData[]> {
-  const localizationData = await queryMeta(`
+  const localizationData = await query(`
     select * from  language
-  `, undefined, true, fields)
+  `, undefined, true)
   return localizationData
 }
 

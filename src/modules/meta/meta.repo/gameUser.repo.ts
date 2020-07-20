@@ -1,11 +1,10 @@
 import camelcaseKeys from 'camelcase-keys'
 // import createError from 'http-errors'
-import {queryOneMeta, execMeta} from '../meta.db'
+import {queryOne, exec} from '../../../db'
 import {LanguageData, GameUser} from '../meta.types'
-import {execSlot} from "../../slot/db.slot"
 
 export async function getLanguage(userId: number): Promise<LanguageData> {
-  const localizationData = await queryOneMeta(`
+  const localizationData = await queryOne(`
     select l.* from game_user gu
       inner join language l on l.language_code = gu.language_code
     where gu.id = ${userId}
@@ -19,7 +18,7 @@ export async function getGameUserByDeviceId(deviceId: string, fields: string[] |
       select *
         from game_user
       where device_id ='${deviceId}'`
-  const user = await queryOneMeta(userSelect, undefined, false, fields) as GameUser
+  const user = await queryOne(userSelect, undefined, false) as GameUser
   return user
 }
 let cachedUser: GameUser
@@ -29,12 +28,12 @@ export async function getGameUser(userId: number): Promise<GameUser> {
     select *
     from game_user
     where id =${userId}`
-  const user = camelcaseKeys(await queryOneMeta(userSelect)) as GameUser
+  const user = camelcaseKeys(await queryOne(userSelect)) as GameUser
   cachedUser = user
   return user
 }
 export async function getHaveWinRaffle(userId: number): Promise<boolean> {
-  const winData = await queryOneMeta(`
+  const winData = await queryOne(`
     select count(*) as win from raffle_history rh
     where win = 1 and rh.game_user_id = ${userId} and notified = 0
   `)
@@ -48,10 +47,10 @@ export async function delUser(deviceId: string): Promise < void > {
   const user = await getGameUserByDeviceId(deviceId)
   if(!user) return
   const {id} = user
-  await execSlot(`
+  await exec(`
     delete from wallet where game_user_id = ${id}
   `)
-  await execMeta(`
+  await exec(`
     delete from game_user  where id = ${id}
   `)
 }

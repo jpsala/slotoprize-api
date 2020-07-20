@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import createError from 'http-errors'
-import getSlotConnection from '../db.slot'
+import getSlotConnection from '../../../db'
 import {SpinData} from "../slot.types"
 import {getRandomNumber} from "../../../helpers"
 import * as walletService from "./wallet.service"

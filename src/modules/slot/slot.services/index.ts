@@ -1,5 +1,5 @@
 export * as profile from './profile.service'
-export * as gameInit from './game-init.service'
+export * as gameInit from './gameInit.service'
 export * as setting from './settings.service'
 export * as spin from './spin.service'
 export * as symbol from './symbol.service'

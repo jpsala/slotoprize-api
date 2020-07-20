@@ -2,7 +2,7 @@
 // import encodings from '../../../../node_modules/iconv-lite/encodings/';
 import {Request, Response} from 'express'
 import {gameInitGet} from '../slot.controller'
-import {delUser} from '../../meta/meta.repo/game-user.repo'
+import {delUser} from '../../meta/meta.repo/gameUser.repo'
 import {verifyToken} from '../../../services/jwtService'
 import {Fakexpress} from "../../../helpers"
 import {getSetting} from "../slot.services/settings.service"

@@ -3,9 +3,8 @@
     "src",
     ".env"
   ],
-  "ext": ".ts,.js",
+  "ext": ".ts",
   "ignore": [],
   "exec": "node --inspect -r ts-node/register src/index",
-  "args": [
-  ]
+  "args": []
 }

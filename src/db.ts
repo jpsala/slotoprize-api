@@ -22,7 +22,7 @@ export default function getConnection(host = 'localhost'): Promise<any> {
   }
   return createConnection(config)
 }
-export const queryOneSlot = async (query: string, params: any = [], camelCase = false): Promise<any> => {
+export const queryOne = async (query: string, params: any = [], camelCase = false): Promise<any> => {
   log && console.log('queryOne', query)
   const conn = await getConnection()
   try {
@@ -36,7 +36,7 @@ export const queryOneSlot = async (query: string, params: any = [], camelCase = 
     await conn.destroy()
   }
 }
-export const querySlot = async (select: string, params: string[] = [], camelCase = false): Promise<any[]> => {
+export const query = async (select: string, params: string[] = [], camelCase = false): Promise<any[]> => {
   log && console.log('query', select)
   const conn = await getConnection()
   try {
@@ -47,7 +47,7 @@ export const querySlot = async (select: string, params: string[] = [], camelCase
     conn.destroy()
   }
 }
-export const execSlot = async (select: string, params: any = []): Promise<ResultSetHeader> => {
+export const exec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
   const conn = await getConnection()
   try {
     const [respExec] = await conn.query(select, params)

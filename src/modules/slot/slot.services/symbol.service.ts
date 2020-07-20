@@ -1,6 +1,6 @@
 import toCamelCase from 'camelcase-keys'
 import createError from 'http-errors'
-import {querySlot as slotQuery} from '../db.slot'
+import {query as slotQuery} from '../../../db'
 
 export const getReelsData = async (): Promise<any> => {
   try {

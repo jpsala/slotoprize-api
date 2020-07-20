@@ -1,9 +1,10 @@
+/* eslint-disable babel/no-unused-expressions */
 /* eslint-disable no-process-env */
 import createError from 'http-errors'
 import camelcaseKeys from 'camelcase-keys'
 import {compareAsc, formatDistanceToNow} from 'date-fns'
 import {RafflePrizeData} from "../meta.types"
-import {queryMeta} from "../meta.db"
+import {query} from "../../../db"
 import {raffleTime} from '../meta.repo/raffle.repo'
 // import {format, addSeconds} from 'date-fns'
 const interval = 5001
@@ -13,9 +14,10 @@ interface Task {
 }
 type Tasks = Task[]
 const tasks: Task[] = []
+const testing = process.env.NODE_ENV === 'testing'
 async function cron():Promise<void> {
   await addRafflesAsTasks()
-  if (process.env.NODE_ENV !== 'test') {
+  if (!testing) {
     console.log('Cron initialized')
     setInterval(checkIfTimeForTask, interval)
   }
@@ -30,12 +32,12 @@ const checkIfTimeForTask = ():void => {
     // const nowFormatted = format(now, 'dd/MM hh:mm:ss')
     // const closingDateFormatted = format(closingDate, 'dd/MM hh:mm:ss')
     task.distance = distance
-    if (isPending) console.log('Pendiente, falta %O', task.distance)
+    if (isPending && !testing) console.log('Pendiente, falta %O', task.distance)
     else
       raffleTime(task.raffle).then((resp) => {
         const taskIdx = tasks.findIndex((taskToDelete) => taskToDelete.raffle.id === task.raffle.id)
         tasks.splice(taskIdx, 1)
-        console.log('Procesado, vencido, ganador ', resp)
+        if(!testing) console.log('Procesado, vencido, ganador ', resp)
       }).catch((err) => {
         console.log('error en checkIfTimeForTask', err)
       })
@@ -43,21 +45,21 @@ const checkIfTimeForTask = ():void => {
   }
 }
 export const addRaffleAsTask = (raffle: RafflePrizeData): void => {
-  const camelCasedRaffle = camelcaseKeys(raffle) as RafflePrizeData
+  const camelCasedRaffle = camelcaseKeys(raffle)
   const closingDate = new Date(camelCasedRaffle.closingDate)
-  console.log('task added', raffle, formatDistanceToNow(closingDate))
+  if(!testing)console.log('task added', raffle, formatDistanceToNow(closingDate))
   tasks.push({
     distance: formatDistanceToNow(closingDate),
     raffle: camelCasedRaffle
   })
 }
 const addRafflesAsTasks = async (): Promise<void> => {
-  const rafflesRows: RafflePrizeData[] = await queryMeta(`
+  const rafflesRows: RafflePrizeData[] = await query(`
     select * from raffle r
     where winner is null
   `)
   for (const raffle of rafflesRows) {
-    raffle.localizationData = await queryMeta(`
+    raffle.localizationData = await query(`
       select * from raffle_localization where raffle_id = ${raffle.id}
     `)
     if(raffle.localizationData.length < 1) throw createError(createError.InternalServerError, 'raffle whithout localiztion data')

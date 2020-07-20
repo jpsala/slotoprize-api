@@ -35,7 +35,7 @@ const createApp = (): Express => {
     // console.log('Error catched in error handler: ', error.status || 500)
     // console.log("%cError catched in error handler", "color: red; font-size: large")
     // eslint-disable-next-line no-process-env
-    if(process.env.NODE_ENV !== 'test')
+    if(process.env.NODE_ENV !== 'testing')
       console.error(error)
     // console.warn(`%c${JSON.stringify(error, null, 2)}\r{JSON.stringify(error.stack, null, 2)}`, "color: red; font-size: 100%")
     // console.warn(`%c${JSON.stringify(error.stack, null, 2)}`, "color: red; font-size: 100%")
