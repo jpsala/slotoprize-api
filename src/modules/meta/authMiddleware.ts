@@ -2,16 +2,16 @@ import {NextFunction, Request, Response} from 'express'
 import createError from 'http-errors'
 
 import {verifyToken} from '../../services/jwtService'
-import {getGameUserByDeviceId} from "./meta.service"
+import {getGameUserByDeviceId} from "./meta-services/meta.service"
 
 const reqUser: { deviceId?: string, user?: number } = {}
 
 export const getReqUser = (): any => {
   return reqUser
 }
-export const setReqUser = (deviceId: string, user: number): void => {
-  reqUser.deviceId = deviceId
-  reqUser.user = user
+export const setReqUser = (deviceId: string | undefined, user: number | undefined): void => {
+  if(deviceId !== undefined) reqUser.deviceId = deviceId
+  if(user !== undefined) reqUser.user = user
 }
 export async function checkToken(req: Request, res: Response, next: NextFunction):Promise<any> {
   const {'dev-request': dev} = req.headers
@@ -26,7 +26,6 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     }
     const _user = await getGameUserByDeviceId(deviceId as string)
     if(!_user) throw createError(createError.BadRequest, 'There is not user registered with that deviceId')
-    req.user = {deviceId, user: _user.id}
     reqUser.deviceId = deviceId as string
     reqUser.user = _user.id
     return next()
@@ -37,10 +36,6 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     const message = error ? error.message : 'no hay usuario en el token'
     console.log(`checkToken: ${message}`, req.baseUrl, sessionToken)
     return res.status(401).send({auth: false, message})
-  }
-  req.user = {
-    deviceId: decodedToken.deviceID,
-    id: decodedToken.id,
   }
   reqUser.deviceId = decodedToken.devicdID
   reqUser.user = decodedToken.id

@@ -33,6 +33,8 @@ export class Fakexpress {
   responseData: any;
   constructor(req: Partial<Request>) {
     this.req = req
+    if (!this.req?.headers) this.req.headers = {}
+    this.req.headers['dev-request'] = 'true'
   }
 
 

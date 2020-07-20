@@ -1,8 +1,8 @@
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
-import ParamRequiredException from '../../error'
-import {queryOneMeta, queryMeta} from './meta.db'
-import {GameUser, User} from './meta.types'
+import ParamRequiredException from '../../../error'
+import {queryOneMeta, queryMeta} from '../meta.db'
+import {GameUser, User} from '../meta.types'
 
 export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<GameUser> => {
   if (!deviceId) throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId')

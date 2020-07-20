@@ -1,3 +1,4 @@
+/* eslint-disable no-process-env */
 /* eslint-disable babel/no-unused-expressions */
 import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
@@ -7,11 +8,12 @@ import {pickProps} from '../../helpers'
 
 const log = false
 export default function getConnection(host = 'localhost'): Promise<any> {
+  const environment = process.env.NODE_ENV || 'development'
   const config = {
     host,
     user: 'jpsala',
     password: 'lani0363',
-    database: 'meta',
+    database: environment === 'testing' ? 'wopitest' : 'wopidom',
     charset: 'utf8mb4',
     debug: false,
     waitForConnections: false,

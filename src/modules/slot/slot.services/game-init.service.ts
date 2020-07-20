@@ -3,7 +3,7 @@ import toCamelCase from 'camelcase-keys'
 import {LanguageData, GameUser} from "../../meta/meta.types"
 import * as languageRepo from "../../meta/meta.repo/language.repo"
 import {setReqUser} from '../../meta/authMiddleware'
-import {getOrSetGameUserByDeviceId} from "../../meta/meta.service"
+import {getOrSetGameUserByDeviceId} from "../../meta/meta-services/meta.service"
 import {getNewToken} from '../../../services/jwtService'
 import {getHaveWinRaffle, getHaveProfile} from '../../meta/meta.repo/game-user.repo'
 import {getOrSetWallet} from "./wallet.service"

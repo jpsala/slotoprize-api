@@ -4,8 +4,8 @@ import {Request, Response} from 'express'
 import {gameInitGet} from '../slot.controller'
 import {delUser} from '../../meta/meta.repo/game-user.repo'
 import {verifyToken} from '../../../services/jwtService'
-import {getSetting} from "../slot.services/settings.service"
 import {Fakexpress} from "../../../helpers"
+import {getSetting} from "../slot.services/settings.service"
 
 
 let fakeExpres

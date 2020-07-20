@@ -3,7 +3,7 @@ import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
 import {queryMeta, queryOneMeta, execMeta} from '../meta.db'
 import {LocalizationData, RafflePrizeData, GameUser, RaffleRecordData, RafflePrizeDataDB} from '../meta.types'
-import {getGameUserByDeviceId} from "../meta.service"
+import {getGameUserByDeviceId} from "../meta-services/meta.service"
 import {addRaffleAsTask} from '../meta-services/cron'
 import {getRandomNumber} from "../../../helpers"
 import {getWallet, updateWallet} from '../../slot/slot.services/wallet.service'
@@ -122,7 +122,6 @@ export async function newRaffle(raffle: RafflePrizeDataDB): Promise<SaveRaffleNe
 export async function getRafflePurchaseHistory(deviceId: string): Promise<RaffleRecordData[]> {
   if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
   const gameUser = await getGameUserByDeviceId(deviceId)
-  console.log('gameUser', gameUser)
   const raffleHistory = await queryMeta(`
     SELECT rh.raffle_id as raffle_item_id, rh.transaction_date, rh.tickets,
            rh.closing_date, rh.raffle_numbers, rl.name, rl.description

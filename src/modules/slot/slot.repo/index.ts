@@ -1,1 +1,1 @@
-export * from './wallet.repo'
+export * as wallet from './wallet.repo'

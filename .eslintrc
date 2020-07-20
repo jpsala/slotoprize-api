@@ -2,37 +2,41 @@
     "root": true,
     "parser": "@typescript-eslint/parser",
     "plugins": [
-      "@typescript-eslint"
+        "@typescript-eslint"
     ],
     "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/eslint-recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:shopify/esnext"
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:shopify/esnext"
     ],
-     "rules": {
-         "no-console": "off",
-         "babel/semi":"off",         "comma-dangle":"off",
-         "array-bracket-spacing":"off",
-         "semi": [2, "never"],
-         "@typescript-eslint/semi": ["off"],
-         "@typescript-eslint/no-explicit-any": "off",
-         "import/order": ["error", {"newlines-between": "ignore"}],
-         "no-use-before-define":"off",
-         "prefer-spread":"off",
-         "keyword-spacing": "off",
-         "curly": ["error", "multi"],
-         "require-atomic-updates": "off"
-      },
-      "env": {
+    "rules": {
+        "no-console": "off",
+        "babel/semi": "off",
+        "comma-dangle": "off",
+        "array-bracket-spacing": "off",
+        "semi": [2, "never"],
+        "@typescript-eslint/semi": ["off"],
+        "@typescript-eslint/no-explicit-any": "off",
+        "import/order": ["error", {
+            "newlines-between": "ignore"
+        }],
+        "no-use-before-define": "off",
+        "prefer-spread": "off",
+        "keyword-spacing": "off",
+        "curly": ["error", "multi"],
+        "require-atomic-updates": "off"
+    },
+    "env": {
         "browser": true,
-        "node": true
-      },
-      "settings": {
+        "node": true,
+        "jest": true
+    },
+    "settings": {
         "import/resolver": {
-          "node": {
-            "extensions": [".js", ".jsx", ".ts", ".tsx"]
-          }
+            "node": {
+                "extensions": [".js", ".jsx", ".ts", ".tsx"]
+            }
         }
     }
-  }
+}

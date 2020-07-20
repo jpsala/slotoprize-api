@@ -1,7 +1,7 @@
 import {ResultSetHeader} from 'mysql2/promise'
 import createError from 'http-errors'
 import * as httpStatusCodes from 'http-status-codes'
-import * as metaService from '../../meta/meta.service'
+import * as metaService from '../../meta/meta-services/meta.service'
 import getSlotConnection from '../db.slot'
 import {Wallet} from '../slot.types'
 
