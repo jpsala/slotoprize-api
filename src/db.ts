@@ -33,7 +33,7 @@ export const queryOne = async (query: string, params: any = [], camelCase = fals
     console.error(err.message)
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, err)
   } finally {
-    await conn.destroy()
+    conn.destroy()
   }
 }
 export const query = async (select: string, params: string[] = [], camelCase = false): Promise<any[]> => {

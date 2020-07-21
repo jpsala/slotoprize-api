@@ -5,3 +5,4 @@ export interface Wallet {
   tickets: number;
   coins: number;
 }
+// export interface
