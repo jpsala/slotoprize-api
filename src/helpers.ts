@@ -1,9 +1,16 @@
+import createError from 'http-errors'
+import statusCodes from 'http-status-codes'
 /* eslint-disable no-undef */
 /* eslint-disable no-sequences */
 /* eslint-disable no-return-assign */
 /* eslint-disable id-length */
 import {Request, Response, NextFunction} from 'express'
-
+export const toBoolean = (value: string | number | boolean) : boolean => {
+  if(typeof(value) === 'string') return (value.toUpperCase() === 'TRUE')
+  if(typeof(value) === 'number') return (value.toUpperCase() === '1')
+  if(typeof(value) === 'boolean') return value
+  throw createError(statusCodes.BAD_REQUEST, 'Value type not supported')
+}
 export function pickProps<T>(obj: T, props: string[]): Partial<T> {
   return props.reduce((a, e) => (a[e] = obj[e], a), {})
 }

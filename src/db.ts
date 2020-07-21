@@ -1,12 +1,12 @@
 /* eslint-disable babel/no-unused-expressions */
-import {createConnection, ResultSetHeader} from 'mysql2/promise'
+import {createConnection, ResultSetHeader, Connection} from 'mysql2/promise'
 import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
 
 import camelcaseKeys from 'camelcase-keys'
 
 const log = false
-export default function getConnection(host = 'localhost'): Promise<any> {
+export default function getConnection(host = 'localhost'): Promise<Connection> {
   // eslint-disable-next-line no-process-env
   const environment = process.env.NODE_ENV || 'development'
   const config = {
@@ -56,3 +56,4 @@ export const exec = async (select: string, params: any = []): Promise<ResultSetH
     conn.destroy()
   }
 }
+

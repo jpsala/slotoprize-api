@@ -1,4 +1,7 @@
+import faker from 'faker'
+import { Wallet } from './../slot/slot.types'
 /* eslint-disable babel/camelcase */
+
 export interface User {
   id: number;
   login: string;
@@ -40,6 +43,37 @@ export interface GameUser {
   state: string;
   country: string;
   isNew: boolean;
+  wallet?: Partial<Wallet>;
+}
+export const fakeUser = (override: Partial<GameUser> = {}): GameUser => {
+  return {
+    id: -1,
+    firstName: faker.name.firstName(),
+    lastName: faker.name.lastName(),
+    email: faker.internet.email(),
+    deviceId: 'fakeDevice1',
+    deviceModel: faker.lorem.word(),
+    deviceName: faker.lorem.word(),
+    countryPhoneCode: faker.address.countryCode(),
+    phoneCode: faker.lorem.word().substr(0, 2),
+    phoneNumber: faker.phone.phoneNumber().substr(0, 19),
+    createdAt: faker.date.past(),
+    modifiedAt: faker.date.past(),
+    password: faker.internet.password(),
+    languageCode: 'en-US',
+    isMale: faker.random.boolean(),
+    age: faker.random.number(80) + 10,
+    address: faker.address.streetAddress(),
+    city: faker.address.city(),
+    zipCode: faker.address.zipCode(),
+    state: faker.address.state(),
+    country: faker.address.country(),
+    isNew: false,
+    wallet: {
+      coins: faker.random.number(100),
+      tickets: faker.random.number(100)
+    }, ...override
+  }
 }
 export interface LanguageData {
   id: number;
@@ -79,7 +113,6 @@ export interface LocalizationDataDB{
   name: string;
   description: string;
 }
-
 export interface RaffleRecordData {
   id: number;
   gameUser: GameUser;

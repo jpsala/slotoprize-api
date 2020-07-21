@@ -3,6 +3,7 @@ import * as httpStatusCodes from "http-status-codes"
 import {getGameUserByDeviceId} from '../../meta/meta.repo/gameUser.repo'
 import {queryOne, exec as metaExec} from '../../../db'
 import {GameUser} from "../../meta/meta.types"
+import { toBoolean } from './../../../helpers'
 
 export const getProfile = async (deviceId: string, fields: string[] | undefined = undefined): Promise<GameUser | Partial<GameUser>> => {
   if (!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
@@ -12,6 +13,7 @@ export const getProfile = async (deviceId: string, fields: string[] | undefined 
 }
 export const setProfile = async (user: GameUser): Promise<any> => {
   if (!user.deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
+
   const userExists = await queryOne(`select * from game_user where device_id = '${user.deviceId}'`)
   if (!userExists)
     throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
@@ -28,6 +30,7 @@ export const setProfile = async (user: GameUser): Promise<any> => {
               state: string;
               country: string;
 */
+  const isMale = toBoolean(user.isMale)
   await metaExec(`
           update game_user set
               email = '${user.email || ""}',
@@ -37,7 +40,7 @@ export const setProfile = async (user: GameUser): Promise<any> => {
               device_model = '${user.deviceModel || ""}',
               country_phone_code = '${user.countryPhoneCode || ""}',
               phone_number = '${user.phoneNumber || ""}',
-              is_male = '${user.isMale || ""}',
+              is_male = ${isMale},
               age = '${user.age || ""}',
               address = '${user.address || ""}',
               city = '${user.city || ""}',

@@ -1,9 +1,13 @@
+import snakeCaseKeys from 'snakecase-keys'
 import camelcaseKeys from 'camelcase-keys'
 // import createError from 'http-errors'
 import statusCodes from 'http-status-codes'
 import createError from 'http-errors'
-import {queryOne, exec} from '../../../db'
-import {LanguageData, GameUser } from '../meta.types'
+import { classToPlain } from "class-transformer"
+import { RowDataPacket } from 'mysql2'
+import getConnection, {queryOne, exec} from '../../../db'
+import {LanguageData, GameUser, fakeUser } from '../meta.types'
+
 
 
 
@@ -25,15 +29,19 @@ export async function getGameUserByDeviceId(deviceId: string, fields: string[] |
   const user = await queryOne(userSelect, undefined, false) as GameUser
   return user
 }
-let cachedUser: GameUser
+// let cachedUser: GameUser
 export async function getGameUser(userId: number): Promise<GameUser> {
-  if(cachedUser && cachedUser.id === userId) return cachedUser
+  // if(cachedUser && cachedUser.id === userId) return cachedUser
   const userSelect = `
     select *
     from game_user
     where id =${userId}`
   const user = camelcaseKeys(await queryOne(userSelect)) as GameUser
-  cachedUser = user
+  const wallet = await queryOne(
+    `select coins, tickets from wallet where game_user_id = ${userId}`
+  )
+  user.wallet = wallet
+  // cachedUser = user
   return user
 }
 export async function getHaveWinRaffle(userId: number): Promise<boolean> {
@@ -58,15 +66,36 @@ export async function delUser(deviceId: string): Promise < void > {
     delete from game_user  where id = ${id}
   `)
 }
-// export async function addGameUser(user: GameUser): Promise<number> {
-//   const userToSave = Object.assign({}, user)
-//   const wallet = userToSave.wallet
-//   delete userToSave.wallet
-//   delete userToSave.is_new
-//   if(!wallet) throw createError(statusCodes.BAD_REQUEST, 'Wallet no present')
-//   const resp = await exec('insert into game_user set ?', userToSave)
-//   const userGameId = resp.insertId
-//   wallet.game_user_id = userGameId
-//   await exec('insert into wallet set ?', wallet)
-//   return userGameId
-// }
+type WalletDTO = {coins: number, tickets: number, game_user_id: number}
+
+// @TODO ver de user class-transmormer abajo
+export async function addGameUser(user: GameUser): Promise<GameUser> {
+  delete user.isNew
+  if(user.id === -1) delete user.id
+  const snakeCasedUser = snakeCaseKeys(user)
+  const wallet = snakeCasedUser.wallet
+  delete snakeCasedUser.wallet
+  const conn = await getConnection()
+  let userGameId: number
+  await conn.beginTransaction()
+  try {
+      const [result] = await conn.query('insert into game_user set ?', snakeCasedUser) as RowDataPacket[]
+      userGameId = result.insertId
+      user.id = userGameId
+      let walletDTO: WalletDTO
+      if (user.wallet) {
+        walletDTO = <WalletDTO>classToPlain(wallet)
+        walletDTO.game_user_id = userGameId
+        await conn.query('insert into wallet set ?', walletDTO)
+      }
+    } finally {
+      await conn.rollback()
+      conn.destroy()
+    }
+    return user
+  }
+export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Promise<GameUser>{
+  const fakedUser = fakeUser(override)
+  const newUser = await addGameUser(fakedUser)
+  return newUser
+}
