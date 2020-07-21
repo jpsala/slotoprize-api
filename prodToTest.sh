@@ -12,3 +12,5 @@ mysql wopitest -u root --password=lani0363<backup.sql
 
 
 # mysqldump meta --single-transaction -R -u root --password=lani0363 > backup.sql
+
+rm -f backup.sql

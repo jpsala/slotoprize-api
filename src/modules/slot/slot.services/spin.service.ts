@@ -29,7 +29,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     resetSpinCount()
     isWin = true
   } else if (isWin)
-    wallet.coins += winAmount
+    {wallet.coins += winAmount}
 
   walletService.updateWallet(deviceId, wallet)
   const returnData: any = {symbolsData, isWin, wallet}
@@ -46,15 +46,15 @@ const saveSpinToDb = async (multiplier: number): Promise <void> => {
   setSetting('spinCount', String(Number(spinCount) + multiplier))
 }
 const getWinRowWithEmptyFilled = (winRow, fillTable) => {
-  console.log("getWinRowWithEmptyFilled -> winRow", winRow)
+  // console.log("getWinRowWithEmptyFilled -> winRow", winRow)
   const winSymbolAmount = winRow.symbol_amount || 0
   const winSymbolPaymentType = winRow.payment_type || ""
   const filledSymbolRowToReturn: any[] = []
-  for (let idx = 0; idx < winSymbolAmount; idx++) {
+  for (let idx = 0; idx < winSymbolAmount; idx++)
     filledSymbolRowToReturn.push({paymentType: winSymbolPaymentType, isPaying: true})
-    console.log("getWinRowWithEmptyFilled -> winSymbolPaymentType", winSymbolPaymentType.payment_type)
-  }
-  console.log('filledSymbolRowToReturn', filledSymbolRowToReturn)
+    // console.log("getWinRowWithEmptyFilled -> winSymbolPaymentType", winSymbolPaymentType.payment_type)
+
+  // console.log('filledSymbolRowToReturn', filledSymbolRowToReturn)
   const symbolsAmountToFill = 3 - winSymbolAmount
   for (let idx = 0; idx < symbolsAmountToFill; idx++) {
     // const symbolRowsForFilling = getSymbolRowsForFilling(fillTable)
@@ -64,15 +64,15 @@ const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   return filledSymbolRowToReturn
 }
 const getSymbolForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
-  console.log('allreadyFilledSymbols', JSON.stringify(allreadyFilledSymbols))
+  // console.log('allreadyFilledSymbols', JSON.stringify(allreadyFilledSymbols))
   const symbolsToReturn = symbolsForFilling.filter((fillingSymbolRow) => {
     if (allreadyFilledSymbols.length === 0)
       return fillingSymbolRow
 
     const isInValid = allreadyFilledSymbols.find((afSymbol) => {
       const encontrado = (afSymbol.paymentType === fillingSymbolRow.payment_type)
-      if (!encontrado)
-        console.log('symbol', fillingSymbolRow.payment_type)
+      // if (!encontrado)
+      //   console.log('symbol', fillingSymbolRow.payment_type)
 
       return encontrado
     })
@@ -127,7 +127,7 @@ async function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: numb
   if (multiplier > maxMultiplier) throw createError(createError[502], `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`)
 
 }
-async function getBetAndCheckFunds(multiplier: number, coins: any) {
+export async function getBetAndCheckFunds(multiplier: number, coins: any) {
   const betPrice = Number(await getSetting('betPrice', 1))
   const bet = betPrice * multiplier
   const enoughCoins = ((coins - bet) >= 0)

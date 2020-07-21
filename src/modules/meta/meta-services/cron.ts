@@ -32,12 +32,12 @@ const checkIfTimeForTask = ():void => {
     // const nowFormatted = format(now, 'dd/MM hh:mm:ss')
     // const closingDateFormatted = format(closingDate, 'dd/MM hh:mm:ss')
     task.distance = distance
-    if (isPending && !testing) console.log('Pendiente, falta %O', task.distance)
+    // if (isPending && !testing) console.log('Pendiente, falta %O', task.distance)
     else
       raffleTime(task.raffle).then((resp) => {
         const taskIdx = tasks.findIndex((taskToDelete) => taskToDelete.raffle.id === task.raffle.id)
         tasks.splice(taskIdx, 1)
-        if(!testing) console.log('Procesado, vencido, ganador ', resp)
+        // if(!testing) console.log('Procesado, vencido, ganador ', resp)
       }).catch((err) => {
         console.log('error en checkIfTimeForTask', err)
       })
@@ -47,7 +47,7 @@ const checkIfTimeForTask = ():void => {
 export const addRaffleAsTask = (raffle: RafflePrizeData): void => {
   const camelCasedRaffle = camelcaseKeys(raffle)
   const closingDate = new Date(camelCasedRaffle.closingDate)
-  if(!testing)console.log('task added', raffle, formatDistanceToNow(closingDate))
+  // if(!testing)console.log('task added', raffle, formatDistanceToNow(closingDate))
   tasks.push({
     distance: formatDistanceToNow(closingDate),
     raffle: camelCasedRaffle

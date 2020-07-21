@@ -7,7 +7,7 @@ import {Fakexpress} from "../../../helpers"
 import {checkToken} from '../../meta/authMiddleware'
 
 let fakeExpres
-describe(`raffle_prize_data`, () => {
+xdescribe(`raffle_prize_data`, () => {
   beforeAll(() => {
     fakeExpres = new Fakexpress(
       {
