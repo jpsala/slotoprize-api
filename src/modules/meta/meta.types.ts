@@ -41,7 +41,6 @@ export interface GameUser {
   country: string;
   isNew: boolean;
 }
-
 export interface LanguageData {
   id: number;
   languageCode: string;

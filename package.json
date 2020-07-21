@@ -1,11 +1,11 @@
 {
-  "name": "api2",
+  "name": "api",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "test": "cross-env NODE_ENV=testing jest --runInBand --watch --onlyChanged",
-    "test2": "cross-env NODE_ENV=testing node --inspect=9230 node_modules/.bin/jest  —-runInBand --watchAll",
+    "test": "cross-env NODE_ENV=testing jest --runInBand --watch",
+    "test2": "cross-env NODE_ENV=testing node --inspect=9230 node_modules/.bin/jest test/unit  --runInBand --watchAll",
     "test:debug": "node --inspect=9230 -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --watchAll",
     "build": "tsc",
     "start": "node build/index.js",

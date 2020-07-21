@@ -43,7 +43,7 @@ export async function walletGet(req: Request, res: Response): Promise<any> {
 export async function purchaseTicketsGet(req: Request, res: Response): Promise<any> {
   const resp = await walletService.purchaseTickets(
     req.query.deviceId as string,
-    Number(req.query.ticketAmount) as number
+    Number(req.query.ticketAmount)
   )
   res.status(200).json(resp)
 }
@@ -53,7 +53,7 @@ export async function rafflePost(req: Request, res: Response): Promise<any> {
   res.status(200).json(resp)
 }
 export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any> {
-  const resp = await metaRepo.raffleRepo.getRaffles(['id'])
+  const resp = await metaRepo.raffleRepo.getRaffles()
   res.status(200).json(resp)
   return resp
 }

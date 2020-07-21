@@ -1,19 +1,19 @@
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
-import {LanguageData, GameUser} from "../../meta/meta.types"
-import * as languageRepo from "../../meta/meta.repo/language.repo"
-import {setReqUser} from '../../meta/authMiddleware'
-import {getOrSetGameUserByDeviceId} from "../../meta/meta-services/meta.service"
-import {getNewToken} from '../../../services/jwtService'
-import {getHaveWinRaffle, getHaveProfile} from '../../meta/meta.repo/gameUser.repo'
-import {getOrSetWallet} from "./wallet.service"
-import {getSetting} from "./settings.service"
-import {getReelsData} from "./symbol.service"
-import {getPayTable} from "./spin.service"
+import {LanguageData, GameUser} from "../../../meta/meta.types"
+import * as languageRepo from "../../../meta/meta.repo/language.repo"
+import {setReqUser} from '../../../meta/authMiddleware'
+import {getOrSetGameUserByDeviceId} from "../../../meta/meta-services/meta.service"
+import {getNewToken} from '../../../../services/jwtService'
+import {getHaveWinRaffle, getHaveProfile} from '../../../meta/meta.repo/gameUser.repo'
+import {getOrSetWallet} from "../wallet.service"
+import {getSetting} from "../settings.service"
+import {getReelsData} from "../symbol.service"
+import {getPayTable} from "../spin.service"
 
 export async function gameInit(deviceId: string): Promise<any> {
   try {
-    const rawUser = (await getOrSetGameUserByDeviceId(deviceId as string)) as Partial<GameUser>
+    const rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
     setReqUser(deviceId, rawUser.id as number)
     const wallet = await getOrSetWallet(deviceId, String(rawUser.id))
     const payTable = await getPayTable()
@@ -27,7 +27,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
     const hasPendingPrize = await getHaveWinRaffle(rawUser.id as number)
-    const requireProfileData = await hasPendingPrize && !getHaveProfile(rawUser.id as number)
+    const requireProfileData = hasPendingPrize && !await getHaveProfile(rawUser.id as number)
     const token = getNewToken({id: rawUser.id, deviceId})
     // delete rawUser.id
     delete rawUser.deviceId

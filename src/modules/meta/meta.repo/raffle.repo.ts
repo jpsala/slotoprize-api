@@ -31,7 +31,7 @@ export const rafflePurchase = async (deviceId: string, raffleId: number, amount:
   const raffleInsertedId = await saveRaffle(raffle, user, totalTicketsNeeded, amount)
   if(raffleInsertedId < 0) throw createError(createError.InternalServerError, 'Error saving raffle to db')
   wallet.tickets -= totalTicketsNeeded
-  updateWallet(deviceId, wallet)
+  await updateWallet(deviceId, wallet)
   // eslint-disable-next-line no-return-await
   return await getWallet(deviceId)
 }
