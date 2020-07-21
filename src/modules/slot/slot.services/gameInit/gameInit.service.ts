@@ -58,7 +58,7 @@ export async function gameInit(deviceId: string): Promise<any> {
       hasPendingPrize: hasPendingPrize ? 1 : 0,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
-      rewardData: dailyRewards,
+      dailyRewardsData: dailyRewards,
       ticketPrice,
       betPrice,
       maxMultiplier,
