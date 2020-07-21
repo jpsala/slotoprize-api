@@ -1,12 +1,10 @@
-import { snakeCase } from 'snakecase-keys'
-import { ResultSetHeader } from 'mysql2/promise'
 import camelcaseKeys from 'camelcase-keys'
 // import createError from 'http-errors'
 import statusCodes from 'http-status-codes'
 import createError from 'http-errors'
 import {queryOne, exec} from '../../../db'
-import {LanguageData} from '../meta.types'
-import { GameUser } from './../models/gameUser'
+import {LanguageData, GameUser } from '../meta.types'
+
 
 
 export async function getLanguage(userId: number): Promise<LanguageData> {
@@ -60,15 +58,15 @@ export async function delUser(deviceId: string): Promise < void > {
     delete from game_user  where id = ${id}
   `)
 }
-export async function addGameUser(user: GameUser): Promise<number> {
-  const userToSave = Object.assign({}, user)
-  const wallet = userToSave.wallet
-  delete userToSave.wallet
-  delete userToSave.is_new
-  if(!wallet) throw createError(statusCodes.BAD_REQUEST, 'Wallet no present')
-  const resp = await exec('insert into game_user set ?', userToSave)
-  const userGameId = resp.insertId
-  wallet.game_user_id = userGameId
-  await exec('insert into wallet set ?', wallet)
-  return userGameId
-}
+// export async function addGameUser(user: GameUser): Promise<number> {
+//   const userToSave = Object.assign({}, user)
+//   const wallet = userToSave.wallet
+//   delete userToSave.wallet
+//   delete userToSave.is_new
+//   if(!wallet) throw createError(statusCodes.BAD_REQUEST, 'Wallet no present')
+//   const resp = await exec('insert into game_user set ?', userToSave)
+//   const userGameId = resp.insertId
+//   wallet.game_user_id = userGameId
+//   await exec('insert into wallet set ?', wallet)
+//   return userGameId
+// }

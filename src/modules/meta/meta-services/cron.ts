@@ -32,7 +32,8 @@ const checkIfTimeForTask = ():void => {
     // const nowFormatted = format(now, 'dd/MM hh:mm:ss')
     // const closingDateFormatted = format(closingDate, 'dd/MM hh:mm:ss')
     task.distance = distance
-    // if (isPending && !testing) console.log('Pendiente, falta %O', task.distance)
+    if (isPending && !testing)
+      console.log('Pendiente, falta %O', task.distance)
     else
       raffleTime(task.raffle).then((resp) => {
         const taskIdx = tasks.findIndex((taskToDelete) => taskToDelete.raffle.id === task.raffle.id)
