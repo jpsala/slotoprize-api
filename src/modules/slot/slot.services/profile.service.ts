@@ -40,7 +40,7 @@ export const setProfile = async (user: GameUser): Promise<any> => {
               device_model = '${user.deviceModel || ""}',
               country_phone_code = '${user.countryPhoneCode || ""}',
               phone_number = '${user.phoneNumber || ""}',
-              is_male = ${isMale},
+              is_male = ${isMale ? 1 : 0},
               age = '${user.age || ""}',
               address = '${user.address || ""}',
               city = '${user.city || ""}',

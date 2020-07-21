@@ -6,8 +6,9 @@ import statusCodes from 'http-status-codes'
 /* eslint-disable id-length */
 import {Request, Response, NextFunction} from 'express'
 export const toBoolean = (value: string | number | boolean) : boolean => {
-  if(typeof(value) === 'string') return (value.toUpperCase() === 'TRUE')
-  if(typeof(value) === 'number') return (value.toUpperCase() === '1')
+  if (typeof (value) === 'string')
+    return ((value.toUpperCase() === 'TRUE') || value.toUpperCase() === '1')
+  if(typeof(value) === 'number') return (value === 1)
   if(typeof(value) === 'boolean') return value
   throw createError(statusCodes.BAD_REQUEST, 'Value type not supported')
 }

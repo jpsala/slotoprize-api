@@ -40,7 +40,7 @@ export const query = async (select: string, params: string[] = [], camelCase = f
   log && console.log('query', select)
   const conn = await getConnection()
   try {
-    const [results] = await conn.query(select, params)
+    const [results] = (await conn.query(select, params)) as any[]
     const response = camelCase ? camelcaseKeys(results) : results
     return response
   } finally {
