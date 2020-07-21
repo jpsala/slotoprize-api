@@ -16,7 +16,7 @@ export async function symbolsInDBGet(req: Request, res: Response): Promise<any> 
   res.status(200).json(toCamelCase(resp))
 }
 export async function profileGet(req: Request, res: Response): Promise<any> {
-  const resp = await (req.query.deviceId as string, ['first_name', 'last_name', 'email'])
+  const resp = (req.query.deviceId as string, ['first_name', 'last_name', 'email'])
   res.status(200).json(toCamelCase(resp))
 }
 export async function profilePost(req: Request, res: Response): Promise<any> {

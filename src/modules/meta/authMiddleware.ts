@@ -30,7 +30,9 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     reqUser.user = _user.id
     return next()
   }
-  const {sessionToken} = req.query
+  let { sessionToken } = req.query
+  if (!sessionToken)  sessionToken = req.body.sessionToken
+  console.log('body--dark', sessionToken)
   const {decodedToken, error} = verifyToken(sessionToken as string)
   if (error || !decodedToken.id) {
     const message = error ? error.message : 'no hay usuario en el token'

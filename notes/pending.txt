@@ -1,0 +1,5 @@
+[] set language_code por fuera del profile
+[] daily reward
+[] endpoint de soporte, recibe y guarda la consulta
+[] happy hour
+[] profile get devuelve datos fijos
