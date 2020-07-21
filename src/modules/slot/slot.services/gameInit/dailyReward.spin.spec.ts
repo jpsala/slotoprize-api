@@ -1,6 +1,7 @@
 import { getNewSavedFakeUser } from '../../../meta/meta.repo/gameUser.repo'
+import { getLastSpin, getDailyRewardPrizes, getLastSpinDays } from './dailyReward.spin'
 import { GameUser } from './../../../meta/meta.types'
-import { getLastSpin, getDailyRewardPrizes } from "./dailyReward.spin"
+
 describe('daily reward', () => {
   let user: GameUser
   beforeAll(async () => {

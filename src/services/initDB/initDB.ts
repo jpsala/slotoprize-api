@@ -7,6 +7,7 @@ export async function deleteDataInTestDB(): Promise< ResultSetHeader[]> {
     await exec('delete from raffle_wins'),
     await exec('delete from raffle_history'),
     await exec('delete from wallet'),
+    await exec('delete from last_spin'),
     await exec('delete from game_user '),
     await exec('delete from pay_table'),
     await exec('delete from symbol'),

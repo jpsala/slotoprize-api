@@ -3,3 +3,13 @@
 [] endpoint de soporte, recibe y guarda la consulta
 [] happy hour
 [] profile get devuelve datos fijos
+
+Notas sobre Profile:
+[]- Tiene dos campos, phoneCode y countryPhoneCode, pero ninguno parece querer guardar los datos.
+    Si te parece mantengamos solo el primero.
+[]- El languageCode del usuario que viene en game-init: es el mismo que está en el profileData,
+    o es un dato duplicado?
+[]- El Profile GET endpoint se puede borrar.
+[]- El response del profile POST, tendría vamos a necesitar que sea el profile completo,
+    como viene en game-Init.
+[]    de los dailyRewards estaría faltando el dato que dijiste (consecutiveDailyLogs) y el segundo endpoint

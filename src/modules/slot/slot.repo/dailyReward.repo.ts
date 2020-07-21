@@ -17,3 +17,11 @@ export const getDailyRewardPrizes = async (): Promise<DailyRewardPrize[]> => {
   })
   return dailyRewardPrizes
 }
+
+export const getUserPrize = async(user: GameUser): Promise<DailyRewardPrize | undefined> => {
+  const lastSpin = await getLastSpin(user)
+  if(lastSpin == null) return undefined
+  const prizes = await getDailyRewardPrizes()
+  if (lastSpin.days < 1 || lastSpin.days > prizes.length) return undefined
+  return prizes[lastSpin.days]
+}

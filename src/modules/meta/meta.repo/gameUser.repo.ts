@@ -81,13 +81,14 @@ export async function addGameUser(user: GameUser): Promise<GameUser> {
   try {
       const [result] = await conn.query('insert into game_user set ?', snakeCasedUser) as RowDataPacket[]
       userGameId = result.insertId
-      user.id = userGameId
+    user.id = userGameId
       let walletDTO: WalletDTO
       if (user.wallet) {
         walletDTO = <WalletDTO>classToPlain(wallet)
         walletDTO.game_user_id = userGameId
         await conn.query('insert into wallet set ?', walletDTO)
       }
+    await conn.commit()
     } finally {
       await conn.rollback()
       conn.destroy()
