@@ -26,13 +26,13 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   // siempre se descuenta el costo del spin
   wallet.coins -= bet
   if (winType === 'jackpot') {
-    resetSpinCount()
+    await resetSpinCount()
     isWin = true
   } else if (isWin)
     {wallet.coins += winAmount}
 
-  walletService.updateWallet(deviceId, wallet)
-  const returnData: any = {symbolsData, isWin, wallet}
+  await walletService.updateWallet(deviceId, wallet)
+  const returnData: any = {symbolsData, isWin, walletData: wallet}
 
   if (isWin) returnData.winData = {type: winType, amount: winAmount}
 

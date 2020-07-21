@@ -1,11 +1,11 @@
-import snakeCase from 'snakecase-keys'
-import { fakeUser, GameUser } from "../../meta/models"
+// import snakeCase from 'snakecase-keys'
+// import { fakeUser, GameUser } from "../../meta/models"
 
-import { addGameUser } from '../../meta/meta.repo/gameUser.repo'
-import { spin, getBetAndCheckFunds } from './spin.service'
+// import { addGameUser } from '../../meta/meta.repo/gameUser.repo'
+// import { spin, getBetAndCheckFunds } from './spin.service'
 
-const testUser: GameUser = fakeUser()
-it('spin', async () => {
+// const testUser: GameUser = fakeUser()
+xit('spin', async () => {
   const multiplier = 1
   testUser.wallet.coins = 0
   const userSnakeCase = snakeCase(testUser)
