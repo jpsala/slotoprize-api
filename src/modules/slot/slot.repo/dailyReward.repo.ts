@@ -52,7 +52,7 @@ export const dailyRewardClaimed = async(deviceId: string): Promise<Partial<Walle
   const user = await getGameUserByDeviceId(deviceId)
   if(user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
   const lastSpin = await getLastSpin(user)
-  log
+  // log
 }
 export const dailyRewardClaim = async(deviceId: string): Promise<Partial<Wallet>> => {
   const user = await getGameUserByDeviceId(deviceId)
