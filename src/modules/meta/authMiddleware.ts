@@ -44,10 +44,10 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
   }
   console.log('decodedToken', decodedToken)
   req.user = {
-    id:decodedToken.userId,
+    id:decodedToken.id,
     deviceId: decodedToken.devicedID
   }
   reqUser.deviceId = decodedToken.devicedID
-  reqUser.user = decodedToken.devicedID
+  reqUser.user = decodedToken.id
   return next()
 }
