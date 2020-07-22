@@ -6,7 +6,7 @@ import { Wallet } from './../../meta/models/wallet'
 import { GameUser } from './../../meta/meta.types'
 import { query, queryOne, exec } from './../../../db'
 
-export type SpinData = {last: Date, days: number}
+export type SpinData = {last: Date, days: number, lastClaim: Date}
 export const getLastSpin = async (user: GameUser): Promise<SpinData | undefined> => {
   const row = await queryOne(`select * from last_spin where game_user_id = ${user.id}`)
   if(!row) return undefined
@@ -48,10 +48,11 @@ export const getUserPrize = async(user: GameUser): Promise<DailyRewardPrize | un
   if (lastSpin.days < 1 || lastSpin.days > prizes.length) return undefined
   return prizes[lastSpin.days-1]
 }
-export const dailyRewardClaimed = async(deviceId: string): Promise<Partial<Wallet>> => {
+export const dailyRewardClaimed = async(deviceId: string): Promise<Partial<Wallet> | undefined> => {
   const user = await getGameUserByDeviceId(deviceId)
   if(user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
   const lastSpin = await getLastSpin(user)
+  return undefined
   // log
 }
 export const dailyRewardClaim = async(deviceId: string): Promise<Partial<Wallet>> => {
