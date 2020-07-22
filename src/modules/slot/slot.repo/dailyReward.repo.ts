@@ -10,7 +10,7 @@ export type SpinData = {last: Date, days: number}
 export const getLastSpin = async (user: GameUser): Promise<SpinData | undefined> => {
   const row = await queryOne(`select * from last_spin where game_user_id = ${user.id}`)
   if(!row) return undefined
-  const spinData: SpinData = {days: Number(row.days), last: new Date(row.last)}
+  const spinData: SpinData = {days: Number(row.days), last: new Date(row.last), lastClaim: new Date(row.last_claim)}
   return spinData
 }
 export const setSpinData = async (user: GameUser): Promise<number> => {
@@ -48,12 +48,12 @@ export const getUserPrize = async(user: GameUser): Promise<DailyRewardPrize | un
   if (lastSpin.days < 1 || lastSpin.days > prizes.length) return undefined
   return prizes[lastSpin.days-1]
 }
-// export const dailyRewardClaimed = async(deviceId: string): Promise<Partial<Wallet>> => {
-//   const user = await getGameUserByDeviceId(deviceId)
-//   if(user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
-//   const lastSpin = await getLastSpin(user)
-//   // log
-// }
+export const dailyRewardClaimed = async(deviceId: string): Promise<Partial<Wallet>> => {
+  const user = await getGameUserByDeviceId(deviceId)
+  if(user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
+  const lastSpin = await getLastSpin(user)
+  // log
+}
 export const dailyRewardClaim = async(deviceId: string): Promise<Partial<Wallet>> => {
   const user = await getGameUserByDeviceId(deviceId)
   if(user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
