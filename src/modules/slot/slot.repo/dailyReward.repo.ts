@@ -43,7 +43,6 @@ export const getDailyRewardPrizes = async (): Promise<DailyRewardPrize[]> => {
 }
 export const getUserPrize = async(user: GameUser): Promise<DailyRewardPrize | undefined> => {
   const lastSpin = await getLastSpin(user)
-  console.log('lastSpin', lastSpin)
   if(lastSpin == null) return undefined
   const prizes = await getDailyRewardPrizes()
   // console.log('lastspin', lastSpin)
@@ -58,7 +57,6 @@ export const isDailyRewardClaimed = async(deviceId: string): Promise<boolean> =>
   const last = moment(lastSpin?.lastClaim)
   const now = moment(new Date())
   const diff = now.diff(last, 'days')
-  console.log('ls', lastSpin, last, now, diff)
   return diff === 0
 }
 export const dailyRewardClaim = async(deviceId: string): Promise<Partial<Wallet>> => {

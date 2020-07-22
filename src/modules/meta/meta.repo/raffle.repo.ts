@@ -1,3 +1,4 @@
+import statusCodes from 'http-status-codes'
 /* eslint-disable babel/camelcase */
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
@@ -50,7 +51,8 @@ export async function getRaffles(fieldsToExclude: string[] | undefined = undefin
     FROM raffle r
   `) as RafflePrizeData[]
   for (const raffle of raffles) {
-    const {name, description} = await getRaffleLocalizationData(raffle.id)
+    const { name, description } = await getRaffleLocalizationData(raffle.id)
+    if(name == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
     raffle.name = name
     raffle.description = description
     // const resp = await query(`

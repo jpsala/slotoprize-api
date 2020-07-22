@@ -98,7 +98,6 @@ export async function setLanguageCode(userId: number, languageCode: string): Pro
   const qry = `
     update game_user set language_code = '${languageCode}'
     where id = ${userId}`
-  console.log('qry', qry)
   await exec(qry)
   // const resp = await exec(qry)
   // const changed=resp.affectedRows === 1 ? 'changed' : 'dont\' changed'
