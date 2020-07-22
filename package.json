@@ -9,6 +9,7 @@
     "test:debug": "node --inspect=9230 -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --watchAll",
     "build": "tsc",
     "start": "node build/index.js",
+    "deploy": "npm run build && ./deploy.sh",
     "dev": "concurrently \"tsc -w\" \"nodemon  --config nodemon.debug.json build/index.js\"",
     "pm2-dev": "pm2 start -n api npm -- run dev",
     "pm2-prod": "pm2 delete api ;npm run build && cross-env NODE_ENV=production pm2 start -n api npm -- run start",
