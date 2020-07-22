@@ -48,12 +48,12 @@ export const getUserPrize = async(user: GameUser): Promise<DailyRewardPrize | un
   if (lastSpin.days < 1 || lastSpin.days > prizes.length) return undefined
   return prizes[lastSpin.days-1]
 }
-export const dailyRewardClaimed = async(deviceId: string): Promise<Partial<Wallet>> => {
-  const user = await getGameUserByDeviceId(deviceId)
-  if(user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
-  const lastSpin = await getLastSpin(user)
-  // log
-}
+// export const dailyRewardClaimed = async(deviceId: string): Promise<Partial<Wallet>> => {
+//   const user = await getGameUserByDeviceId(deviceId)
+//   if(user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
+//   const lastSpin = await getLastSpin(user)
+//   // log
+// }
 export const dailyRewardClaim = async(deviceId: string): Promise<Partial<Wallet>> => {
   const user = await getGameUserByDeviceId(deviceId)
   if(user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
