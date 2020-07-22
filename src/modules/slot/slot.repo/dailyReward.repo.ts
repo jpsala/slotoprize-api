@@ -48,21 +48,25 @@ export const getUserPrize = async(user: GameUser): Promise<DailyRewardPrize | un
   if (lastSpin.days < 1 || lastSpin.days > prizes.length) return undefined
   return prizes[lastSpin.days-1]
 }
-export const dailyRewardClaimed = async(deviceId: string): Promise<Partial<Wallet> | undefined> => {
+export const isDailyRewardClaimed = async(deviceId: string): Promise<boolean> => {
   const user = await getGameUserByDeviceId(deviceId)
   if(user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
   const lastSpin = await getLastSpin(user)
-  return undefined
-  // log
+  const last = moment(lastSpin?.lastClaim)
+  const now = moment(new Date())
+  const diff = now.diff(last, 'days')
+  return diff === 0
 }
 export const dailyRewardClaim = async(deviceId: string): Promise<Partial<Wallet>> => {
   const user = await getGameUserByDeviceId(deviceId)
   if(user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
+  const isClaimed = await isDailyRewardClaimed(deviceId)
+  if(isClaimed) throw createError(statusCodes.BAD_REQUEST,'The daily reward was allreaady claimed')
   const userPrize = await getUserPrize(user)
-  console.log('userPrize', userPrize)
   if(!userPrize) throw createError(statusCodes.BAD_REQUEST,'User have no daily reward')
   const wallet = await queryOne(`select * from wallet where game_user_id = ?`, [user.id] ) as Wallet
   wallet[`${userPrize.type}s`] += userPrize.amount
+  await exec(`update last_spin set last_claim = ?`, new Date() )
   await exec(`update wallet set ${userPrize.type}s = ?`, [wallet[`${userPrize.type}s`]] )
   return {coins: wallet.coins, tickets: wallet.tickets}
 }

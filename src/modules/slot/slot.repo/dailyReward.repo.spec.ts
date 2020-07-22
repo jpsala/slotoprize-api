@@ -4,7 +4,7 @@ import { deleteDataInTestDB } from '../../../services/initDB/initDB'
 import { getLastSpinDays } from '../slot.services/gameInit/dailyReward.spin'
 import { exec } from './../../../db'
 import { GameUser } from './../../meta/meta.types'
-import { getLastSpin, getDailyRewardPrizes, getUserPrize } from "./dailyReward.repo"
+import { getLastSpin, getDailyRewardPrizes, getUserPrize, isDailyRewardClaimed, dailyRewardClaim } from "./dailyReward.repo"
 
 describe('daily reward', () => {
   let user: GameUser
@@ -41,15 +41,35 @@ describe('daily reward', () => {
     expect(lastSpinDays).toBeNumber()
     expect(lastSpinDays).toBe(2)
   })
-  it('lastSpinDays', async () => {
+  it('isDailyRewardClaimed', async () => {
     const lastSpin = {game_user_id: user.id, last: new Date(), days: 2, last_claim: new Date()}
+    // const lastSpin = {game_user_id: user.id, last: new Date(), days: 2, last_claim: new Date()}
     await exec('delete from last_spin')
     await exec('insert into last_spin set ?', lastSpin)
-    const lastSpinDays = await getLastSpin(user)
-    console.log('format', moment(lastSpinDays?.last).format('YYYY/MM/DD'))
-    // console.log('days', lastSpinDays)
+    const isDailyRewardClaimedData = await isDailyRewardClaimed(user.deviceId)
     // expect(lastSpinDays).toBeNumber()
-    // expect(lastSpinDays).toBe(2)
+    expect(isDailyRewardClaimedData).toBe(true)
+  })
+  it('dailyRewardClaim, not claimed before', async () => {
+    // const lastSpin = {game_user_id: user.id, last: new Date(), days: 2, last_claim: new Date()}
+    const lastSpin = {game_user_id: user.id, last: new Date(), days: 2}
+    await exec('delete from last_spin')
+    await exec('insert into last_spin set ?', lastSpin)
+    const dailyRewardClaimData = await dailyRewardClaim(user.deviceId)
+    expect(dailyRewardClaimData).toBeObject()
+    expect(dailyRewardClaimData).toHaveProperty('tickets')
+  })
+  it('dailyRewardClaim, already claimed', async () => {
+    let dailyRewardClaimData
+    try {
+      const lastSpin = {game_user_id: user.id, last: new Date(), days: 2, last_claim: new Date()}
+      await exec('delete from last_spin')
+      await exec('insert into last_spin set ?', lastSpin)
+      dailyRewardClaimData = await dailyRewardClaim(user.deviceId)
+    } catch (error) {
+      expect(error).toBeObject()
+    }
+    expect(dailyRewardClaimData).toBeUndefined()
   })
 
 })
