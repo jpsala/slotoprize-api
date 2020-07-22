@@ -55,7 +55,7 @@ export async function getRaffles(fieldsToExclude: string[] | undefined = undefin
     console.log('name', name)
     if(raffle == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
     if(name == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
-    console.log('raffle', raffle)
+    console.log('raffle', raffle.name)
     raffle.name = name
     raffle.description = description
     // const resp = await query(`
