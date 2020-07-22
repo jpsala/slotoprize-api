@@ -117,8 +117,8 @@ export function testSchedGet(req: Request, res: Response): any {
   const resp = metaService.cronService.getPendingTasks()
   res.status(200).json(resp)
 }
-export async function languageCodePost(req: Request, res: Response): Promise<any> {
-  const resp = await setLanguageCode(req.user.id, req.body.languageCode as string)
+export async function languageCodeGet(req: Request, res: Response): Promise<any> {
+  const resp = await setLanguageCode(req.user.id, req.query.languageCode as string)
   res.status(200).json(resp)
 }
 export async function soportePost(req: Request, res: Response): Promise<any> {

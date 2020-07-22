@@ -10,7 +10,7 @@ import 'express-async-errors'
 // import multer from "multer"
 import routes from './routes'
 import './modules/meta/meta-services/cron'
-
+import './modules/slot/slot.services/events/events'
 // const upload = multer()
 
 const createApp = (): Express => {

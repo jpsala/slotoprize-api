@@ -21,7 +21,7 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     let {deviceId} = req.query
     if (!deviceId) deviceId = req.body?.deviceId
     if (!deviceId) {
-      console.error(`falta deviceId in req.query in ${req.baseUrl}${req.route?.path}`)
+      console.error(`missed deviceId in req.query in ${req.baseUrl}${req.route?.path}`)
       throw createError(createError.BadRequest, `deviceId parameter missing ${req.baseUrl}${req.route?.path}`)
     }
     const _user = await getGameUserByDeviceId(deviceId as string)
@@ -38,7 +38,7 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
   if (!sessionToken)  sessionToken = req.body.sessionToken
   const {decodedToken, error} = verifyToken(sessionToken as string)
   if (error || !decodedToken.id) {
-    const message = error ? error.message : 'no hay usuario en el token'
+    const message = error ? error.message : 'no user foune in token'
     console.log(`checkToken: ${message}`, req.baseUrl, sessionToken)
     return res.status(401).send({auth: false, message})
   }

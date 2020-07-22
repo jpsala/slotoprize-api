@@ -1,9 +1,11 @@
+import moment from 'moment'
 import { getNewSavedFakeUser } from '../../meta/meta.repo/gameUser.repo'
 import { deleteDataInTestDB } from '../../../services/initDB/initDB'
 import { getLastSpinDays } from '../slot.services/gameInit/dailyReward.spin'
 import { exec } from './../../../db'
 import { GameUser } from './../../meta/meta.types'
 import { getLastSpin, getDailyRewardPrizes, getUserPrize } from "./dailyReward.repo"
+
 describe('daily reward', () => {
   let user: GameUser
   beforeAll(async () => {
@@ -23,13 +25,13 @@ describe('daily reward', () => {
     const dailyRewardPrizes = await getDailyRewardPrizes()
     expect(dailyRewardPrizes).toBeArray()
   })
-  it('userPrize.amount for this user) toBe(30)', async () => {
+  it('userPrize.amount for this user) toBe(20)', async () => {
     const lastSpin = {game_user_id: user.id, last: (new Date()), days: 2}
     await exec('delete from last_spin')
     await exec('insert into last_spin set ?', lastSpin)
     const userPrizes = await getUserPrize(user)
     expect(userPrizes).not.toBeUndefined()
-    expect(userPrizes?.amount).toBe(30)
+    expect(userPrizes?.amount).toBe(20)
   })
   it('lastSpinDays toBe(2)', async () => {
     const lastSpin = {game_user_id: user.id, last: (new Date()), days: 2}
@@ -39,4 +41,15 @@ describe('daily reward', () => {
     expect(lastSpinDays).toBeNumber()
     expect(lastSpinDays).toBe(2)
   })
+  it('lastSpinDays', async () => {
+    const lastSpin = {game_user_id: user.id, last: new Date(), days: 2, last_claim: new Date()}
+    await exec('delete from last_spin')
+    await exec('insert into last_spin set ?', lastSpin)
+    const lastSpinDays = await getLastSpin(user)
+    console.log('format', moment(lastSpinDays?.last).format('YYYY/MM/DD'))
+    // console.log('days', lastSpinDays)
+    // expect(lastSpinDays).toBeNumber()
+    // expect(lastSpinDays).toBe(2)
+  })
+
 })

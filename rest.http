@@ -18,8 +18,8 @@ dev-request:true
   "languageCode": "es"
 }
 ###
-# @name soporte
-POST {{api}}/soporte
+# @name support_request
+POST {{api}}/support_request
 content-type: application/json
 dev-request:true
 

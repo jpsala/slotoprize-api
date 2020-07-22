@@ -20,3 +20,5 @@ Notas sobre Profile:
     como viene en game-Init.
 
 
+[] daily_reward_claimed en el game init
+[] chequear claimed en claim request

@@ -20,8 +20,8 @@ router.route('/raffle_purchase_history').get(checkToken, slot.rafflePurchaseHist
 router.route('/raffle_winners').get(checkToken, slot.raffleWinnersGet)
 router.route('/prize_notified').post(checkToken, slot.prizeNotifiedPost)
 router.route('/postman').get(slot.postmanGet)
-router.route('/language_code').post(checkToken, slot.languageCodePost)
-router.route('/soporte').post(checkToken, slot.soportePost)
+router.route('/language_code').get(checkToken, slot.languageCodeGet)
+router.route('/support_request').post(checkToken, slot.soportePost)
 router.route('/daily_reward_claim').get(checkToken, slot.dailyRewardClaimGet)
 router.route('/testSched').get(slot.testSchedGet)
 
