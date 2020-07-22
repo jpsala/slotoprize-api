@@ -6,6 +6,9 @@ import {GameUser, User, RafflePrizeDataDB} from "../meta/meta.types"
 import * as metaRepo from '../meta/meta.repo'
 import * as metaService from '../meta/meta-services'
 import {setReqUser} from '../meta/authMiddleware'
+import { setLanguageCode } from '../meta/meta.repo/gameUser.repo'
+import { setSoporte } from '../meta/meta.repo/soporte.repo'
+import { dailyRewardClaim } from './slot.repo/dailyReward.repo'
 import * as slotService from './slot.services'
 import * as walletService from "./slot.services/wallet.service"
 // import {spin} from './slot.services/spin.service'
@@ -13,10 +16,6 @@ import {symbolsInDB} from './slot.services/symbol.service'
 
 export async function symbolsInDBGet(req: Request, res: Response): Promise<any> {
   const resp = await symbolsInDB()
-  res.status(200).json(toCamelCase(resp))
-}
-export async function profileGet(req: Request, res: Response): Promise<any> {
-  const resp = (req.query.deviceId as string, ['first_name', 'last_name', 'email'])
   res.status(200).json(toCamelCase(resp))
 }
 export async function profilePost(req: Request, res: Response): Promise<any> {
@@ -116,6 +115,18 @@ export async function authPos(req: Request, res: Response): Promise<any> {
 }
 export function testSchedGet(req: Request, res: Response): any {
   const resp = metaService.cronService.getPendingTasks()
+  res.status(200).json(resp)
+}
+export async function languageCodePost(req: Request, res: Response): Promise<any> {
+  const resp = await setLanguageCode(req.user.id, req.body.languageCode as string)
+  res.status(200).json(resp)
+}
+export async function soportePost(req: Request, res: Response): Promise<any> {
+  const resp = await setSoporte(req.user.id, req.body)
+  res.status(200).json(resp)
+}
+export async function dailyRewardClaimGet(req: Request, res: Response): Promise<any> {
+  const resp = await dailyRewardClaim(req.query.deviceId as string)
   res.status(200).json(resp)
 }
 export function postmanGet(req: Request, res: Response):any {

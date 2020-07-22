@@ -8,9 +8,6 @@ import { RowDataPacket } from 'mysql2'
 import getConnection, {queryOne, exec} from '../../../db'
 import {LanguageData, GameUser, fakeUser } from '../meta.types'
 
-
-
-
 export async function getLanguage(userId: number): Promise<LanguageData> {
   const localizationData = await queryOne(`
     select l.* from game_user gu
@@ -99,4 +96,12 @@ export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Pro
   const fakedUser = fakeUser(override)
   const newUser = await addGameUser(fakedUser)
   return newUser
+}
+export async function setLanguageCode(userId: number, languageCode: string): Promise<string> {
+  const qry = `
+    update game_user set language_code = '${languageCode}'
+    where id = ${userId}`
+  console.log('qry', qry)
+  const resp = await exec(qry)
+  return resp.affectedRows === 1 ? 'changed' : 'dont\' changed'
 }

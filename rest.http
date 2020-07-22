@@ -1,0 +1,32 @@
+@api = http://localhost:8888/api/slot
+@sessionId = {{game_init.response.body.sessionId}}
+###
+# @name game_init
+GET {{api}}/game_init?deviceId=device1
+content-type: application/json
+dev-request:true
+device_id:device1
+###
+# @name language_code
+POST {{api}}/language_code
+content-type: application/json
+dev-request:true
+
+{
+  "sessionId": "{{sessionId}}",
+  "deviceId":"borrar1",
+  "languageCode": "es"
+}
+###
+# @name soporte
+POST {{api}}/soporte
+content-type: application/json
+dev-request:true
+
+{
+  "deviceId":"borrar1",
+  "email": "jp@hola.com",
+  "body": "Hola, este es el body",
+  "nombre": "minombre",
+  "apellido": "miapellido"
+}

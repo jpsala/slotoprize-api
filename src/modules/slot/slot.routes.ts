@@ -8,7 +8,7 @@ router.route('/auth').post(slot.authPos)
 router.route('/with-token').get(slot.withTokenGet)
 router.route('/symbols_in_db').get(slot.symbolsInDBGet)
 router.route('/game_init').get(slot.gameInitGet)
-router.route('/profile').get(checkToken, slot.profileGet).post(checkToken, slot.profilePost)
+router.route('/profile').post(checkToken, slot.profilePost)
 router.route('/spin').get(checkToken, slot.spinGet)
 router.route('/wallet').get(checkToken, slot.walletGet)
 router.route('/countries').get(checkToken, slot.countriesGet)
@@ -20,6 +20,9 @@ router.route('/raffle_purchase_history').get(checkToken, slot.rafflePurchaseHist
 router.route('/raffle_winners').get(checkToken, slot.raffleWinnersGet)
 router.route('/prize_notified').post(checkToken, slot.prizeNotifiedPost)
 router.route('/postman').get(slot.postmanGet)
+router.route('/language_code').post(checkToken, slot.languageCodePost)
+router.route('/soporte').post(checkToken, slot.soportePost)
+router.route('/daily_reward_claim').get(checkToken, slot.dailyRewardClaimGet)
 router.route('/testSched').get(slot.testSchedGet)
 
 export default router

@@ -31,12 +31,12 @@ describe('daily reward', () => {
     expect(userPrizes).not.toBeUndefined()
     expect(userPrizes?.amount).toBe(30)
   })
-  it('getLastSpinDays', async () => {
+  it('lastSpinDays toBe(2)', async () => {
     const lastSpin = {game_user_id: user.id, last: (new Date()), days: 2}
     await exec('delete from last_spin')
     await exec('insert into last_spin set ?', lastSpin)
     const lastSpinDays = await getLastSpinDays(user)
-    console.log('lastSpinDays', lastSpinDays)
     expect(lastSpinDays).toBeNumber()
+    expect(lastSpinDays).toBe(2)
   })
 })

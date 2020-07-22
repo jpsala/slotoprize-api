@@ -28,6 +28,10 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     if(!_user) throw createError(createError.BadRequest, 'There is not user registered with that deviceId')
     reqUser.deviceId = deviceId as string
     reqUser.user = _user.id
+    req.user = {
+      deviceId: deviceId as string,
+      id: _user.id
+    }
     return next()
   }
   let { sessionToken } = req.query
@@ -38,7 +42,12 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     console.log(`checkToken: ${message}`, req.baseUrl, sessionToken)
     return res.status(401).send({auth: false, message})
   }
-  reqUser.deviceId = decodedToken.devicdID
-  reqUser.user = decodedToken.id
+  console.log('decodedToken', decodedToken)
+  req.user = {
+    id:decodedToken.userId,
+    deviceId: decodedToken.devicedID
+  }
+  reqUser.deviceId = decodedToken.devicedID
+  reqUser.user = decodedToken.devicedID
   return next()
 }

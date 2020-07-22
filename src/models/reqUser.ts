@@ -1,4 +1,4 @@
 export interface ReqUser {
-  userId: string;
+  id: number;
   deviceId: string;
 }

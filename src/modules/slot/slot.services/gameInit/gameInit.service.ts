@@ -11,7 +11,7 @@ import {getSetting} from "../settings.service"
 import {getReelsData} from "../symbol.service"
 import {getPayTable} from "../spin.service"
 import { getLastSpinDays } from './dailyReward.spin'
-import { getDailyRewardPrizes, DailyRewardPrize, getUserPrize } from './../../slot.repo/dailyReward.repo'
+import { getDailyRewardPrizes, DailyRewardPrize, setSpinData } from './../../slot.repo/dailyReward.repo'
 
 export async function gameInit(deviceId: string): Promise<any> {
   try {
@@ -53,10 +53,13 @@ export async function gameInit(deviceId: string): Promise<any> {
     })
     const dailyRewards: DailyRewardPrize[] = await getDailyRewardPrizes()
     const consecutiveDailyLogs = await getLastSpinDays(rawUser as GameUser)
+    await setSpinData(rawUser as GameUser)
+    const languageCode = rawUser.languageCode
+    delete rawUser.languageCode
     const initData = {
       sessionId: token,
       requireProfileData: requireProfileData ? 1 : 0,
-      languageCode: rawUser.languageCode,
+      languageCode,
       hasPendingPrize: hasPendingPrize ? 1 : 0,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
