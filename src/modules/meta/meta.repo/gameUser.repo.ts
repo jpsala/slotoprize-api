@@ -97,11 +97,13 @@ export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Pro
   const newUser = await addGameUser(fakedUser)
   return newUser
 }
-export async function setLanguageCode(userId: number, languageCode: string): Promise<string> {
+export async function setLanguageCode(userId: number, languageCode: string): Promise<{ languageCode: string }> {
   const qry = `
     update game_user set language_code = '${languageCode}'
     where id = ${userId}`
   console.log('qry', qry)
-  const resp = await exec(qry)
-  return resp.affectedRows === 1 ? 'changed' : 'dont\' changed'
+  await exec(qry)
+  // const resp = await exec(qry)
+  // const changed=resp.affectedRows === 1 ? 'changed' : 'dont\' changed'
+  return { languageCode }
 }
