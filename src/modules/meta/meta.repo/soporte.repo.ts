@@ -6,6 +6,6 @@ export async function setSoporte(userId: number, body: any): Promise<any> {
   const response = await exec(`
     insert into support_request set ?
   `, body)
-  return response
+  return body
 }
 
