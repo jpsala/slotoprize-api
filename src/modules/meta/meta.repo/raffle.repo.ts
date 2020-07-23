@@ -2,6 +2,7 @@ import statusCodes from 'http-status-codes'
 /* eslint-disable babel/camelcase */
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
+import { lorem } from 'faker'
 import {query, queryOne, exec} from '../../../db'
 import {LocalizationData, RafflePrizeData, GameUser, RaffleRecordData, RafflePrizeDataDB} from '../meta.types'
 import {getGameUserByDeviceId} from "../meta-services/meta.service"
@@ -44,6 +45,7 @@ async function getRaffleLocalizationData(raffleId: number): Promise<Localization
   `)
   return camelcaseKeys(localizationData) as LocalizationData
 }
+
 export async function getRaffles(fieldsToExclude: string[] | undefined = undefined, camelCased = true): Promise<RafflePrizeData[]> {
   const raffles = await query(`
     SELECT r.id, r.closing_date,
@@ -55,7 +57,6 @@ export async function getRaffles(fieldsToExclude: string[] | undefined = undefin
     console.log('name', name)
     if(raffle == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
     if(name == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
-    console.log('raffle', raffle.name)
     raffle.name = name
     raffle.description = description
     // const resp = await query(`
