@@ -2,7 +2,9 @@ import later from 'later'
 import moment from 'moment'
 import { query } from './../../../../db'
 import { initRule as initHappyRule } from "./happyHour/happyHour"
-export type EventType = 'HappyHour' | 'TestType'
+import { initRule as initMiscRule } from "./miscEvent"
+
+export type EventType = 'HappyHour' | 'TestType' | 'MiscType'
 export interface EventRule {
   eventType: EventType,
   rule: string,
@@ -12,8 +14,8 @@ export interface EventRule {
   callBackForEnd?(eventRule: EventRule): void
 }
 let rulesFromDB: EventRule[]
-const getEventsFromDb = async ():Promise<EventRule[]> => {
-  return await query('select * from events') as EventRule[]
+const getEventsFromDb = async (): Promise<EventRule[]> => {
+  return await query('select * from events where active = 1') as EventRule[]
 }
 const allEvents: EventInfo[] = []
 interface EventInfo {
@@ -26,10 +28,12 @@ export function processEvents(rulesFromDB: EventRule[]): void {
       initHappyRule(rule)
     else if (rule.eventType === 'TestType')
       initHappyRule(rule)
+    else if (rule.eventType === 'MiscType')
+      initMiscRule(rule)
     else
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      throw new Error(`No handler for this type of event ${rule.eventType}` )
-      allEvents.push(createEvent(rule) )
+      initMiscRule(rule)
+    // throw new Error(`No handler for this type of event ${rule.eventType}`)
+    allEvents.push(createEvent(rule))
   })
 }
 export function initEvents(): void {
@@ -38,10 +42,10 @@ export function initEvents(): void {
       initHappyRule(rule)
     else
       throw new Error('No handler for this type of event')
-      allEvents.push(createEvent(rule))
+    allEvents.push(createEvent(rule))
   })
 }
-export function createEvent(eventRule: EventRule): EventInfo  {
+export function createEvent(eventRule: EventRule): EventInfo {
   process.env.TZ = 'America/Argentina/Buenos_Aires'
   later.date.localTime()
   // const scheduleData = later.parse.cron('0 02 22 ? * * *', true)
@@ -49,13 +53,13 @@ export function createEvent(eventRule: EventRule): EventInfo  {
   const sched = later.schedule(scheduleData)
   const next = sched.next(1, new Date())
   // console.log('next', moment(next as Date).format('DD/MM/YY hh:mm:ss'))
-    later.setInterval(function () {
+  later.setInterval(function () {
     if (!eventRule.callBackForStart || !eventRule.callBackForEnd) throw new Error('event have no point if there are start or end callbacks')
     eventRule.callBackForStart(eventRule)
     setTimeout(() => {
       if (eventRule.callBackForEnd) eventRule.callBackForEnd(eventRule)
     }, eventRule.duration * 1000)
-    }, scheduleData)
+  }, scheduleData)
   return {
     event: eventRule,
     getNextEvents(amount: number): Date[] | Date {
@@ -64,14 +68,14 @@ export function createEvent(eventRule: EventRule): EventInfo  {
     },
   }
 }
-export function getAllEvents(): EventInfo[]{
+export function getAllEvents(): EventInfo[] {
   return allEvents
 }
-export function getNextEvent(eventType: EventType, amount = 1): Date | Date[] | undefined{
+export function getNextEvent(eventType: EventType, amount = 1): Date | Date[] | undefined {
   const event: EventInfo = allEvents.find(_eventInfo => {
     return _eventInfo.event.eventType === eventType
   }) as EventInfo
-  if(!event) return undefined
+  if (!event) return undefined
   return event.getNextEvents(amount)
 }
 void (async function run() {

@@ -4,12 +4,12 @@ import statusCodes from 'http-status-codes'
 /* eslint-disable no-sequences */
 /* eslint-disable no-return-assign */
 /* eslint-disable id-length */
-import {Request, Response, NextFunction} from 'express'
-export const toBoolean = (value: string | number | boolean) : boolean => {
+import { Request, Response, NextFunction } from 'express'
+export const toBoolean = (value: string | number | boolean): boolean => {
   if (typeof (value) === 'string')
     return ((value.toUpperCase() === 'TRUE') || value.toUpperCase() === '1')
-  if(typeof(value) === 'number') return (value === 1)
-  if(typeof(value) === 'boolean') return value
+  if (typeof (value) === 'number') return (value === 1)
+  if (typeof (value) === 'boolean') return value
   throw createError(statusCodes.BAD_REQUEST, 'Value type not supported')
 }
 export function pickProps<T>(obj: T, props: string[]): Partial<T> {
@@ -17,7 +17,7 @@ export function pickProps<T>(obj: T, props: string[]): Partial<T> {
 }
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function omitProps(obj: object, props: string[]): any {
-  return props.reduce((r, key) => (delete r[key], r), {...obj})
+  return props.reduce((r, key) => (delete r[key], r), { ...obj })
 }
 export const getRandomNumber = (from = 1, to = 100): number => Math.floor((Math.random() * (to)) + from)
 export class Fakexpress {
@@ -46,4 +46,14 @@ export class Fakexpress {
   }
 
 
+}
+export function isValidJSON(text: string): boolean {
+  try {
+    JSON.parse(text)
+    return true
+  }
+  catch (error) {
+    console.log('eror', error)
+    return false
+  }
 }
