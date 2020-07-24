@@ -22,6 +22,7 @@ router.route('/prize_notified').post(checkToken, slot.prizeNotifiedPost)
 router.route('/postman').get(slot.postmanGet)
 router.route('/language_code').get(checkToken, slot.languageCodeGet)
 router.route('/support_request').post(checkToken, slot.soportePost)
+router.route('/event').post(checkToken, slot.eventPost)
 router.route('/daily_reward_claim').get(checkToken, slot.dailyRewardClaimGet)
 router.route('/testSched').get(slot.testSchedGet)
 

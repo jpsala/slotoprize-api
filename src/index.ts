@@ -1,6 +1,6 @@
 import createApp from './app'
-(async function main() {
-  const app = await createApp()
+void (function main() {
+  const app = createApp()
   const port = 8888
   const name = 'wopidom api'
 

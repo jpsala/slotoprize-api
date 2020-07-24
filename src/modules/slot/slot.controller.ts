@@ -4,6 +4,7 @@ import toCamelCase from 'camelcase-keys'
 import {verifyToken, getNewToken} from '../../services/jwtService'
 import {GameUser, User, RafflePrizeDataDB} from "../meta/meta.types"
 import * as metaRepo from '../meta/meta.repo'
+import * as slotRepo from '../slot/slot.repo'
 import * as metaService from '../meta/meta-services'
 import {setReqUser} from '../meta/authMiddleware'
 import { setLanguageCode } from '../meta/meta.repo/gameUser.repo'
@@ -13,6 +14,7 @@ import * as slotService from './slot.services'
 import * as walletService from "./slot.services/wallet.service"
 // import {spin} from './slot.services/spin.service'
 import {symbolsInDB} from './slot.services/symbol.service'
+import { addEvent } from './slot.repo/event.repo'
 
 export async function symbolsInDBGet(req: Request, res: Response): Promise<any> {
   const resp = await symbolsInDB()
@@ -125,6 +127,10 @@ export async function soportePost(req: Request, res: Response): Promise<any> {
   const resp = await setSoporte(req.user.id, req.body)
   res.status(200).json(resp)
 }
+export async function eventPost(req: Request, res: Response): Promise<any> {
+  const resp = await addEvent(req.body)
+  res.status(200).json(resp)
+}
 export async function dailyRewardClaimGet(req: Request, res: Response): Promise<any> {
   const resp = await dailyRewardClaim(req.query.deviceId as string)
   res.status(200).json(resp)
@@ -132,3 +138,4 @@ export async function dailyRewardClaimGet(req: Request, res: Response): Promise<
 export function postmanGet(req: Request, res: Response):any {
   res.status(200).json(req.body)
 }
+
