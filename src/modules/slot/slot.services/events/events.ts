@@ -24,14 +24,13 @@ interface EventInfo {
 }
 export function processEvents(rulesFromDB: EventRule[]): void {
   rulesFromDB.forEach(rule => {
-    if (rule.eventType === 'HappyHour')
-      initHappyRule(rule)
-    else if (rule.eventType === 'TestType')
-      initHappyRule(rule)
-    else if (rule.eventType === 'MiscType')
+    if (rule.eventType === 'HappyHour') { initHappyRule(rule) }
+    else if (rule.eventType === 'TestType') { initHappyRule(rule) }
+    else if (rule.eventType === 'MiscType') { initMiscRule(rule) }
+    else {
+      console.log('events processEvents initMiscRule', rule)
       initMiscRule(rule)
-    else
-      initMiscRule(rule)
+    }
     // throw new Error(`No handler for this type of event ${rule.eventType}`)
     allEvents.push(createEvent(rule))
   })
