@@ -1,9 +1,9 @@
-import { EventRule } from "../events"
-import wsService from "../../webSocket/ws"
+import wsService from "../webSocket/ws"
+import { Event } from "./events"
 let isHappyHour = false
-const happyHourBegin = (event: EventRule) => {
+const happyHourBegin = (event: Event) => {
   isHappyHour = true
-  console.log('happyHourBegin event', event?.eventType, event?.description)
+  console.log('happyHourBegin event', event?.eventType, event?.description, event.next)
   wsService.send({
     code: 200,
     message: 'event',
@@ -12,13 +12,16 @@ const happyHourBegin = (event: EventRule) => {
   })
   // console.log('event begin', event.eventType, event?.description)
 }
-const happyHourEnd = (event: EventRule): void => {
+export const beforeEventsReload = (event: Event): void => {
+}
+const happyHourEnd = (event: Event): void => {
   isHappyHour = false
   console.log('happyHourEnds event', event?.eventType, event?.description)
 }
-export function initRule(rule: EventRule): void {
+export function initRule(rule: Event): void {
   rule.callBackForStart = happyHourBegin
   rule.callBackForEnd = happyHourEnd
+  rule.callBackForBeforeReload = beforeEventsReload
 }
 export const getHappyHour = (): boolean => {
   return isHappyHour

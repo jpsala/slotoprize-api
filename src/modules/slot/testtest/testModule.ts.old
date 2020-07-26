@@ -1,0 +1,6 @@
+import { getGameUserByDeviceId } from '../../meta/meta.repo/gameUser.repo'
+import { GameUser } from './../../meta/meta.types'
+export const getSuperUser = async (deviceId: string): Promise<GameUser> =>
+{
+  return await getGameUserByDeviceId(deviceId)
+}

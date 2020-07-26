@@ -1,100 +1,97 @@
 import later from 'later'
-import moment from 'moment'
 import { query } from './../../../../db'
-import { initRule as initHappyRule } from "./happyHour/happyHour"
+import { initRule as initHappyRule } from "./happyHour"
 import { initRule as initMiscRule } from "./miscEvent"
-
-export type EventType = 'HappyHour' | 'TestType' | 'MiscType'
-export interface EventRule {
+import { initRuleCalledFromEvents as initRaffleRule } from './raffle'
+// process.env.TZ = 'America/Argentina/Buenos_Aires'
+// later.date.localTime()
+export type EventType = 'HappyHour' | 'TestType' | 'MiscType' | 'Raffle'
+export interface Event {
+  id: number,
   eventType: EventType,
   rule: string,
   description?: string;
   duration: number,
-  callBackForStart?(eventRule: EventRule): void,
-  callBackForEnd?(eventRule: EventRule): void
+  laterTimerHandler: later.Timer,
+  next: Date | 0,
+  sched: later.Schedule,
+  callBackForStart?(event: Event): void,
+  callBackForEnd?(event: Event): void,
+  callBackForBeforeReload?(event: Event): void,
 }
-let rulesFromDB: EventRule[]
-const getEventsFromDb = async (): Promise<EventRule[]> => {
-  return await query('select * from events where active = 1') as EventRule[]
+const allEvents: Event[] = []
+export const init = async (): Promise<void> => {
+  const rulesFromDB = await query('select * from events where active = 1') as Event[]
+  processEvents(rulesFromDB)
 }
-const allEvents: EventInfo[] = []
-interface EventInfo {
-  event: EventRule;
-  getNextEvents(amount: number): Date | Date[];
-}
-export function processEvents(rulesFromDB: EventRule[]): void {
-  rulesFromDB.forEach(rule => {
-    if (rule.eventType === 'HappyHour') { initHappyRule(rule) }
-    else if (rule.eventType === 'TestType') { initHappyRule(rule) }
-    else if (rule.eventType === 'MiscType') { initMiscRule(rule) }
-    else {
-      console.log('events processEvents initMiscRule', rule)
-      initMiscRule(rule)
+export function processEvents(eventsFromDB: Event[]): void {
+  for (const eventFromDB of eventsFromDB) {
+    const savedEvent = allEvents.find(event => event.id === eventFromDB.id)
+    if (savedEvent) {
+      if (savedEvent.callBackForBeforeReload) savedEvent.callBackForBeforeReload(eventFromDB)
+      updateEvent(savedEvent, eventFromDB)
+    } else {
+      createEvent(eventFromDB)
     }
-    // throw new Error(`No handler for this type of event ${rule.eventType}`)
-    allEvents.push(createEvent(rule))
-  })
-}
-export function initEvents(): void {
-  rulesFromDB.forEach(rule => {
-    if (rule.eventType === 'HappyHour')
-      initHappyRule(rule)
-    else
-      throw new Error('No handler for this type of event')
-    allEvents.push(createEvent(rule))
-  })
-}
-export function createEvent(eventRule: EventRule): EventInfo {
-  process.env.TZ = 'America/Argentina/Buenos_Aires'
-  later.date.localTime()
-  // const scheduleData = later.parse.cron('0 02 22 ? * * *', true)
-  const scheduleData = later.parse.cron(eventRule.rule, true)
-  const sched = later.schedule(scheduleData)
-  const next = sched.next(1, new Date())
-  // console.log('next', moment(next as Date).format('DD/MM/YY hh:mm:ss'))
-  later.setInterval(function () {
-    if (!eventRule.callBackForStart || !eventRule.callBackForEnd) throw new Error('event have no point if there are start or end callbacks')
-    eventRule.callBackForStart(eventRule)
-    setTimeout(() => {
-      if (eventRule.callBackForEnd) eventRule.callBackForEnd(eventRule)
-    }, eventRule.duration * 1000)
-  }, scheduleData)
-  return {
-    event: eventRule,
-    getNextEvents(amount: number): Date[] | Date {
-      const ret = sched.next(amount, new Date())
-      return ret
-    },
+  }
+  function updateEvent(savedEvent: Event, eventFromDB: Event) {
+    if (savedEvent.rule !== eventFromDB.rule)
+      savedEvent.laterTimerHandler.clear()
+    savedEvent.duration = eventFromDB.duration
+    savedEvent.eventType = eventFromDB.eventType
+    savedEvent.description = eventFromDB.description
   }
 }
-export function getAllEvents(): EventInfo[] {
-  return allEvents
+export function createEvent(event: Event): void {
+  scheduleEvent(event)
+  if (event.eventType === 'HappyHour') initHappyRule(event)
+  else if (event.eventType === 'TestType') initHappyRule(event)
+  else if (event.eventType === 'MiscType') initMiscRule(event)
+  else if (event.eventType === 'Raffle') initRaffleRule(event)
+  else initMiscRule(event)
+  allEvents.push(event)
 }
-export function getNextEvent(eventType: EventType, amount = 1): Date | Date[] | undefined {
-  const event: EventInfo = allEvents.find(_eventInfo => {
-    return _eventInfo.event.eventType === eventType
-  }) as EventInfo
+export function scheduleEvent(event: Event): Event {
+  const scheduleData = later.parse.cron(event.rule, true)
+  event.sched = later.schedule(scheduleData)
+  event.next = event.sched.next(1, new Date()) as Date
+  event.laterTimerHandler = later.setInterval(function () {
+    if (!event.callBackForStart || !event.callBackForEnd)
+      throw new Error('event have no point if there are start or end callbacks')
+    event.next = event.sched.next(1, new Date()) as Date
+    event.callBackForStart(event)
+    setTimeout(() => {
+      if (event.callBackForEnd) event.callBackForEnd(event)
+    }, event.duration * 1000)
+  }, scheduleData)
+  return event
+}
+export function dateToCronRule(date: Date): string {
+  const day = date.getDay()
+  const month = date.getMonth()
+  const monthName = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][month - 1]
+  const year = date.getFullYear()
+  return `0 0 0 ${day} ${monthName.substr(0, 3)} ? ${year}`
+}
+export function getNextEventById(eventId: number): Date | Date[] | undefined {
+  const event: Event = allEvents.find(event => {
+    return event.id === eventId
+  }) as Event
   if (!event) return undefined
-  return event.getNextEvents(amount)
+  return getNextEvent(event)
 }
-void (async function run() {
-  rulesFromDB = await getEventsFromDb()
-  // console.log('rdb', rulesFromDB)
-  processEvents(rulesFromDB)
-})()
+export const getNextEvent = (event: Event): Date => {
+  return event.sched.next(1, new Date()) as Date
+}
+export function getNextEventByType(eventType: EventType): Date | Date[] | undefined {
+  const event: Event = allEvents.find(_event => {
+    return _event.eventType === eventType
+  }) as Event
+  if (!event) return undefined
+  return getNextEvent(event)
+}
+export const updateRulesFromDb = async (): Promise<void> => {
+  await init()
+}
 
-
-// const rulesFromDB: EventRule[] = [
-//   {
-//     eventType: 'HappyHour',
-//     description: 'evento1',
-//     rule: '*/20 * * * * *',
-//     duration: 5
-//   },
-//   {
-//     eventType: 'HappyHour',
-//     description: 'evento2',
-//     rule: '* */1 * * * *',
-//     duration: 10
-//   }
-// ]
+void (async () => { await init() })()

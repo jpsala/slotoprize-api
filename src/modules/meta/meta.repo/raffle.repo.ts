@@ -3,25 +3,26 @@ import statusCodes from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
 import { lorem } from 'faker'
-import {query, queryOne, exec} from '../../../db'
-import {LocalizationData, RafflePrizeData, GameUser, RaffleRecordData, RafflePrizeDataDB} from '../meta.types'
-import {getGameUserByDeviceId} from "../meta-services/meta.service"
-import {addRaffleAsTask} from '../meta-services/cron'
-import {getRandomNumber} from "../../../helpers"
-import {getWallet, updateWallet} from '../../slot/slot.services/wallet.service'
+import { query, queryOne, exec } from '../../../db'
+import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData, RafflePrizeDataDB } from '../meta.types'
+import { getGameUserByDeviceId } from "../meta-services/meta.service"
+import { addRaffleAsTask } from '../meta-services/cron'
+import { getRandomNumber } from "../../../helpers"
+import { getWallet, updateWallet } from '../../slot/slot.services/wallet.service'
 
-import {getReqUser} from "../authMiddleware"
+import { getReqUser } from "../authMiddleware"
 
 
 import ParamRequiredException from '../../../error'
-import {Wallet} from "../../slot/slot.types"
-import {getGameUser} from './gameUser.repo'
+import { Wallet } from "../../slot/slot.types"
+import { Event, dateToCronRule } from './../../slot/slot.services/events/events'
+import { getGameUser } from './gameUser.repo'
 
 export const rafflePurchase = async (deviceId: string, raffleId: number, amount: number): Promise<Wallet> => {
-  if(!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
-  if(!amount) throw createError(createError.BadRequest, 'amount is a required parameter')
-  if(amount < 1) throw createError(createError.BadRequest, 'amount can not be less than 1')
-  if(isNaN(raffleId)) throw createError(createError.BadRequest, 'raffleId is a required parameter')
+  if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
+  if (!amount) throw createError(createError.BadRequest, 'amount is a required parameter')
+  if (amount < 1) throw createError(createError.BadRequest, 'amount can not be less than 1')
+  if (isNaN(raffleId)) throw createError(createError.BadRequest, 'raffleId is a required parameter')
 
   const user = await getGameUserByDeviceId(deviceId)
   const wallet = await getWallet(deviceId)
@@ -31,21 +32,20 @@ export const rafflePurchase = async (deviceId: string, raffleId: number, amount:
   const totalTicketsNeeded = raffleCostInTickets * amount
   if (totalTicketsNeeded > wallet.tickets) throw createError(createError.BadRequest, 'Insufficient tickets')
   const raffleInsertedId = await saveRaffle(raffle, user, totalTicketsNeeded, amount)
-  if(raffleInsertedId < 0) throw createError(createError.InternalServerError, 'Error saving raffle to db')
+  if (raffleInsertedId < 0) throw createError(createError.InternalServerError, 'Error saving raffle to db')
   wallet.tickets -= totalTicketsNeeded
   await updateWallet(deviceId, wallet)
   // eslint-disable-next-line no-return-await
   return await getWallet(deviceId)
 }
 async function getRaffleLocalizationData(raffleId: number): Promise<LocalizationData> {
-  const {languageCode} = await getGameUser(getReqUser().user as number)
+  const { languageCode } = await getGameUser(getReqUser().user as number)
   const localizationData = await queryOne(`
     select * from raffle_localization
       where raffle_id = ${raffleId} and language_code = "${languageCode}"
   `)
   return camelcaseKeys(localizationData) as LocalizationData
 }
-
 export async function getRaffles(fieldsToExclude: string[] | undefined = undefined, camelCased = true): Promise<RafflePrizeData[]> {
   const raffles = await query(`
     SELECT r.id, r.closing_date,
@@ -55,8 +55,8 @@ export async function getRaffles(fieldsToExclude: string[] | undefined = undefin
   for (const raffle of raffles) {
     const { name, description } = await getRaffleLocalizationData(raffle.id)
     console.log('name', name)
-    if(raffle == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
-    if(name == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
+    if (raffle == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
+    if (name == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
     raffle.name = name
     raffle.description = description
     // const resp = await query(`
@@ -71,13 +71,13 @@ export async function getRaffles(fieldsToExclude: string[] | undefined = undefin
   return camelCased ? camelcaseKeys(raffles) : raffles
 }
 export async function prizeNotified(raffleId: number): Promise<string> {
-  if(isNaN(raffleId)) throw new ParamRequiredException('raffleId')
+  if (isNaN(raffleId)) throw new ParamRequiredException('raffleId')
   const resp = await exec(`
   update raffle_history set notified = 1
     where win = 1 and raffle_id = ${raffleId} and notified = 0
   `)
   //console.log('resp.affectedRows', resp.affectedRows)
-  if(resp.affectedRows < 1) throw createError(createError.BadRequest, 'No modifications, check raffleId')
+  if (resp.affectedRows < 1) throw createError(createError.BadRequest, 'No modifications, check raffleId')
   return 'ok'
 }
 export async function getRaffle(id: number,
@@ -113,7 +113,7 @@ export async function newRaffle(raffle: RafflePrizeDataDB): Promise<SaveRaffleNe
   //console.log('raffle', raffle)
   if (!raffle.localization_data || raffle.localization_data.length < 1)
     throw createError(createError.BadRequest, 'raffle.localizationData is required')
-  const {localization_data, ...raffleForDB} = raffle
+  const { localization_data, ...raffleForDB } = raffle
   const respRaffle = await exec(`insert into raffle SET ?`, raffleForDB)
   const newRaffleId = respRaffle.insertId
   for (const localizationData of localization_data) {
@@ -122,6 +122,10 @@ export async function newRaffle(raffle: RafflePrizeDataDB): Promise<SaveRaffleNe
     //console.log("respLocalization", respLocalization)
   }
   const _raffle = await getRaffle(newRaffleId, undefined, false, true)
+  const cronRule = dateToCronRule(_raffle.closingDate)
+  console.log('cronRule', cronRule)
+  // const newEvent: EventRule
+  // newEvent.rule
   addRaffleAsTask(_raffle)
   return newRaffleId
 }
@@ -148,7 +152,7 @@ export async function raffleTime(raffle: RafflePrizeData): Promise<any> {
     from raffle_history
     where raffle_id = ${raffle.id}
   `)
-  if(!purchases || purchases.length < 1) return false
+  if (!purchases || purchases.length < 1) return false
   const totalNumbers = purchases.reduce((ant, current) => ant + current.numbers, 0)
   //console.log('purchases', purchases, totalNumbers)
   let floor = 0
