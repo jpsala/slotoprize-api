@@ -29,7 +29,7 @@ type WsServerService = {
 }
 const createWsServerService = (): WsServerService => {
   server = new WebSocket.Server({
-    port: 8889,
+    port: 8890,
   })
   server.on('connection', function (_ws) {
     ws = _ws
@@ -76,7 +76,7 @@ const createWsServerService = (): WsServerService => {
 const wsServer = createWsServerService()
 export default wsServer
 
-console.log('ws server started at port 8889...')
+console.log('ws server started at port 8890...')
 
 // client test:
 

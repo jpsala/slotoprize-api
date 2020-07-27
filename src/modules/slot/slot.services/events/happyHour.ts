@@ -47,6 +47,6 @@ export function initRule(rule: Event): void {
   rule.callBackForEnd = happyHourEnd
   rule.callBackForBeforeReload = beforeEventReload
 }
-export const getHappyHour = (): boolean => {
+export const getIsHappyHour = (): boolean => {
   return isHappyHour
 }
