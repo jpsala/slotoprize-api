@@ -1,21 +1,17 @@
+
 import statusCodes from 'http-status-codes'
 /* eslint-disable babel/camelcase */
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
-import { lorem } from 'faker'
 import { query, queryOne, exec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData, RafflePrizeDataDB } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
-import { addRaffleAsTask } from '../meta-services/cron'
 import { getRandomNumber } from "../../../helpers"
 import { getWallet, updateWallet } from '../../slot/slot.services/wallet.service'
-
 import { getReqUser } from "../authMiddleware"
-
-
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
-import { Event, dateToCronRule } from './../../slot/slot.services/events/events'
+import { dateToRule, updateRulesFromDb } from './../../slot/slot.services/events/events'
 import { getGameUser } from './gameUser.repo'
 
 export const rafflePurchase = async (deviceId: string, raffleId: number, amount: number): Promise<Wallet> => {
@@ -97,8 +93,7 @@ export async function getRaffle(id: number,
 
   return camelCased ? camelcaseKeys(raffle) : raffle
 }
-type SaveRaffleNewId = number
-export async function saveRaffle(raffle: RafflePrizeData, user: GameUser, tickets: number, amount: number): Promise<SaveRaffleNewId> {
+export async function saveRaffle(raffle: RafflePrizeData, user: GameUser, tickets: number, amount: number): Promise<number> {
   // @TODO validate parameters
   try {
     const resp = await exec(`
@@ -109,7 +104,7 @@ export async function saveRaffle(raffle: RafflePrizeData, user: GameUser, ticket
     throw createError(createError.InternalServerError, error)
   }
 }
-export async function newRaffle(raffle: RafflePrizeDataDB): Promise<SaveRaffleNewId> {
+export async function newRaffle(raffle: RafflePrizeDataDB): Promise<number> {
   //console.log('raffle', raffle)
   if (!raffle.localization_data || raffle.localization_data.length < 1)
     throw createError(createError.BadRequest, 'raffle.localizationData is required')
@@ -118,15 +113,24 @@ export async function newRaffle(raffle: RafflePrizeDataDB): Promise<SaveRaffleNe
   const newRaffleId = respRaffle.insertId
   for (const localizationData of localization_data) {
     localizationData.raffle_id = newRaffleId
-    const respLocalization = await exec(`insert into raffle_localization SET ?`, localizationData)
+    /* const respLocalization =  */await exec(`insert into raffle_localization SET ?`, localizationData)
     //console.log("respLocalization", respLocalization)
   }
-  const _raffle = await getRaffle(newRaffleId, undefined, false, true)
-  const cronRule = dateToCronRule(_raffle.closingDate)
-  console.log('cronRule', cronRule)
-  // const newEvent: EventRule
+  const _raffle = await getRaffle(newRaffleId, undefined, true, true)
+  const rule = dateToRule(_raffle.closingDate)
   // newEvent.rule
-  addRaffleAsTask(_raffle)
+  // addRaffleAsTask(_raffle)
+  await exec(`insert into event set ? `, [
+    {
+      "eventType": "Raffle",
+      "description": _raffle.localizationData[0]?.description,
+      rule,
+      "duration": 0,
+      "active": 1,
+      "data": JSON.stringify({ "id": _raffle.id })
+    }
+  ])
+  await updateRulesFromDb()
   return newRaffleId
 }
 export async function getRafflePurchaseHistory(deviceId: string): Promise<RaffleRecordData[]> {
@@ -143,37 +147,38 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
     order by rh.id desc
     limit 20
   `)
-  return camelcaseKeys(raffleHistory)
+  return camelcaseKeys(raffleHistory) as RaffleRecordData[]
 }
-export async function raffleTime(raffle: RafflePrizeData): Promise<any> {
+export async function raffleTime(raffleId: number): Promise<any> {
+
   //console.log('raffleTime raffle#%O', raffle.id)
-  const purchases = await query(`
+  const purchases: { id: number, numbers: number, game_user_id: number }[] = await query(`
     select id, raffle_numbers as numbers, game_user_id, raffle_id
     from raffle_history
-    where raffle_id = ${raffle.id}
+    where raffle_id = ${raffleId}
   `)
   if (!purchases || purchases.length < 1) return false
-  const totalNumbers = purchases.reduce((ant, current) => ant + current.numbers, 0)
+  const totalNumbers = purchases.reduce((ant: number, current) => ant + current.numbers, 0)
   //console.log('purchases', purchases, totalNumbers)
   let floor = 0
   const randomNumber = getRandomNumber(1, totalNumbers)
-  const winner = purchases.find((purchase) => {
+  const winnerRaffleHistory = purchases.find((purchase) => {
     const isWin = ((randomNumber > floor) && (randomNumber <= floor + Number(purchase.numbers)))
     floor += Number(purchase.numbers)
     return isWin
   })
-  //console.log('winner', winner)
-  await saveWinner(winner.id)
-  await exec(`update raffle set winner = ${winner.game_user_id}`)
-  await exec(`update raffle_history set win = 1 where id = ${winner.id}`)
-  return winner
+  console.log('winner', raffleId, winnerRaffleHistory)
+  if (!winnerRaffleHistory) throw new Error('There was a problem in raffle time')
+  await saveWinner(winnerRaffleHistory.id)
+  await exec(`update raffle set winner = ${winnerRaffleHistory.game_user_id} where id = ${raffleId}`)
+  await exec(`update raffle_history set win = 1 where id = ${winnerRaffleHistory.id}`)
+  return winnerRaffleHistory
 }
 async function saveWinner(raffleHistoryId: number): Promise<void> {
   await exec(`
     insert into raffle_wins(raffle_history_id) values(${raffleHistoryId})
   `)
 }
-
 /*
     public class RaffleRecordData
     {
@@ -199,5 +204,6 @@ export const getWinners = async (): Promise<any[]> => {
     inner join raffle r on rh.raffle_id = r.id
   `)
   // return camelcaseKeys(winners.map((winnerRow) => { return {raffleWinnerData: winnerRow} }))
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return camelcaseKeys(winners)
 }

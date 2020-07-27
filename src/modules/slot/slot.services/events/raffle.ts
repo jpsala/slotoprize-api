@@ -1,40 +1,29 @@
-import wsService from "../webSocket/ws"
-import { Event, getNextEventById, getNextEvent } from "./events"
-
+import { raffleTime } from "../../../meta/meta.repo/raffle.repo"
+import { Event, getNextEventById } from "./events"
 interface RaffleEvent extends Event {
   date?: Date
 }
-const raffleEvents: RaffleEvent[] = []
+const isTimeForRaffleCallback = async (event: Event) => {
+  try {
+    const eventData = JSON.parse(event.data)
 
-export const getRaffleEvents = (): any => {
-  return raffleEvents
+    console.log('raffleBegin raffle event', event)
+    // console.log('raffleBegin raffle event', event?.eventType, event?.description, event.next, event.distance, 1)
+    if (!eventData?.id) throw new Error('isTimeForRaffleCallback, event.data.id undefined')
+    await raffleTime(eventData.id)
+  } catch (error) {
+    throw new Error('isTimeForRaffleCallback, error parsing event.data to get raffle ID')
+  }
 }
-
-const isTimeForRaffleCallback = (event: Event) => {
-  console.log('raffleBegin event', event?.eventType, event?.description, event.next, 1)
-  wsService.send({
-    code: 200,
-    message: 'event',
-    msgType: 'raffle',
-    payload: event
-  })
-}
-
 export const beforeEventsReload = (_event: Event): void => {
-  console.log('reload event', _event?.description)
-  // const idx = raffleEvents.findIndex(filteredRaffleEvent => filteredRaffleEvent.id === _event.id)
-
+  console.log('reload raffle event', _event?.description)
 }
-
-export function initRuleCalledFromEvents(event: Event): void {
+export function initRule(event: Event): void {
   event.callBackForStart = isTimeForRaffleCallback
   event.callBackForBeforeReload = beforeEventsReload
-  console.log('raffleEvent.date', event.next)
-  raffleEvents.push(event)
+  console.log('raffleEvent.date', event.next, event.distance)
 }
-
 export const getNextEventDate = (event: Event): Date => {
   const nextEvent = getNextEventById(event.id)
   return nextEvent as Date
 }
-

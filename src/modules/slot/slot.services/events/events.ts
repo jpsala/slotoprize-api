@@ -1,11 +1,12 @@
 import later from 'later'
+import { formatDistanceToNow } from 'date-fns'
 import { query } from './../../../../db'
 import { initRule as initHappyRule } from "./happyHour"
-import { initRule as initMiscRule } from "./miscEvent"
-import { initRuleCalledFromEvents as initRaffleRule } from './raffle'
+import { initRule as initRaffleRule } from './raffle'
+
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
 // later.date.localTime()
-export type EventType = 'HappyHour' | 'TestType' | 'MiscType' | 'Raffle'
+export type EventType = 'HappyHour' | 'Raffle'
 export interface Event {
   id: number,
   eventType: EventType,
@@ -14,14 +15,17 @@ export interface Event {
   duration: number,
   laterTimerHandler: later.Timer,
   next: Date | 0,
+  distance: string,
   sched: later.Schedule,
+  data?: any,
   callBackForStart?(event: Event): void,
   callBackForEnd?(event: Event): void,
   callBackForBeforeReload?(event: Event): void,
+  callBackForBeforeDelete?(event: Event): void,
 }
 const allEvents: Event[] = []
 export const init = async (): Promise<void> => {
-  const rulesFromDB = await query('select * from events where active = 1') as Event[]
+  const rulesFromDB = await query('select * from event where active = 1') as Event[]
   processEvents(rulesFromDB)
 }
 export function processEvents(eventsFromDB: Event[]): void {
@@ -35,43 +39,49 @@ export function processEvents(eventsFromDB: Event[]): void {
     }
   }
   function updateEvent(savedEvent: Event, eventFromDB: Event) {
-    if (savedEvent.rule !== eventFromDB.rule)
-      savedEvent.laterTimerHandler.clear()
-    savedEvent.duration = eventFromDB.duration
-    savedEvent.eventType = eventFromDB.eventType
-    savedEvent.description = eventFromDB.description
+    if (savedEvent.rule !== eventFromDB.rule || eventFromDB.duration !== savedEvent.duration) {
+      deleteEvent(savedEvent)
+      createEvent(eventFromDB)
+    } else { savedEvent.description = eventFromDB.description }
   }
 }
+export function deleteEvent(event: Event): void {
+  event.laterTimerHandler.clear()
+  const raffleIdx = allEvents.findIndex(savedEvent => savedEvent.id === event.id)
+  if (raffleIdx >= 0) allEvents.splice(raffleIdx, 1)
+}
 export function createEvent(event: Event): void {
-  scheduleEvent(event)
-  if (event.eventType === 'HappyHour') initHappyRule(event)
-  else if (event.eventType === 'TestType') initHappyRule(event)
-  else if (event.eventType === 'MiscType') initMiscRule(event)
-  else if (event.eventType === 'Raffle') initRaffleRule(event)
-  else initMiscRule(event)
   allEvents.push(event)
+  scheduleEvent(event)
 }
 export function scheduleEvent(event: Event): Event {
   const scheduleData = later.parse.cron(event.rule, true)
   event.sched = later.schedule(scheduleData)
-  event.next = event.sched.next(1, new Date()) as Date
+  event.next = event.sched.next(1, new Date()) as Date | 0
+  event.distance = event.next !== 0 ? formatDistanceToNow(event.next) : ''
+  if (event.eventType === 'HappyHour') initHappyRule(event)
+  else if (event.eventType === 'Raffle') initRaffleRule(event)
   event.laterTimerHandler = later.setInterval(function () {
-    if (!event.callBackForStart || !event.callBackForEnd)
-      throw new Error('event have no point if there are start or end callbacks')
-    event.next = event.sched.next(1, new Date()) as Date
-    event.callBackForStart(event)
+    if (!event?.callBackForStart && !event?.callBackForEnd)
+      throw new Error('event have no point if there are no start or end callbacks')
+    event.next = event.sched.next(1, new Date()) as Date | 0
+    event.distance = event.next !== 0 ? formatDistanceToNow(event.next) : ''
+    if (event?.callBackForStart) event.callBackForStart(event)
     setTimeout(() => {
       if (event.callBackForEnd) event.callBackForEnd(event)
     }, event.duration * 1000)
   }, scheduleData)
   return event
 }
-export function dateToCronRule(date: Date): string {
-  const day = date.getDay()
-  const month = date.getMonth()
-  const monthName = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][month - 1]
+export function dateToRule(date: Date): string {
+  const day = date.getUTCDate()
+  const month = date.getUTCMonth()
+  const monthName = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][month]
   const year = date.getFullYear()
-  return `0 0 0 ${day} ${monthName.substr(0, 3)} ? ${year}`
+  const hours = date.getHours()
+  const minutes = date.getMinutes()
+  // console.log('dateToRule', date, `0 ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`)
+  return `0 ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`
 }
 export function getNextEventById(eventId: number): Date | Date[] | undefined {
   const event: Event = allEvents.find(event => {

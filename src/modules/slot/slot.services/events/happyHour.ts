@@ -1,27 +1,51 @@
-import wsService from "../webSocket/ws"
+import wsService, { WebSocketMessage } from "../webSocket/ws"
+
 import { Event } from "./events"
 let isHappyHour = false
-const happyHourBegin = (event: Event) => {
+const timeForHappyHour = (event: Event) => {
   isHappyHour = true
-  console.log('happyHourBegin event', event?.eventType, event?.description, event.next)
-  wsService.send({
+  console.log('event', JSON.stringify(event, null, 2))
+  // console.log('happyHourBegin event', event?.eventType, event?.description, event.next)
+  const wsMessage: WebSocketMessage = {
     code: 200,
-    message: 'event',
-    msgType: 'happyHour',
-    payload: event
-  })
+    message: 'OK',
+    msgType: "events",
+    payload: {
+      eventType: 'HappyHour',
+      action: 'begin',
+      description: event.description || '',
+      textureUrl: 'Here goes a texture url',
+      devOnly: true
+    }
+  }
+  wsService.send(wsMessage)
   // console.log('event begin', event.eventType, event?.description)
 }
-export const beforeEventsReload = (event: Event): void => {
+export const beforeEventReload = (event: Event): void => {
+  console.log('HappyHour event reload ', event.rule, event.description)
 }
 const happyHourEnd = (event: Event): void => {
   isHappyHour = false
   console.log('happyHourEnds event', event?.eventType, event?.description)
+  const wsMessage: WebSocketMessage = {
+    code: 200,
+    message: 'OK',
+    msgType: "events",
+    payload: {
+      eventType: 'HappyHour',
+      action: 'end',
+      description: event.description || '',
+      textureUrl: 'Here goes a texture url',
+      devOnly: true
+    }
+  }
+  wsService.send(wsMessage)
 }
 export function initRule(rule: Event): void {
-  rule.callBackForStart = happyHourBegin
+  console.log('happyHour initRule', rule)
+  rule.callBackForStart = timeForHappyHour
   rule.callBackForEnd = happyHourEnd
-  rule.callBackForBeforeReload = beforeEventsReload
+  rule.callBackForBeforeReload = beforeEventReload
 }
 export const getHappyHour = (): boolean => {
   return isHappyHour

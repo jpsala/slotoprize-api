@@ -15,39 +15,32 @@ import * as walletService from "./slot.services/wallet.service"
 import { symbolsInDB } from './slot.services/symbol.service'
 import { addEvent } from './slot.repo/event.repo'
 
-export async function symbolsInDBGet(req: Request, res: Response): Promise<any>
-{
+export async function symbolsInDBGet(req: Request, res: Response): Promise<any> {
   const resp = await symbolsInDB()
   res.status(200).json(toCamelCase(resp))
 }
-export async function profilePost(req: Request, res: Response): Promise<any>
-{
+export async function profilePost(req: Request, res: Response): Promise<any> {
   const resp = await slotService.profile.setProfile(req.body as GameUser)
   res.status(200).json(toCamelCase(resp))
 }
-export async function spinGet(req: Request, res: Response): Promise<any>
-{
+export async function spinGet(req: Request, res: Response): Promise<any> {
   const resp = await slotService.spin.spin(req.query.deviceId as string, Number(req.query.multiplier))
   res.status(200).json(resp)
 }
-export async function countriesGet(req: Request, res: Response): Promise<void>
-{
+export async function countriesGet(req: Request, res: Response): Promise<void> {
   const countries = await metaRepo.countryRepo.getCountries()
   res.status(200).json(countries)
 }
-export async function gameInitGet(req: Request, res: Response): Promise<any>
-{
+export async function gameInitGet(req: Request, res: Response): Promise<any> {
   const initData = await slotService.gameInit.gameInit(req.query.deviceId as string)
   res.status(200).json(initData)
   return initData
 }
-export async function walletGet(req: Request, res: Response): Promise<any>
-{
+export async function walletGet(req: Request, res: Response): Promise<any> {
   const resp = await walletService.getWallet(req.query.deviceId as string)
   res.status(200).json(resp)
 }
-export async function purchaseTicketsGet(req: Request, res: Response): Promise<any>
-{
+export async function purchaseTicketsGet(req: Request, res: Response): Promise<any> {
   const resp = await walletService.purchaseTickets(
     req.query.deviceId as string,
     Number(req.query.ticketAmount)
@@ -55,24 +48,20 @@ export async function purchaseTicketsGet(req: Request, res: Response): Promise<a
   res.status(200).json(resp)
 }
 // Raffles
-export async function rafflePost(req: Request, res: Response): Promise<any>
-{
+export async function rafflePost(req: Request, res: Response): Promise<any> {
   const resp = await metaRepo.raffleRepo.newRaffle(req.body as RafflePrizeDataDB)
   res.status(200).json(resp)
 }
-export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any>
-{
+export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any> {
   const resp = await metaRepo.raffleRepo.getRaffles()
   res.status(200).json(resp)
   return resp
 }
-export async function rafflePurchaseHistoryGet(req: Request, res: Response): Promise<any>
-{
+export async function rafflePurchaseHistoryGet(req: Request, res: Response): Promise<any> {
   const resp = await metaRepo.raffleRepo.getRafflePurchaseHistory(req.query.deviceId as string)
   res.status(200).json(resp)
 }
-export async function rafflePurchaseGet(req: Request, res: Response): Promise<any>
-{
+export async function rafflePurchaseGet(req: Request, res: Response): Promise<any> {
   const resp = await metaRepo.raffleRepo.rafflePurchase(
     req.query.deviceId as string,
     Number(req.query.raffleId),
@@ -80,20 +69,17 @@ export async function rafflePurchaseGet(req: Request, res: Response): Promise<an
   )
   res.status(200).json(resp)
 }
-export async function prizeNotifiedPost(req: Request, res: Response): Promise<any>
-{
+export async function prizeNotifiedPost(req: Request, res: Response): Promise<any> {
   await metaRepo.raffleRepo.prizeNotified(Number(req.query.raffleId as string))
   res.status(200).json({ status: 'ok' })
 
 }
-export async function raffleWinnersGet(req: Request, res: Response): Promise<any>
-{
+export async function raffleWinnersGet(req: Request, res: Response): Promise<any> {
   const resp: string[] = await metaRepo.raffleRepo.getWinners()
   res.status(200).json(resp)
 }
 // End Raffles
-export async function withTokenGet(req: Request, res: Response): Promise<any>
-{
+export async function withTokenGet(req: Request, res: Response): Promise<any> {
   console.log('req', req)
   const loginToken = req.query.token as string
   const statusToken = verifyToken(loginToken)
@@ -112,10 +98,8 @@ export async function withTokenGet(req: Request, res: Response): Promise<any>
   res.status(200).json({ user: retUser })
   return undefined
 }
-export async function authPos(req: Request, res: Response): Promise<any>
-{
-  try
-  {
+export async function authPos(req: Request, res: Response): Promise<any> {
+  try {
     const user = await metaService.miscService.auth(req.body)
     if (!user) throw createError(createError.BadRequest, 'Email and/or Password not found')
     // const user = rows.length > 0 ? rows[0] : undefined
@@ -126,38 +110,27 @@ export async function authPos(req: Request, res: Response): Promise<any>
     res.setHeader('token', token)
     // req.user = user
     res.status(200).json(user)
-  } catch (error)
-  {
+  } catch (error) {
     res.status(500).json(error)
   }
 }
-export function testSchedGet(req: Request, res: Response): any
-{
-  const resp = metaService.cronService.getPendingTasks()
-  res.status(200).json(resp)
-}
-export async function languageCodeGet(req: Request, res: Response): Promise<any>
-{
+export async function languageCodeGet(req: Request, res: Response): Promise<any> {
   const resp = await setLanguageCode(req.user.id, req.query.languageCode as string)
   res.status(200).json(resp)
 }
-export async function soportePost(req: Request, res: Response): Promise<any>
-{
+export async function soportePost(req: Request, res: Response): Promise<any> {
   const resp = await setSoporte(req.user.id, req.body)
   res.status(200).json(resp)
 }
-export async function eventPost(req: Request, res: Response): Promise<any>
-{
+export async function eventPost(req: Request, res: Response): Promise<any> {
   const resp = await addEvent(req.body)
   res.status(200).json(resp)
 }
-export async function dailyRewardClaimGet(req: Request, res: Response): Promise<any>
-{
+export async function dailyRewardClaimGet(req: Request, res: Response): Promise<any> {
   const resp = await dailyRewardClaim(req.query.deviceId as string)
   res.status(200).json(resp)
 }
-export function postmanGet(req: Request, res: Response): any
-{
+export function postmanGet(req: Request, res: Response): any {
   res.status(200).json(req.body)
 }
 

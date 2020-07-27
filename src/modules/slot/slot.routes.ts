@@ -1,6 +1,6 @@
-import {Router} from 'express'
+import { Router } from 'express'
 
-import {checkToken} from '../meta/authMiddleware'
+import { checkToken } from '../meta/authMiddleware'
 import * as slot from './slot.controller'
 
 const router = Router()
@@ -24,6 +24,5 @@ router.route('/language_code').get(checkToken, slot.languageCodeGet)
 router.route('/support_request').post(checkToken, slot.soportePost)
 router.route('/event').post(checkToken, slot.eventPost)
 router.route('/daily_reward_claim').get(checkToken, slot.dailyRewardClaimGet)
-router.route('/testSched').get(slot.testSchedGet)
 
 export default router
