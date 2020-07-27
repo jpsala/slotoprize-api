@@ -19,7 +19,7 @@ export interface WebSocketMessage {
     description: string;
     action: 'start' | 'stop' | 'notification';
     devOnly: boolean;
-    textureUrl?: string;
+    textureUrl: string;
   }
 }
 type WsServerService = {

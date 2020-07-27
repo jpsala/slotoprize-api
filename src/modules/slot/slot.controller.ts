@@ -8,6 +8,7 @@ import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
 import { setLanguageCode } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte } from '../meta/meta.repo/soporte.repo'
+import { updateRulesFromDb } from './slot.services/events/events'
 import { dailyRewardClaim } from './slot.repo/dailyReward.repo'
 import * as slotService from './slot.services'
 import * as walletService from "./slot.services/wallet.service"
@@ -122,9 +123,9 @@ export async function soportePost(req: Request, res: Response): Promise<any> {
   const resp = await setSoporte(req.user.id, req.body)
   res.status(200).json(resp)
 }
-export async function eventPost(req: Request, res: Response): Promise<any> {
-  const resp = await addEvent(req.body)
-  res.status(200).json(resp)
+export async function eventsReloadPost(req: Request, res: Response): Promise<any> {
+  await updateRulesFromDb()
+  res.status(200).json({ status: 'ok' })
 }
 export async function dailyRewardClaimGet(req: Request, res: Response): Promise<any> {
   const resp = await dailyRewardClaim(req.query.deviceId as string)

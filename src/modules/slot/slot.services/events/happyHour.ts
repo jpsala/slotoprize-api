@@ -14,7 +14,7 @@ const timeForHappyHour = (event: Event) => {
       eventType: 'HappyHour',
       action: 'start',
       description: event.description || '',
-      textureUrl: event.textureUrl,
+      textureUrl: event.textureUrl || '',
       devOnly: true
     }
   }
@@ -35,7 +35,7 @@ const happyHourEnd = (event: Event): void => {
       eventType: 'HappyHour',
       action: 'stop',
       description: event.description || '',
-      textureUrl: 'Here goes a texture url',
+      textureUrl: event.textureUrl || '',
       devOnly: true
     }
   }
