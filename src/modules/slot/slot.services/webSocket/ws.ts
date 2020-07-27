@@ -17,7 +17,7 @@ export interface WebSocketMessage {
   payload: {
     eventType: EventType;
     description: string;
-    action: string;
+    action: 'start' | 'stop' | 'notification';
     devOnly: boolean;
     textureUrl: string;
   }
