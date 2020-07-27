@@ -63,8 +63,12 @@ const createWsServerService = (): WsServerService => {
   const send = (_msg: WebSocketMessage, client: WebSocket | undefined = undefined): void => {
     // @TODO ver abajo
     if (client) return
-    const msg = JSON.stringify(_msg)
     console.log('sending msg to clients')
+    const payload = JSON.stringify(_msg.payload)
+    const msgStr = Object.assign({}, _msg) as any
+    msgStr.payload = payload
+    const msg = JSON.stringify(msgStr)
+    console.log('msg', msg)
     server.clients.forEach((client) => {
       console.log('sended to client')
       client.send(msg)
@@ -80,15 +84,17 @@ console.log('ws server started at port 8890...')
 
 // client test:
 
-// const client = new WebSocket('ws://127.0.0.1:8889/ws/chat')
-// // const client = new WebSocket('ws://wopidom.homelinux.com:8889/ws/chat')
-// client.on('open', function () {
-//   console.log(`[CLIENT] open()`)
-//   client.send(JSON.stringify({ type: 'hi', data: { hola: 'holaaaa' } }))
-// })
-// emitter.on('ws', (msg) => {
-//   console.log('msg', msg)
-// })
+// const client = new WebSocket('ws://127.0.0.1:8890/ws/chat')
+const client = new WebSocket('ws://wopidom.homelinux.com:8890/ws/chat')
+client.on('open', function () {
+  console.log(`[CLIENT] open()`)
+})
+client.on('message', function (a, b) {
+  console.log('msg', a, b)
+})
+emitter.on('ws', (msg) => {
+  console.log('msg', msg)
+})
 
 // client.on('message', function (message) {
 //   console.log(`[CLIENT] Received: ${message}`)
