@@ -17,6 +17,7 @@ export interface Event {
   next: Date | 0,
   distance: string,
   sched: later.Schedule,
+  textureUrl?: string;
   data?: any,
   callBackForStart?(event: Event): void,
   callBackForEnd?(event: Event): void,
