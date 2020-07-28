@@ -2,8 +2,8 @@ import later from 'later'
 import { formatDistanceToNow } from 'date-fns'
 import { Skin, getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
-import { initRule as initHappyRule } from "./happyHour"
-import { initRule as initRaffleRule } from './raffle'
+import { initRule as initHappyRule } from "./happyHour.event"
+import { initRule as initRaffleRule } from './raffle.event'
 
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
 // later.date.localTime()

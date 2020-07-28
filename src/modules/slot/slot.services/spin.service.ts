@@ -3,7 +3,7 @@ import createError from 'http-errors'
 import getSlotConnection from '../../../db'
 import { SpinData } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
-import { getIsHappyHour } from './events/happyHour'
+import { getIsHappyHour } from './events/happyHour.event'
 import * as walletService from "./wallet.service"
 import { getSetting, setSetting } from './settings.service'
 
