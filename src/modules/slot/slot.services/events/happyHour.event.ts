@@ -1,5 +1,4 @@
 import wsService, { WebSocketMessage } from "../webSocket/ws"
-import { Skin, Skin } from '../../slot.repo/skin.repo'
 
 import { Event } from "./events"
 
