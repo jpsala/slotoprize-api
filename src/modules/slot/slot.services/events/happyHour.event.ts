@@ -37,6 +37,7 @@ export function initRule(event: Event): void {
   event.callBackForBeforeReload = beforeEventReload
   wsMessage.payload.action = 'stop'
   wsMessage.payload.skin = event.skin
+  console.log('event.skin', event.skin)
   wsMessage.payload.description = event.description || ''
   wsMessage.payload.textureUrl = event.textureUrl || ''
 }
