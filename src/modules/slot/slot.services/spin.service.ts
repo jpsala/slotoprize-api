@@ -18,9 +18,12 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   if (!enoughCoins) throw createError(400, 'Insufficient funds')
 
   await saveSpinToDb(multiplier)
+
   // eslint-disable-next-line prefer-const
   let { winPoints, winType, symbolsData, isWin } = await getWinData()
+
   const isHappyHour = getIsHappyHour()
+
   if (winType === 'jackpot' || winType === 'ticket') multiplier = 1
   let winAmount = winPoints * multiplier
 
