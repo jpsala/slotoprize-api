@@ -9,11 +9,11 @@ export interface Skin {
   scrollBGColor: string;
   scrollHandleColor: string;
   darkTXTColor: string;
-  Color1: string;
-  Color2: string;
-  sr1: string;
-  machineImgUrl: string;
-  jackpotImgUrl: string;
+  imgColor1: string;
+  imgColor2: string;
+  imgColor3: string;
+  spriteRenderColor: string;
+  machineSkinTextureUrl: string;
 }
 
 export const getSkins = async (id?: number): Promise<Skin[]> => {
