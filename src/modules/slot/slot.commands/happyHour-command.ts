@@ -16,5 +16,4 @@ export const runCommand = (cmd: string, data: Message): void => {
     wsServer.send(response, data.client)
   }
 }
-
 PubSub.subscribe('getEventState', runCommand)

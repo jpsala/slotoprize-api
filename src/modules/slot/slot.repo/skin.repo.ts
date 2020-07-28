@@ -3,19 +3,17 @@ import { query } from './../../../db'
 
 export interface Skin {
   machineSkinTextureUrl: string;
-  colorPreset: {
-    cameraColor: string;
-    headerColor: string;
-    bodyColor: string;
-    btnColor: string;
-    scrollBGColor: string;
-    scrollHandleColor: string;
-    darkTXTColor: string;
-    imgColor1: string;
-    imgColor2: string;
-    imgColor3: string;
-    spriteRenderColor: string;
-  }
+  cameraColor: string;
+  headerColor: string;
+  bodyColor: string;
+  btnColor: string;
+  scrollBGColor: string;
+  scrollHandleColor: string;
+  darkTXTColor: string;
+  imgColor1: string;
+  imgColor2: string;
+  imgColor3: string;
+  spriteRenderColor: string;
 }
 /*
 public Color cameraColor;
@@ -37,19 +35,17 @@ export const getSkins = async (id?: number): Promise<Skin[]> => {
   for (const row of rows) {
     const skin: Skin = {
       machineSkinTextureUrl: row.machineSkinTextureUrl,
-      colorPreset: {
-        cameraColor: row.cameraColor,
-        headerColor: row.headerColor,
-        bodyColor: row.bodyColor,
-        btnColor: row.btnColor,
-        scrollBGColor: row.scrollBGColor,
-        scrollHandleColor: row.scrollHandleColor,
-        darkTXTColor: row.darkTXTColor,
-        imgColor1: row.imgColor1,
-        imgColor2: row.imgColor2,
-        imgColor3: row.imgColor3,
-        spriteRenderColor: row.spriteRenderColor
-      }
+      cameraColor: row.cameraColor,
+      headerColor: row.headerColor,
+      bodyColor: row.bodyColor,
+      btnColor: row.btnColor,
+      scrollBGColor: row.scrollBGColor,
+      scrollHandleColor: row.scrollHandleColor,
+      darkTXTColor: row.darkTXTColor,
+      imgColor1: row.imgColor1,
+      imgColor2: row.imgColor2,
+      imgColor3: row.imgColor3,
+      spriteRenderColor: row.spriteRenderColor
     }
     skins.push(skin)
   }
