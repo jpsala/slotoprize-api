@@ -8,7 +8,7 @@
     nom y ap mail y cuerpo del mensaje
 
 
-[] happy hour
+[x] happy hour
 [x] profile get devuelve datos fijos BORRAR EL endpoint
 Notas sobre Profile:
 [x]- Tiene dos campos, phoneCode (no se esta grabando) y @countryPhoneCode se va!, pero ninguno parece querer guardar los datos.

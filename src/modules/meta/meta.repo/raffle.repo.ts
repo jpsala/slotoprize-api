@@ -149,8 +149,6 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
   return camelcaseKeys(raffleHistory) as RaffleRecordData[]
 }
 export async function raffleTime(raffleId: number): Promise<any> {
-
-  //console.log('raffleTime raffle#%O', raffle.id)
   const purchases: { id: number, numbers: number, game_user_id: number }[] = await query(`
     select id, raffle_numbers as numbers, game_user_id, raffle_id
     from raffle_history
@@ -158,7 +156,6 @@ export async function raffleTime(raffleId: number): Promise<any> {
   `)
   if (!purchases || purchases.length < 1) return false
   const totalNumbers = purchases.reduce((ant: number, current) => ant + current.numbers, 0)
-  //console.log('purchases', purchases, totalNumbers)
   let floor = 0
   const randomNumber = getRandomNumber(1, totalNumbers)
   const winnerRaffleHistory = purchases.find((purchase) => {

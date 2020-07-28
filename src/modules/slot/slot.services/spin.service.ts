@@ -38,7 +38,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   }
 
   await walletService.updateWallet(deviceId, wallet)
-  const returnData: any = { symbolsData, isWin, walletData: wallet }
+  const returnData: SpinData = { symbolsData, isWin, walletData: wallet }
 
   if (isWin) returnData.winData = { type: winType, amount: winAmount }
 
@@ -49,7 +49,7 @@ const resetSpinCount = async () => {
 }
 const saveSpinToDb = async (multiplier: number): Promise<void> => {
   const spinCount = Number(await getSetting('spinCount', multiplier))
-  setSetting('spinCount', String(Number(spinCount) + multiplier))
+  await setSetting('spinCount', String(Number(spinCount) + multiplier))
 }
 const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   // console.log("getWinRowWithEmptyFilled -> winRow", winRow)
@@ -133,7 +133,7 @@ async function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: numb
   if (multiplier > maxMultiplier) throw createError(createError[502], `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`)
 
 }
-export async function getBetAndCheckFunds(multiplier: number, coins: any) {
+export async function getBetAndCheckFunds(multiplier: number, coins: number): Promise<{ bet: number, enoughCoins: boolean }> {
   const betPrice = Number(await getSetting('betPrice', 1))
   const bet = betPrice * multiplier
   const enoughCoins = ((coins - bet) >= 0)
