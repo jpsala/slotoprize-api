@@ -50,7 +50,6 @@ export async function getRaffles(fieldsToExclude: string[] | undefined = undefin
   `) as RafflePrizeData[]
   for (const raffle of raffles) {
     const { name, description } = await getRaffleLocalizationData(raffle.id)
-    console.log('name', name)
     if (raffle == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
     if (name == null) throw createError(statusCodes.BAD_REQUEST, 'no localization data for this raffle')
     raffle.name = name

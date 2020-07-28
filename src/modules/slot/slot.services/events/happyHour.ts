@@ -15,25 +15,21 @@ const wsMessage: WebSocketMessage = {
     devOnly: true
   }
 }
-const timeForHappyHour = (event: Event) => {
+const timeForHappyHour = () => {
   isHappyHour = true
   wsMessage.payload.action = 'start'
-  wsMessage.payload.description = event.description || ''
-  wsMessage.payload.textureUrl = event.textureUrl || ''
   wsService.send(wsMessage)
-  console.log('message sended', wsMessage)
+  console.log('timeForHappyHour message sended', wsMessage)
 }
-const happyHourEnd = (event: Event): void => {
+const happyHourEnd = (): void => {
   isHappyHour = false
   wsMessage.payload.action = 'stop'
-  wsMessage.payload.description = event.description || ''
-  wsMessage.payload.textureUrl = event.textureUrl || ''
   wsService.send(wsMessage)
-  console.log('happyHourEnds event', event?.eventType, event?.description)
+  // console.log('happyHourEnds event', event?.eventType, event?.description)
   wsService.send(wsMessage)
 }
 export function initRule(event: Event): void {
-  console.log('happyHour initRule', event)
+  // console.log('happyHour initRule', event)
   event.callBackForStart = timeForHappyHour
   event.callBackForEnd = happyHourEnd
   event.callBackForBeforeReload = beforeEventReload
@@ -47,6 +43,6 @@ export const getIsHappyHour = (): boolean => {
 export const getWsMessage = (): WebSocketMessage => {
   return wsMessage
 }
-export const beforeEventReload = (event: Event): void => {
-  console.log('HappyHour event reload ', event.rule, event.description)
+export const beforeEventReload = (): void => {
+  // console.log('HappyHour event reload ', event.rule, event.description)
 }

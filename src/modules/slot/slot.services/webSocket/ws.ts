@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Server } from 'http'
 import WebSocket from 'ws'
-import { MULTI_STATUS } from 'http-status-codes'
+import PubSub from 'pubsub-js'
 import { isValidJSON } from '../../../../helpers'
-import { emitter } from './../emitterService'
 import { EventType } from './../events/events'
 
 let server: WebSocket.Server
@@ -27,29 +26,16 @@ type WsServerService = {
   ws: WebSocket,
   send(_msg: WebSocketMessage, client?: WebSocket): void,
 }
+type MessageForEmit = {
+  command: string;
+}
 const createWsServerService = (): WsServerService => {
   server = new WebSocket.Server({
     port: 8890,
   })
-  server.on('connection', function (_ws) {
-    ws = _ws
+  server.on('connection', function (ws) {
     console.log(`[SERVER] connection()`)
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    ws.on('message', async function (message) {
-      console.log(`[SERVER] Received:`, message)
-      if (!(typeof message === 'string'))
-        throw new Error('ws on message: message have to be string')
-      const isValid = isValidJSON(message)
-      if (!isValid) throw Error(`invalid JSON on webSocket incomming message: ${message}`)
-      console.log('msg', message)
-      const msg = JSON.parse(message)
-      console.log('msg', msg)
-      if (msg.command) {
-        msg.client = ws
-        await emitter.emit(msg.command, msg)
-      }
-      await emitter.emit('ws', msg)
-    })
+    ws.on('message', onMessage)
   })
   const send = (_msg: WebSocketMessage, client: WebSocket | undefined = undefined): void => {
     // @TODO ver abajo
@@ -69,6 +55,19 @@ const createWsServerService = (): WsServerService => {
         client.send(msg)
       })
     }
+  }
+  const onMessage = function (message): void {
+    console.log(`[SERVER] Received:`, message)
+    if (!(typeof message === 'string'))
+      throw new Error('ws on message: message have to be string')
+    const isValid = isValidJSON(message)
+    if (!isValid) throw Error(`invalid JSON on webSocket incomming message: ${message}`)
+    const msg = JSON.parse(message)
+    if (msg.command) {
+      msg.client = ws
+      PubSub.publish(msg.command, msg)
+    }
+    PubSub.publish('ws', msg)
   }
   return { server, ws, send }
 }

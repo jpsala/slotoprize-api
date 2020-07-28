@@ -1,15 +1,20 @@
+import PubSub from 'pubsub-js'
+import WebSocket from 'ws'
 import wsServer, { WebSocketMessage } from '../slot.services/webSocket/ws'
 import { getWsMessage, getIsHappyHour } from './../slot.services/events/happyHour'
 
-import { emitter } from './../slot.services/emitterService'
+type Message = { command: 'getEventState', eventType: string, client: WebSocket }
 
-emitter.on('getEventState', (_data) => {
-  console.log('getEventState got data')
-  const data = _data as any
-  if (data && typeof data === 'object' && data?.eventType === 'happyHour') {
+export const runCommand = (cmd: string, data: Message): void => {
+  if (!data || typeof data !== 'object' || !data?.eventType)
+    return
+  const eventType = data.eventType
+  if (eventType === 'happyHour') {
     const isHappyHour = getIsHappyHour()
     const response: WebSocketMessage = getWsMessage()
     response.payload.action = isHappyHour ? 'start' : 'stop'
     wsServer.send(response, data.client)
   }
-})
+}
+
+PubSub.subscribe('getEventState', runCommand)
