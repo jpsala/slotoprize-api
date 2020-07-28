@@ -22,3 +22,23 @@ Notas sobre Profile:
 
 [] daily_reward_claimed en el game init
 [] chequear claimed en claim request
+
+
+[x] tabla de skins
+public class Skin
+{
+    public Color cameraColor;
+    public Color headerColor;
+    public Color bodyColor;
+    public Color btnColor;
+    public Color scrollBGColor;
+    public Color scrollHandleColor;
+    public Color darkTXTColor;
+    public Color Color1;
+    public Color Color2;
+    public Color sr1;
+    public string machineImgUrl;
+    public string jackpotImgUrl;
+}
+
+campo nuevo referencia del skins

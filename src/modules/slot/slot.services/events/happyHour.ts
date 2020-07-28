@@ -1,7 +1,7 @@
 import wsService, { WebSocketMessage } from "../webSocket/ws"
-
-
+import { Skin } from './../../slot.repo/skin.repo'
 import { Event } from "./events"
+
 let isHappyHour = false
 const wsMessage: WebSocketMessage = {
   code: 200,
@@ -30,6 +30,7 @@ const happyHourEnd = (): void => {
 }
 export function initRule(event: Event): void {
   // console.log('happyHour initRule', event)
+  console.log('event', event)
   event.callBackForStart = timeForHappyHour
   event.callBackForEnd = happyHourEnd
   event.callBackForBeforeReload = beforeEventReload

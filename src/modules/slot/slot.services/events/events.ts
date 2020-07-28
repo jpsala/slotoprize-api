@@ -1,5 +1,6 @@
 import later from 'later'
 import { formatDistanceToNow } from 'date-fns'
+import { Skin, getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
 import { initRule as initHappyRule } from "./happyHour"
 import { initRule as initRaffleRule } from './raffle'
@@ -16,6 +17,8 @@ export interface Event {
   laterTimerHandler: later.Timer,
   next: Date | 0,
   distance: string,
+  skinId?: number,
+  skin?: Skin,
   sched: later.Schedule,
   textureUrl?: string;
   data?: any,
@@ -27,6 +30,12 @@ export interface Event {
 const allEvents: Event[] = []
 export const init = async (): Promise<void> => {
   const rulesFromDB = await query('select * from event where active = 1') as Event[]
+  for (const ruleFromDb of rulesFromDB) {
+    let skin: Skin | undefined = undefined
+    if (ruleFromDb.skinId)
+      skin = await getSkin(ruleFromDb.skinId)
+    ruleFromDb.skin = skin
+  }
   processEvents(rulesFromDB)
 }
 export function processEvents(eventsFromDB: Event[]): void {

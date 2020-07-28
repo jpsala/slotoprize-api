@@ -1,25 +1,25 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Server } from 'http'
 import WebSocket from 'ws'
 import PubSub from 'pubsub-js'
 import { isValidJSON } from '../../../../helpers'
+import { Skin } from './../../slot.repo/skin.repo'
 import { EventType } from './../events/events'
 
 let server: WebSocket.Server
 let ws: WebSocket
 type Subscription = { message: string, cb: () => void }
-interface PayloadEvents {
+interface EventPayload {
   eventType: EventType;
   description: string;
   action: 'start' | 'stop' | 'notification';
   devOnly: boolean;
+  skin?: Skin;
   textureUrl: string;
 }
 export interface WebSocketMessage {
   code: 200 | 400 | 500;
   message: 'OK' | string;
   msgType: 'events';
-  payload: PayloadEvents
+  payload: EventPayload
 }
 type WsServerService = {
   server: WebSocket.Server,
