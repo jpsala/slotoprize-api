@@ -9,23 +9,24 @@ import { initRule as initRaffleRule } from './raffle.event'
 // later.date.localTime()
 export type EventType = 'HappyHour' | 'Raffle'
 export interface Event {
-  id: number,
-  eventType: EventType,
-  rule: string,
+  id: number;
+  eventType: EventType;
+  rule: string;
   description?: string;
-  duration: number,
-  laterTimerHandler: later.Timer,
-  next: Date | 0,
-  distance: string,
-  skinId?: number,
-  skin?: Skin,
-  sched: later.Schedule,
+  duration: number;
+  laterTimerHandler: later.Timer;
+  next: Date | 0;
+  distance: string;
+  skinId?: number;
+  skin?: Skin;
+  sched: later.Schedule;
   textureUrl?: string;
-  data?: any,
-  callBackForStart?(event: Event): void,
-  callBackForEnd?(event: Event): void,
-  callBackForBeforeReload?(event: Event): void,
-  callBackForBeforeDelete?(event: Event): void,
+  data?: any;
+  devOnly?: boolean;
+  callBackForStart?(event: Event): void;
+  callBackForEnd?(event: Event): void;
+  callBackForBeforeReload?(event: Event): void;
+  callBackForBeforeDelete?(event: Event): void;
 }
 const allEvents: Event[] = []
 export const init = async (): Promise<void> => {
@@ -49,6 +50,8 @@ export function processEvents(eventsFromDB: Event[]): void {
     }
   }
   function updateEvent(savedEvent: Event, eventFromDB: Event) {
+    console.log('events updateEvent', savedEvent.eventType, savedEvent.rule, savedEvent.description)
+
     if (savedEvent.rule !== eventFromDB.rule || eventFromDB.duration !== savedEvent.duration) {
       deleteEvent(savedEvent)
       createEvent(eventFromDB)

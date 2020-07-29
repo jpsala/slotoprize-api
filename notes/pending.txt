@@ -41,3 +41,7 @@ public class Skin
     public string jackpotImgUrl;
 }
 [x]campo nuevo en events referencia a skin
+
+skin
+    2 img
+    2 colores

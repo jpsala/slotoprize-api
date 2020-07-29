@@ -9,11 +9,11 @@ const wsMessage: WebSocketMessage = {
   msgType: "events",
   payload: {
     eventType: 'HappyHour',
-    action: 'stop',
     description: '',
-    textureUrl: '',
+    action: 'stop',
+    devOnly: true,
     skin: undefined,
-    devOnly: true
+    textureUrl: '',
   }
 }
 const timeForHappyHour = () => {
@@ -30,14 +30,12 @@ const happyHourEnd = (): void => {
   wsService.send(wsMessage)
 }
 export function initRule(event: Event): void {
-  // console.log('happyHour initRule', event)
-  console.log('initRule event', event)
   event.callBackForStart = timeForHappyHour
   event.callBackForEnd = happyHourEnd
   event.callBackForBeforeReload = beforeEventReload
   wsMessage.payload.action = 'stop'
   wsMessage.payload.skin = event.skin
-  console.log('event.skin', event.skin)
+  wsMessage.payload.devOnly = event.devOnly || false
   wsMessage.payload.description = event.description || ''
   wsMessage.payload.textureUrl = event.textureUrl || ''
 }
