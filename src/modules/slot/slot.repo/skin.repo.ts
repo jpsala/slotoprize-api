@@ -11,7 +11,7 @@ export const getSkins = async (id?: number): Promise<Skin[]> => {
   for (const row of rows) {
     const skin: Skin = {
       machineSkinTextureUrl: row.machineSkinTextureUrl,
-      machineBgColor: row.spriteRenderColor
+      machineBgColor: row.machineBgColor
     }
     skins.push(skin)
   }
