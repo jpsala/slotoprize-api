@@ -15,6 +15,7 @@ export interface Event {
   description?: string;
   duration: number;
   laterTimerHandler: later.Timer;
+  endTimeoutHandler: NodeJS.Timeout;
   next: Date | 0;
   distance: string;
   skinId?: number;
@@ -60,6 +61,7 @@ export function processEvents(eventsFromDB: Event[]): void {
 }
 export function deleteEvent(event: Event): void {
   event.laterTimerHandler.clear()
+  clearTimeout(event.endTimeoutHandler)
   const raffleIdx = allEvents.findIndex(savedEvent => savedEvent.id === event.id)
   if (raffleIdx >= 0) allEvents.splice(raffleIdx, 1)
 }
@@ -74,13 +76,14 @@ export function scheduleEvent(event: Event): Event {
   event.distance = event.next !== 0 ? formatDistanceToNow(event.next) : ''
   if (event.eventType === 'HappyHour') initHappyRule(event)
   else if (event.eventType === 'Raffle') initRaffleRule(event)
+  if (!event.callBackForStart && !event?.callBackForEnd)
+    throw new Error('event have no point if there are no start or end callbacks')
   event.laterTimerHandler = later.setInterval(function () {
-    if (!event?.callBackForStart && !event?.callBackForEnd)
-      throw new Error('event have no point if there are no start or end callbacks')
+    if(event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler)
     event.next = event.sched.next(1, new Date()) as Date | 0
     event.distance = event.next !== 0 ? formatDistanceToNow(event.next) : ''
-    if (event?.callBackForStart) event.callBackForStart(event)
-    setTimeout(() => {
+    if (event.callBackForStart) event.callBackForStart(event)
+    event.endTimeoutHandler = setTimeout(() => {
       if (event.callBackForEnd) event.callBackForEnd(event)
     }, event.duration * 1000)
   }, scheduleData)

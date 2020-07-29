@@ -1,4 +1,5 @@
-import wsService, { WebSocketMessage } from "../webSocket/ws"
+import wsService, { WebSocketMessage} from "../webSocket/ws"
+
 
 import { Event } from "./events"
 
@@ -6,7 +7,7 @@ let isHappyHour = false
 const wsMessage: WebSocketMessage = {
   code: 200,
   message: 'OK',
-  msgType: "events",
+  msgType: 'events',
   payload: {
     eventType: 'HappyHour',
     description: '',
