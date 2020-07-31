@@ -53,7 +53,7 @@ const createWsServerService = (): WsServerService => {
       console.log('sended to specific client')
     }
     else {
-      console.log('sending msg to all clients', msg.substr(0, 80))
+      console.log('sending msg to all clients', msg)
       server.clients.forEach((client) => {
         console.log('sended to client')
         client.send(msg)
@@ -61,7 +61,8 @@ const createWsServerService = (): WsServerService => {
     }
   }
   const onMessage = function (message): void {
-    console.log(`[SERVER] Received:`, message.subsrtr(0,60))
+    console.log('message', message)
+    // console.log(`[SERVER] Received:`, message.subsrtr(0,60))
     if (!(typeof message === 'string'))
       throw new Error('ws on message: message have to be string')
     const isValid = isValidJSON(message)
@@ -86,18 +87,15 @@ export default wsServer
 
 // client test:
 
-// const client = new WebSocket('ws://127.0.0.1:8890/ws/chat')
+const client = new WebSocket('ws://127.0.0.1:8890/ws/chat')
 // const client = new WebSocket('ws://wopidom.homelinux.com:8890/ws/chat')
-// client.on('open', function () {
-//   console.log(`[CLIENT] open()`)
-// })
-// client.on('message', function (a, b) {
-//   console.log('msg', a, b)
-// })
-// emitter.on('ws', (msg) => {
-//   console.log('msg', msg)
-// })
-
+client.on('open', function () {
+  console.log(`[CLIENT] open()`)
+  client.send('{"command":"getEventState","eventType":"happyHour"}')
+})
+client.on('message', function (a, b) {
+  console.log('msg from server!', a, b)
+})
 // client.on('message', function (message) {
 //   console.log(`[CLIENT] Received: ${message}`)
 //   // client.send({ hola: "holaaaaasdfasdfasdf" })
