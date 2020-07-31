@@ -9,8 +9,6 @@ export async function deleteDataInTestDB(): Promise< ResultSetHeader[]> {
     await exec('delete from wallet'),
     await exec('delete from last_spin'),
     await exec('delete from game_user '),
-    await exec('delete from pay_table'),
-    await exec('delete from symbol'),
   ]
 }
 export async function insertInSymbol(): Promise<ResultSetHeader[]> {

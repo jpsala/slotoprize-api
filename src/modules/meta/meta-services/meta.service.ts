@@ -1,3 +1,4 @@
+import * as statusCodes from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
 import ParamRequiredException from '../../../error'
@@ -15,7 +16,7 @@ export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<Game
     user = await getGameUserByDeviceId(deviceId)
     user.isNew = true
         // id: respInsert.insertId,
-  } else user.isNew = false
+  } else {user.isNew = false}
   return user
 }
 export async function getAll(): Promise<User> {
@@ -40,8 +41,8 @@ export const getUserById = async (id: number): Promise<User> => {
         select *
           from user
         where id = "${id}"`
-  const [rows] = await query(userSelect)
-  const user = rows.length ? rows[0] : false
+  const user = await queryOne(userSelect)
+  // const user = rows.length ? rows[0] : false
   return user
 }
 export const getGameUserByDeviceId = async (deviceId: string): Promise<GameUser> => {
@@ -54,6 +55,7 @@ export const getGameUserByDeviceId = async (deviceId: string): Promise<GameUser>
   return camelcaseKeys(user) as GameUser
 }
 export const auth = async (user: User): Promise<User> => {
+  if(user.password == null) throw createError(statusCodes.BAD_REQUEST, 'Missing user data')
   const select = `
       select id, name, password  from user u
       where (u.email = '${user.email}') AND

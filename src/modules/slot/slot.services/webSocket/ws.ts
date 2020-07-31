@@ -43,7 +43,7 @@ const createWsServerService = (): WsServerService => {
     const msgStr = Object.assign({}, _msg) as any
     msgStr.payload = payload
     const msg = JSON.stringify(msgStr)
-    console.log('msg', msg)
+    // console.log('msg', msg)
     if (client) {
       client.send(msg)
       console.log('sended to specific client')
@@ -57,7 +57,7 @@ const createWsServerService = (): WsServerService => {
     }
   }
   const onMessage = function (message): void {
-    console.log(`[SERVER] Received:`, message)
+    console.log(`[SERVER] Received:`, message.subsrtr(0,60))
     if (!(typeof message === 'string'))
       throw new Error('ws on message: message have to be string')
     const isValid = isValidJSON(message)
@@ -71,11 +71,14 @@ const createWsServerService = (): WsServerService => {
   }
   return { server, ws, send }
 }
+let wsServer: WsServerService
+if (process.env.NODE_ENV !== 'testing') {
+  console.log('ws server started at port 8890...')
+  wsServer = createWsServerService()
+} else {wsServer = {send:(_msg: WebSocketMessage, client?: WebSocket | undefined)=>{console.log('ws mock send', )}} as WsServerService}
 
-const wsServer = createWsServerService()
 export default wsServer
 
-console.log('ws server started at port 8890...')
 
 // client test:
 

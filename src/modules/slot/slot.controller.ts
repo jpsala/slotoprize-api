@@ -99,7 +99,7 @@ export async function withTokenGet(req: Request, res: Response): Promise<any> {
   res.status(200).json({ user: retUser })
   return undefined
 }
-export async function authPos(req: Request, res: Response): Promise<any> {
+export async function authPost(req: Request, res: Response): Promise<any> {
   try {
     const user = await metaService.miscService.auth(req.body)
     if (!user) throw createError(createError.BadRequest, 'Email and/or Password not found')

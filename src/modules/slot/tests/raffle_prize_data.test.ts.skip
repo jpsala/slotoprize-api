@@ -1,43 +1,43 @@
 /* eslint-disable no-undef */
 // import encodings from '../../../../node_modules/iconv-lite/encodings/';
-import {Request, Response, NextFunction} from 'express'
+// import {Request, Response, NextFunction} from 'express'
 
-import {rafflesPrizeDataGet} from '../slot.controller'
-import {Fakexpress} from "../../../helpers"
-import {checkToken} from '../../meta/authMiddleware'
+// import {rafflesPrizeDataGet} from '../slot.controller'
+// import {Fakexpress} from "../../../helpers"
+// import {checkToken} from '../../meta/authMiddleware'
 
-let fakeExpres
-xdescribe(`raffle_prize_data`, () => {
-  beforeAll(() => {
-    fakeExpres = new Fakexpress(
-      {
-        query: {deviceId: 'borrar1'},
-        headers: {"dev-request": 'true'}
-      },
-    )
-  })
-  it('gameInitGet resp is an object', async () => {
-    try {
-      await checkToken(fakeExpres.req as Request, fakeExpres.res as Response, fakeExpres.next as NextFunction)
-      try {
-        const resp = await rafflesPrizeDataGet(fakeExpres.req as Request, fakeExpres.res as Response)
-        expect(resp).toBeInstanceOf(Object)
-      } catch (error) {
-        fakeExpres.res.statusCode = 500
-        console.log('error getting rafflesPrizeDataGet', error.message)
-      }
-    } catch (error) {
-      fakeExpres.res.statusCode = 500
-      if (error instanceof Error)
-        console.log(error.message, error.name)
-      else
-      throw error
-    }
-  })
-  it('status is 200', () => {
-    expect(fakeExpres.res.statusCode).toBe(200)
-  })
-})
+// let fakeExpres
+// xdescribe(`raffle_prize_data`, () => {
+//   beforeAll(() => {
+//     fakeExpres = new Fakexpress(
+//       {
+//         query: {deviceId: 'borrar1'},
+//         headers: {"dev-request": 'true'}
+//       },
+//     )
+//   })
+//   it('gameInitGet resp is an object', async () => {
+//     try {
+//       await checkToken(fakeExpres.req as Request, fakeExpres.res as Response, fakeExpres.next as NextFunction)
+//       try {
+//         const resp = await rafflesPrizeDataGet(fakeExpres.req as Request, fakeExpres.res as Response)
+//         expect(resp).toBeInstanceOf(Object)
+//       } catch (error) {
+//         fakeExpres.res.statusCode = 500
+//         console.log('error getting rafflesPrizeDataGet', error.message)
+//       }
+//     } catch (error) {
+//       fakeExpres.res.statusCode = 500
+//       if (error instanceof Error)
+//         console.log(error.message, error.name)
+//       else
+//       throw error
+//     }
+//   })
+//   it('status is 200', () => {
+//     expect(fakeExpres.res.statusCode).toBe(200)
+//   })
+// })
 
 
 /*

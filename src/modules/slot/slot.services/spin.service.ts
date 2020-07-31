@@ -51,7 +51,7 @@ const saveSpinToDb = async (multiplier: number): Promise<void> => {
   const spinCount = Number(await getSetting('spinCount', multiplier))
   await setSetting('spinCount', String(Number(spinCount) + multiplier))
 }
-const getWinRowWithEmptyFilled = (winRow, fillTable) => {
+export const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   // console.log("getWinRowWithEmptyFilled -> winRow", winRow)
   const winSymbolAmount = winRow.symbol_amount || 0
   const winSymbolPaymentType = winRow.payment_type || ""
@@ -102,7 +102,7 @@ export const getPayTable = async (): Promise<any> => {
     await conn.destroy()
   }
 }
-const getFillTable = (payTable) => {
+export const getFillTable = (payTable) => {
   const rowsWith3 = payTable.filter((payTableRow) => payTableRow.symbol_amount === 3)
   const rowsWithLessThan3 = payTable.filter((payTableRow) => payTableRow.symbol_amount < 3)
   return rowsWith3.filter((rowWith3) => {

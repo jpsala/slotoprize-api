@@ -4,7 +4,7 @@ import { checkToken } from '../meta/authMiddleware'
 import * as slot from './slot.controller'
 
 const router = Router()
-router.route('/auth').post(slot.authPos)
+router.route('/auth').post(slot.authPost)
 router.route('/with-token').get(slot.withTokenGet)
 router.route('/symbols_in_db').get(slot.symbolsInDBGet)
 router.route('/game_init').get(slot.gameInitGet)

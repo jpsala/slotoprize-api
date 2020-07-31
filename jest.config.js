@@ -1,3 +1,5 @@
+const { resolve } = require("path");
+
 module.exports = {
   roots: ['<rootDir>/src'],
   coverageThreshold: {
@@ -15,4 +17,8 @@ module.exports = {
   verbose: true,
   moduleDirectories: ['node_modules'],
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts', 'jest-extended'],
+  moduleNameMapper: {
+    '^@/(.*)$': resolve(__dirname, './src/$1'),
+    '^@meta/(.*)$': resolve(__dirname, './src/modules/meta/$1'),
+  },
 }

@@ -18,11 +18,18 @@
         "esModuleInterop": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
+        "moduleResolution": "node",
         "lib": ["es6"],
         "typeRoots": [
             "src/@types",
             "./node_modules/@types"
-        ]
+        ],
+        "baseUrl": "./src",
+        "paths": {
+            "@/*": ["*"],
+            "@meta/*": ["modules/meta/*"],
+            "@slot/*": ["modules/slot/*"]
+        }
     },
     "setupFiles": [
         "<rootDir>/src/setupTests.ts"

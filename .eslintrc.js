@@ -56,6 +56,7 @@ module.exports = {
   ignorePatterns: ['.eslintrc.js'],
   settings: {
     'import/resolver': {
+        "typescript": {},
       node: {
         extensions: ['.ts'],
       },

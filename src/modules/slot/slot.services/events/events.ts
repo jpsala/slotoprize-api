@@ -120,4 +120,4 @@ export const updateRulesFromDb = async (): Promise<void> => {
   await init()
 }
 
-void (async () => { await init() })()
+void (async () => { if(process.env.NODE_ENV !== 'testing') await init() })()

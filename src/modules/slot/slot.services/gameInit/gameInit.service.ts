@@ -10,6 +10,7 @@ import {getOrSetWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import {getReelsData} from "../symbol.service"
 import {getPayTable} from "../spin.service"
+import { getLooseSpin } from './../spinLoose/spinLoose'
 import { getLastSpinDays } from './dailyReward.spin'
 import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaimed } from './../../slot.repo/dailyReward.repo'
 
@@ -56,11 +57,13 @@ export async function gameInit(deviceId: string): Promise<any> {
     const dailyRewardClaimed = await isDailyRewardClaimed(deviceId)
     await setSpinData(rawUser as GameUser)
     const languageCode = rawUser.languageCode
+    const defaultSpinData = await getLooseSpin()
     delete rawUser.languageCode
     const initData = {
       sessionId: token,
       requireProfileData: requireProfileData ? 1 : 0,
       languageCode,
+      defaultSpinData,
       hasPendingPrize: hasPendingPrize ? 1 : 0,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
