@@ -1,11 +1,10 @@
-import WebSocket from 'ws'
+import WebSocket, { Server} from 'ws'
 import PubSub from 'pubsub-js'
 import { isValidJSON } from '../../../../helpers'
 import { Skin } from './../../slot.repo/skin.repo'
 import { EventType } from './../events/events'
 
-let server: WebSocket.Server
-let ws: WebSocket
+//#region types
 type Subscription = { message: string, cb: () => void }
 interface EventPayload {
   eventType: EventType;
@@ -29,8 +28,13 @@ type WsServerService = {
 type MessageForEmit = {
   command: string;
 }
+//#endregion
+
+let server: WebSocket.Server
+let ws: WebSocket
+
 const createWsServerService = (): WsServerService => {
-  server = new WebSocket.Server({
+  server = new Server({
     port: 8890,
   })
   server.on('connection', function (ws) {
@@ -49,7 +53,7 @@ const createWsServerService = (): WsServerService => {
       console.log('sended to specific client')
     }
     else {
-      console.log('sending msg to all clients')
+      console.log('sending msg to all clients', msg.substr(0, 80))
       server.clients.forEach((client) => {
         console.log('sended to client')
         client.send(msg)
@@ -75,7 +79,7 @@ let wsServer: WsServerService
 if (process.env.NODE_ENV !== 'testing') {
   console.log('ws server started at port 8890...')
   wsServer = createWsServerService()
-} else {wsServer = {send:(_msg: WebSocketMessage, client?: WebSocket | undefined)=>{console.log('ws mock send', )}} as WsServerService}
+} else {wsServer = {send:(_msg: WebSocketMessage, client?: WebSocket | undefined)=>{console.log('ws mock send' )}} as WsServerService}
 
 export default wsServer
 

@@ -20,14 +20,13 @@ const wsMessage: WebSocketMessage = {
 const timeForHappyHour = () => {
   isHappyHour = true
   wsMessage.payload.action = 'start'
+  console.log('happyHour start', wsMessage.message)
   wsService.send(wsMessage)
-  console.log('timeForHappyHour message sended', wsMessage)
 }
 const happyHourEnd = (): void => {
   isHappyHour = false
   wsMessage.payload.action = 'stop'
-  wsService.send(wsMessage)
-  // console.log('happyHourEnds event', event?.eventType, event?.description)
+  console.log('happyHour stop', wsMessage.message)
   wsService.send(wsMessage)
 }
 export function initRule(event: Event): void {
