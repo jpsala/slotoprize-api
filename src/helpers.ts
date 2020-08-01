@@ -1,5 +1,5 @@
 import createError from 'http-errors'
-import statusCodes from 'http-status-codes'
+import * as statusCodes from 'http-status-codes'
 /* eslint-disable no-undef */
 /* eslint-disable no-sequences */
 /* eslint-disable no-return-assign */

@@ -1,3 +1,4 @@
+import { isArray } from 'util'
 import later from 'later'
 import { formatDistanceToNow } from 'date-fns'
 import { getSetting } from './../settings.service'
@@ -15,7 +16,7 @@ export const init = async (): Promise<void> => {
 }
 export function processEvents(eventsFromDB: EventDTO[]): void {
   for (const eventFromDB of eventsFromDB) {
-    const savedEvent = allEvents.find(event => event.payload.id === eventFromDB.id)
+    const savedEvent = allEvents.find(event => !isArray(event.payload) && event.payload.id === eventFromDB.id)
     if (savedEvent) {
       updateEvent(savedEvent, eventFromDB)
     } else {
@@ -35,7 +36,7 @@ export function processEvents(eventsFromDB: EventDTO[]): void {
 export function deleteEvent(event: Event): void {
   event.laterTimerHandler?.clear()
   if(event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler)
-  const raffleIdx = allEvents.findIndex(savedEvent => savedEvent.payload.id === event.payload.id)
+  const raffleIdx = allEvents.findIndex(savedEvent => !isArray(savedEvent.payload) && !isArray(event.payload) && savedEvent.payload.id === event.payload.id)
   if (raffleIdx >= 0) allEvents.splice(raffleIdx, 1)
 }
 export function scheduleEvent(event: Partial<Event>): Event {
@@ -44,7 +45,6 @@ export function scheduleEvent(event: Partial<Event>): Event {
   event.next = event.sched.next(1, new Date()) as Date | 0
   event.distance = event.next !== 0 ? formatDistanceToNow(event.next) : ''
   // if (event.eventType === 'socket') initSocketRule(event)
-  console.log('scheduled event', event.eventType, event.payload?.name, event.rule, event.next, event.distance, event.data)
   event.laterTimerHandler = later.setInterval(function () {
     // if(event == null || event === undefined) throw new Error('Event has to be defined')
     if(event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler)
@@ -73,13 +73,19 @@ export const updateRulesFromDb = async (): Promise<void> => {
 }
 export const getActiveEventMultiplier = (): number => {
   return allEvents.filter(event => event.isActive).reduce((initMultiplier, event) => {
-    return event.payload.multiplier * initMultiplier
+    {
+      const multiplier = isArray(event.payload) ? 0 : event.payload.multiplier
+      return multiplier * initMultiplier
+    }
   }, 1)
 }
 export const getActiveBetPrice = async (): Promise<number> => {
   const defaultbetPrice = Number(await getSetting('betPrice', 1))
   const eventbetPrice = allEvents.filter(event => event.isActive).reduce((initBetPrice, event) => {
-    return event.payload.betPrice + initBetPrice
+    {
+      const betPrice = isArray(event.payload) ? 0 : event.payload.betPrice
+      return betPrice + initBetPrice
+    }
   }, 0)
   return eventbetPrice === 0 ? defaultbetPrice : eventbetPrice
 }

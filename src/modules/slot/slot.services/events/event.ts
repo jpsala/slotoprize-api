@@ -1,3 +1,4 @@
+import { isArray } from 'util'
 import { raffleTime } from '../../../meta/meta.repo/raffle.repo'
 import { isValidJSON } from '../../../../helpers'
 import wsServer, { WebSocketMessage } from './../webSocket/ws'
@@ -63,10 +64,10 @@ const wsMessage: Partial<WebSocketMessage> = {
 
 const callBackForStart = async(event: Event):Promise<void> => {
   // wsMessage.payload.action = 'start'
-  console.log('event start', event.rule, event.eventType)
+
   if (event.eventType === 'generic') {
     event.isActive = true
-    event.payload.action = 'start'
+    if(!isArray(event.payload)) event.payload.action = 'start'
     wsMessage.payload = event.payload
     wsServer.send(wsMessage as WebSocketMessage)
   }

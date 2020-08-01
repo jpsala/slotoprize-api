@@ -6,6 +6,7 @@ import { EventPayload } from './../slot.services/events/event'
 
 type Message = { command: 'getEventState', eventType: string, client: WebSocket }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const runCommand = (cmd: string, data: Message): void => {
     const activeEvents = getActiveEvents()
     const wsMessages: EventPayload[] = []

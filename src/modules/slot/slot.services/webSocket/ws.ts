@@ -28,7 +28,7 @@ type WsServerService = {
   server: WebSocket.Server,
   ws: WebSocket,
   send(_msg: WebSocketMessage, client?: WebSocket): void,
-  sendRaw(_msg: any, client: WebSocket | undefined = undefined): void
+  sendRaw(_msg: any, client?: WebSocket | undefined): void
 }
 type MessageForEmit = {
   command: string;
