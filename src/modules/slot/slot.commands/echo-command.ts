@@ -8,7 +8,13 @@ type Message = { command: 'getEventState', eventType: string, client: WebSocket 
 export const runCommand = (cmd: string, data: any): void => {
   console.log('echo', data)
     delete data.command
-    wsServer.sendRaw(data?.payload)
+    try {
+
+      wsServer.sendRaw(data?.payload)
+    } catch (error) {
+      wsServer.sendRaw(data)
+
+    }
 }
 
 PubSub.subscribe('echo', runCommand)
