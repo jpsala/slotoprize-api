@@ -4,7 +4,7 @@ import createError from 'http-errors'
 import getSlotConnection from '../../../db'
 import { SpinData } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
-import { getActiveBetPrice , getActiveMultiplier } from './events/events'
+import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import * as walletService from "./wallet.service"
 import { getSetting, setSetting } from './settings.service'
@@ -33,7 +33,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     await resetSpinCount()
     isWin = true
   } else if (isWin) {
-    const eventMultiplier = getActiveMultiplier()
+    const eventMultiplier = getActiveEventMultiplier()
     wallet.coins += (winAmount * eventMultiplier)
   }
 

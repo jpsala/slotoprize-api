@@ -1,4 +1,3 @@
-import { json } from 'body-parser'
 import { raffleTime } from '../../../meta/meta.repo/raffle.repo'
 import { isValidJSON } from '../../../../helpers'
 import wsServer, { WebSocketMessage } from './../webSocket/ws'
@@ -16,7 +15,7 @@ export interface Event {
   next: Date | 0;
   distance: string;
   sched: later.Schedule | undefined;
-  payload: EventPayload;
+  payload: EventPayload | EventPayload[];
   callBackForStart?(event: Event): void;
   callBackForStop?(event: Event): void;
   callBackForBeforeReload?(event: Event): void;
@@ -55,11 +54,13 @@ export interface EventDTO {
   betPrice: number;
 }
 //#endregion
+
 const wsMessage: Partial<WebSocketMessage> = {
   code: 200,
   message: 'OK',
   msgType: 'events',
 }
+
 const callBackForStart = async(event: Event):Promise<void> => {
   // wsMessage.payload.action = 'start'
   console.log('event start', event.rule, event.eventType)
@@ -74,6 +75,7 @@ const callBackForStart = async(event: Event):Promise<void> => {
     await raffleTime(event.data.id)
   }
 }
+
 const callBackForStop = (event): void => {
   // wsMessage.payload.action = 'stop'
   console.log('event stop', event.rule, event.eventType)
@@ -83,6 +85,7 @@ const callBackForStop = (event): void => {
   wsServer.send(wsMessage as WebSocketMessage)
   // wsService.send(wsMessage)
 }
+
 export function createEvent(eventDto: EventDTO): Event {
   if (!['generic', 'raffle'].includes(eventDto.eventType)) throw new Error('Events createEvent, eventType invalid ' + eventDto.eventType)
   const event: Event = {

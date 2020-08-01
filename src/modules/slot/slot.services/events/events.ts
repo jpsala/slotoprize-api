@@ -68,20 +68,10 @@ export function dateToRule(date: Date): string {
   // console.log('dateToRule', date, `0 ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`)
   return `0 ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`
 }
-export function getNextEventById(eventId: number): Date | Date[] | undefined {
-  const event: Event = allEvents.find(event => {
-    return event.payload.id === eventId
-  }) as Event
-  if (!event) return undefined
-  return getNextEvent(event)
-}
-export const getNextEvent = (event: Event): Date => {
-  return event.sched?.next(1, new Date()) as Date
-}
 export const updateRulesFromDb = async (): Promise<void> => {
   await init()
 }
-export const getActiveMultiplier = (): number => {
+export const getActiveEventMultiplier = (): number => {
   return allEvents.filter(event => event.isActive).reduce((initMultiplier, event) => {
     return event.payload.multiplier * initMultiplier
   }, 1)
@@ -92,6 +82,9 @@ export const getActiveBetPrice = async (): Promise<number> => {
     return event.payload.betPrice + initBetPrice
   }, 0)
   return eventbetPrice === 0 ? defaultbetPrice : eventbetPrice
+}
+export const getActiveEvents = (): Event[] => {
+  return allEvents.filter(event => event.isActive)
 }
 
 void (async () => { if(process.env.NODE_ENV !== 'testing') await init() })()

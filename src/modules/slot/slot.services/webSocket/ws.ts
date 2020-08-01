@@ -21,13 +21,14 @@ public class EventData
 export interface WebSocketMessage {
   code: 200 | 400 | 500;
   message: 'OK' | string;
-  msgType: 'events';
-  payload: EventPayload
+  msgType: 'events' | 'webSocket';
+  payload: EventPayload | any
 }
 type WsServerService = {
   server: WebSocket.Server,
   ws: WebSocket,
   send(_msg: WebSocketMessage, client?: WebSocket): void,
+  sendRaw(_msg: any, client: WebSocket | undefined = undefined): void
 }
 type MessageForEmit = {
   command: string;
@@ -63,21 +64,44 @@ const createWsServerService = (): WsServerService => {
       })
     }
   }
+  const sendRaw = (_msg: any, client: WebSocket | undefined = undefined): void => {
+    // @TODO ver abajo
+    const payload = JSON.stringify(_msg.payload)
+    const msgStr = Object.assign({}, _msg)
+    msgStr.payload = payload
+    const msg = JSON.stringify(msgStr)
+    // console.log('msg', msg)
+    if (client) {
+      client.send(msg)
+      console.log('sended to specific client')
+    }
+    else {
+      console.log('sending msg to all clients', msg)
+      server.clients.forEach((client) => {
+        console.log('sended to client')
+        client.send(msg)
+      })
+    }
+  }
   const onMessage = function (message): void {
     console.log('message', message)
-    // console.log(`[SERVER] Received:`, message.subsrtr(0,60))
-    if (!(typeof message === 'string'))
-      throw new Error('ws on message: message have to be string')
-    const isValid = isValidJSON(message)
-    if (!isValid) throw Error(`invalid JSON on webSocket incomming message: ${message}`)
-    const msg = JSON.parse(message)
-    if (msg.command) {
-      msg.client = ws
-      PubSub.publish(msg.command, msg)
+    try {
+      // console.log(`[SERVER] Received:`, message.subsrtr(0,60))
+      if (!(typeof message === 'string'))
+        throw new Error('ws on message: message have to be string')
+      const isValid = isValidJSON(message)
+      if (!isValid) throw Error(`invalid JSON on webSocket incomming message: ${message}`)
+      const msg = JSON.parse(message)
+      if (msg.command) {
+        msg.client = ws
+        PubSub.publish(msg.command, msg)
+      }
+      PubSub.publish('ws', msg)
+    } catch (error) {
+      PubSub.publish('error', JSON.stringify({ "error": error.message }))
     }
-    PubSub.publish('ws', msg)
   }
-  return { server, ws, send }
+  return { server, ws, send, sendRaw }
 }
 console.log('ws.ts')
 let wsServer: WsServerService
