@@ -1,6 +1,7 @@
 import { exec } from '../../../db'
-import { Event } from './../slot.services/events/events'
+import { EventDTO } from './../slot.services/events/event'
 
-export async function addEvent(eventRule: Event): Promise<void> {
+export async function addEvent(eventRule: EventDTO): Promise<void> {
+  console.log('eventRule', eventRule)
   await exec('insert into event set ?', eventRule)
 }

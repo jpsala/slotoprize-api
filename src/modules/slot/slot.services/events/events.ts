@@ -1,93 +1,62 @@
 import later from 'later'
 import { formatDistanceToNow } from 'date-fns'
-import { Skin, getSkin } from './../../slot.repo/skin.repo'
+import { getSetting } from './../settings.service'
+import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
-import { initRule as initHappyRule } from "./happyHour.event"
-import { initRule as initRaffleRule } from './raffle.event'
+import { createEvent, Event, EventDTO } from './event'
 
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
-// later.date.localTime()
-export type EventType = 'HappyHour' | 'Raffle'
-export interface Event {
-  id: number;
-  eventType: EventType;
-  rule: string;
-  description?: string;
-  duration: number;
-  laterTimerHandler: later.Timer;
-  endTimeoutHandler: NodeJS.Timeout;
-  next: Date | 0;
-  distance: string;
-  skinId?: number;
-  skin?: Skin;
-  sched: later.Schedule;
-  textureUrl?: string;
-  data?: any;
-  devOnly?: boolean;
-  callBackForStart?(event: Event): void;
-  callBackForEnd?(event: Event): void;
-  callBackForBeforeReload?(event: Event): void;
-  callBackForBeforeDelete?(event: Event): void;
-}
 const allEvents: Event[] = []
 export const init = async (): Promise<void> => {
-  const rulesFromDB = await query('select * from event where active = 1') as Event[]
-  for (const ruleFromDb of rulesFromDB) {
-    let skin: Skin | undefined = undefined
-    if (ruleFromDb.skinId)
-      skin = await getSkin(ruleFromDb.skinId)
-    ruleFromDb.skin = skin
-  }
+  const rulesFromDB = await query('select * from event where active = 1')
+  for (const ruleFromDb of rulesFromDB)
+    ruleFromDb.skin = await getSkin(ruleFromDb.skinId)
   processEvents(rulesFromDB)
 }
-export function processEvents(eventsFromDB: Event[]): void {
+export function processEvents(eventsFromDB: EventDTO[]): void {
   for (const eventFromDB of eventsFromDB) {
-    const savedEvent = allEvents.find(event => event.id === eventFromDB.id)
+    const savedEvent = allEvents.find(event => event.payload.id === eventFromDB.id)
     if (savedEvent) {
-      if (savedEvent.callBackForBeforeReload) savedEvent.callBackForBeforeReload(eventFromDB)
       updateEvent(savedEvent, eventFromDB)
     } else {
-      createEvent(eventFromDB)
+      const newEvent: Partial<Event> = createEvent(eventFromDB)
+      const event = scheduleEvent(newEvent)
+      allEvents.push(event)
     }
   }
-  function updateEvent(savedEvent: Event, eventFromDB: Event) {
-    console.log('events updateEvent', savedEvent.eventType, savedEvent.rule, savedEvent.description)
-
+  function updateEvent(savedEvent: Event, eventFromDB: EventDTO) {
+    console.log('events updateEvent', savedEvent.eventType, savedEvent.rule)
     if (savedEvent.rule !== eventFromDB.rule || eventFromDB.duration !== savedEvent.duration) {
       deleteEvent(savedEvent)
       createEvent(eventFromDB)
-    } else { savedEvent.description = eventFromDB.description }
+    }
   }
 }
 export function deleteEvent(event: Event): void {
-  event.laterTimerHandler.clear()
-  clearTimeout(event.endTimeoutHandler)
-  const raffleIdx = allEvents.findIndex(savedEvent => savedEvent.id === event.id)
+  event.laterTimerHandler?.clear()
+  if(event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler)
+  const raffleIdx = allEvents.findIndex(savedEvent => savedEvent.payload.id === event.payload.id)
   if (raffleIdx >= 0) allEvents.splice(raffleIdx, 1)
 }
-export function createEvent(event: Event): void {
-  allEvents.push(event)
-  scheduleEvent(event)
-}
-export function scheduleEvent(event: Event): Event {
+export function scheduleEvent(event: Partial<Event>): Event {
   const scheduleData = later.parse.cron(event.rule, true)
   event.sched = later.schedule(scheduleData)
   event.next = event.sched.next(1, new Date()) as Date | 0
   event.distance = event.next !== 0 ? formatDistanceToNow(event.next) : ''
-  if (event.eventType === 'HappyHour') initHappyRule(event)
-  else if (event.eventType === 'Raffle') initRaffleRule(event)
-  if (!event.callBackForStart && !event?.callBackForEnd)
-    throw new Error('event have no point if there are no start or end callbacks')
+  // if (event.eventType === 'socket') initSocketRule(event)
+  console.log('scheduled event', event.eventType, event.payload?.name, event.rule, event.next, event.distance, event.data)
   event.laterTimerHandler = later.setInterval(function () {
+    // if(event == null || event === undefined) throw new Error('Event has to be defined')
     if(event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler)
-    event.next = event.sched.next(1, new Date()) as Date | 0
+    event.next = event.sched?.next(1, new Date()) as Date | 0
     event.distance = event.next !== 0 ? formatDistanceToNow(event.next) : ''
-    if (event.callBackForStart) event.callBackForStart(event)
+    if(event.duration == null || event.duration == undefined) event.duration = 0
+    if (event.callBackForStart) event.callBackForStart(event as Event)
     event.endTimeoutHandler = setTimeout(() => {
-      if (event.callBackForEnd) event.callBackForEnd(event)
-    }, event.duration * 1000)
+      if ((event.duration || 0) > 0 && event.callBackForStop) event.callBackForStop(event as Event)
+    }, (event.duration || 0) * 1000)
   }, scheduleData)
-  return event
+  return event as Event
 }
 export function dateToRule(date: Date): string {
   const day = date.getUTCDate()
@@ -101,23 +70,28 @@ export function dateToRule(date: Date): string {
 }
 export function getNextEventById(eventId: number): Date | Date[] | undefined {
   const event: Event = allEvents.find(event => {
-    return event.id === eventId
+    return event.payload.id === eventId
   }) as Event
   if (!event) return undefined
   return getNextEvent(event)
 }
 export const getNextEvent = (event: Event): Date => {
-  return event.sched.next(1, new Date()) as Date
-}
-export function getNextEventByType(eventType: EventType): Date | Date[] | undefined {
-  const event: Event = allEvents.find(_event => {
-    return _event.eventType === eventType
-  }) as Event
-  if (!event) return undefined
-  return getNextEvent(event)
+  return event.sched?.next(1, new Date()) as Date
 }
 export const updateRulesFromDb = async (): Promise<void> => {
   await init()
+}
+export const getActiveMultiplier = (): number => {
+  return allEvents.filter(event => event.isActive).reduce((initMultiplier, event) => {
+    return event.payload.multiplier * initMultiplier
+  }, 1)
+}
+export const getActiveBetPrice = async (): Promise<number> => {
+  const defaultbetPrice = Number(await getSetting('betPrice', 1))
+  const eventbetPrice = allEvents.filter(event => event.isActive).reduce((initBetPrice, event) => {
+    return event.payload.betPrice + initBetPrice
+  }, 0)
+  return eventbetPrice === 0 ? defaultbetPrice : eventbetPrice
 }
 
 void (async () => { if(process.env.NODE_ENV !== 'testing') await init() })()

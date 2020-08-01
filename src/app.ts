@@ -3,6 +3,7 @@ import express, { Express, Request, Response, NextFunction } from 'express'
 import bodyParser from "body-parser"
 import cors from 'cors'
 
+
 import { HttpError } from 'http-errors'
 import 'express-async-errors'
 
@@ -10,7 +11,9 @@ import 'express-async-errors'
 // import multer from "multer"
 import routes from './routes'
 import './modules/slot/slot.services/events/events'
+import './modules/slot/slot.services/webSocket/ws'
 // const upload = multer()
+
 
 const createApp = (): Express => {
 

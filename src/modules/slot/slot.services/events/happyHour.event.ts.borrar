@@ -10,11 +10,14 @@ const wsMessage: WebSocketMessage = {
   msgType: 'events',
   payload: {
     eventType: 'HappyHour',
-    description: '',
+    name: '',
     action: 'stop',
-    devOnly: true,
+    popupMessage: '',
+    popupTextureUrl: '',
+    notificationMessage: '',
+    notificationTextureUrl: '',
     skin: undefined,
-    textureUrl: '',
+    devOnly: true
   }
 }
 const timeForHappyHour = () => {
@@ -31,13 +34,14 @@ const happyHourEnd = (): void => {
 }
 export function initRule(event: Event): void {
   event.callBackForStart = timeForHappyHour
-  event.callBackForEnd = happyHourEnd
+  event.callBackForStop = happyHourEnd
   event.callBackForBeforeReload = beforeEventReload
   wsMessage.payload.action = 'stop'
   wsMessage.payload.skin = event.skin
   wsMessage.payload.devOnly = event.devOnly || false
-  wsMessage.payload.description = event.description || ''
-  wsMessage.payload.textureUrl = event.textureUrl || ''
+  wsMessage.payload.notificationMessage = event.description || ''
+  wsMessage.payload.notificationTextureUrl = event.textureUrl || ''
+  wsMessage.payload.popupTextureUrl = event.textureUrl || ''
 }
 export const getIsHappyHour = (): boolean => {
   return isHappyHour

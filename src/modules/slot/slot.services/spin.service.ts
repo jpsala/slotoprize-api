@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
 import createError from 'http-errors'
 import getSlotConnection from '../../../db'
 import { SpinData } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
-import { getIsHappyHour } from './events/happyHour.event'
+import { getActiveBetPrice , getActiveMultiplier } from './events/events'
+
 import * as walletService from "./wallet.service"
 import { getSetting, setSetting } from './settings.service'
 
@@ -22,10 +24,8 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   // eslint-disable-next-line prefer-const
   let { winPoints, winType, symbolsData, isWin } = await getWinData()
 
-  const isHappyHour = getIsHappyHour()
-
   if (winType === 'jackpot' || winType === 'ticket') multiplier = 1
-  let winAmount = winPoints * multiplier
+  const winAmount = winPoints * multiplier
 
   // siempre se descuenta el costo del spin
   wallet.coins -= bet
@@ -33,8 +33,8 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     await resetSpinCount()
     isWin = true
   } else if (isWin) {
-    winAmount = isHappyHour ? winAmount * 2 : winAmount
-    wallet.coins += winAmount
+    const eventMultiplier = getActiveMultiplier()
+    wallet.coins += (winAmount * eventMultiplier)
   }
 
   await walletService.updateWallet(deviceId, wallet)
@@ -99,7 +99,7 @@ export const getPayTable = async (): Promise<any> => {
       order by pt.probability asc`)
     return payTable
   } finally {
-    await conn.destroy()
+    conn.destroy()
   }
 }
 export const getFillTable = (payTable) => {
@@ -134,8 +134,9 @@ async function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: numb
 
 }
 export async function getBetAndCheckFunds(multiplier: number, coins: number): Promise<{ bet: number, enoughCoins: boolean }> {
-  const betPrice = Number(await getSetting('betPrice', 1))
+  const betPrice = Number(await getActiveBetPrice() )
   const bet = betPrice * multiplier
+
   const enoughCoins = ((coins - bet) >= 0)
   return { bet, enoughCoins }
 }
@@ -158,7 +159,7 @@ async function getWinData() {
   }
   const filltable = await getFillTable(payTable)
 
-  const symbolsData = await getWinRowWithEmptyFilled(winRow, filltable)
+  const symbolsData = getWinRowWithEmptyFilled(winRow, filltable)
   return { winPoints: winRow.points, winType, symbolsData, isWin }
 }
 function getJackpotRow(payTable) {

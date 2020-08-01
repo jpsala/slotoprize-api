@@ -53,7 +53,6 @@ export function isValidJSON(text: string): boolean {
     return true
   }
   catch (error) {
-    console.log('eror', error)
     return false
   }
 }

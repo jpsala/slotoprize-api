@@ -1,19 +1,23 @@
 import WebSocket, { Server} from 'ws'
 import PubSub from 'pubsub-js'
 import { isValidJSON } from '../../../../helpers'
-import { Skin } from './../../slot.repo/skin.repo'
-import { EventType } from './../events/events'
+import { EventPayload } from './../events/event'
 
 //#region types
 type Subscription = { message: string, cb: () => void }
-interface EventPayload {
-  eventType: EventType;
-  description: string;
-  action: 'start' | 'stop' | 'notification';
-  devOnly: boolean;
-  skin?: Skin;
-  textureUrl: string;
-}
+
+/*
+public class EventData
+{
+    public string action;
+    public strin name;
+    public string popupMessage;
+    public string popupTextureUrl;
+    public string notificationMessage;
+    public string notificationTextureUrl;
+    public SkinData skin;
+    public bool devOnly;
+} */
 export interface WebSocketMessage {
   code: 200 | 400 | 500;
   message: 'OK' | string;
@@ -29,7 +33,6 @@ type MessageForEmit = {
   command: string;
 }
 //#endregion
-
 let server: WebSocket.Server
 let ws: WebSocket
 
@@ -76,26 +79,29 @@ const createWsServerService = (): WsServerService => {
   }
   return { server, ws, send }
 }
+console.log('ws.ts')
 let wsServer: WsServerService
 if (process.env.NODE_ENV !== 'testing') {
   console.log('ws server started at port 8890...')
   wsServer = createWsServerService()
-} else {wsServer = {send:(_msg: WebSocketMessage, client?: WebSocket | undefined)=>{console.log('ws mock send' )}} as WsServerService}
+} else {
+  wsServer = { send: (_msg: WebSocketMessage, client?: WebSocket | undefined) => { console.log('ws mock send') } } as WsServerService
+}
 
 export default wsServer
 
 
 // client test:
 
-const client = new WebSocket('ws://127.0.0.1:8890/ws/chat')
+// const client = new WebSocket('ws://127.0.0.1:8890/ws/chat')
 // const client = new WebSocket('ws://wopidom.homelinux.com:8890/ws/chat')
-client.on('open', function () {
-  console.log(`[CLIENT] open()`)
-  client.send('{"command":"getEventState","eventType":"happyHour"}')
-})
-client.on('message', function (a, b) {
-  console.log('msg from server!', a, b)
-})
+// client.on('open', function () {
+//   console.log(`[CLIENT] open()`)
+//   client.send('{"command":"getEventState","eventType":"happyHour"}')
+// })
+// client.on('message', function (a, b) {
+//   console.log('msg from server!', a, b)
+// })
 // client.on('message', function (message) {
 //   console.log(`[CLIENT] Received: ${message}`)
 //   // client.send({ hola: "holaaaaasdfasdfasdf" })

@@ -121,12 +121,12 @@ export async function newRaffle(raffle: RafflePrizeDataDB): Promise<number> {
   // addRaffleAsTask(_raffle)
   await exec(`insert into event set ? `, [
     {
-      "eventType": "Raffle",
-      "description": _raffle.localizationData[0]?.description,
+      "eventType": "raffle",
+      "name": _raffle.localizationData[0]?.name,
       rule,
       "duration": 0,
       "active": 1,
-      "data": JSON.stringify({ "id": _raffle.id })
+      "data": JSON.stringify({ id: _raffle.id })
     }
   ])
   await updateRulesFromDb()
@@ -149,6 +149,7 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
   return camelcaseKeys(raffleHistory) as RaffleRecordData[]
 }
 export async function raffleTime(raffleId: number): Promise<any> {
+  console.log('reffleTime', raffleId)
   const purchases: { id: number, numbers: number, game_user_id: number }[] = await query(`
     select id, raffle_numbers as numbers, game_user_id, raffle_id
     from raffle_history
