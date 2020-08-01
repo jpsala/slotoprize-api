@@ -21,7 +21,7 @@ public class EventData
 export interface WebSocketMessage {
   code: 200 | 400 | 500;
   message: 'OK' | string;
-  msgType: 'events' | 'webSocket';
+  msgType: 'events' | 'webSocket' | 'eventsState';
   payload: EventPayload | any
 }
 type WsServerService = {

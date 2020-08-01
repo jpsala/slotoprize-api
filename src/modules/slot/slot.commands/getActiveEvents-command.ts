@@ -14,7 +14,7 @@ export const runCommand = (cmd: string, data: Message): void => {
     const wsMessage: Partial<WebSocketMessage> = {
       code: 200,
       message: 'OK',
-      msgType: 'events',
+      msgType: 'eventsState',
       payload: wsMessages
     }
     wsServer.send(wsMessage as WebSocketMessage)
