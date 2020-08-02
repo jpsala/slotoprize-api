@@ -63,28 +63,24 @@ const wsMessage: Partial<WebSocketMessage> = {
 }
 
 const callBackForStart = async(event: Event):Promise<void> => {
-  // wsMessage.payload.action = 'start'
-
+  event.payload = event.payload as EventPayload
   if (event.eventType === 'generic') {
     event.isActive = true
-    if(!isArray(event.payload)) event.payload.action = 'start'
+    event.payload.action = 'start'
     wsMessage.payload = event.payload
     wsServer.send(wsMessage as WebSocketMessage)
   }
   else if (event.eventType === 'raffle') {
-    console.log('event', event.data, typeof(event.data))
     await raffleTime(event.data.id)
   }
 }
 
 const callBackForStop = (event): void => {
-  // wsMessage.payload.action = 'stop'
-  console.log('event stop', event.rule, event.eventType)
+  event.payload = event.payload as EventPayload
   event.isActive = false
   event.payload.action = 'stop'
   wsMessage.payload = event.payload
   wsServer.send(wsMessage as WebSocketMessage)
-  // wsService.send(wsMessage)
 }
 
 export function createEvent(eventDto: EventDTO): Event {
@@ -118,3 +114,6 @@ export function createEvent(eventDto: EventDTO): Event {
   }
   return event
 }
+
+
+const aaaaaa = {"code":200,"message":"OK","msgType":"events","payload":"{\"id\":1,\"popupMessage\":\"popupMessage\",\"popupTextureUrl\":\"popupTextureUrl\",\"notificationMessage\":\"textureUrl\",\"notificationTextureUrl\":\"notificationTextureUrl\",\"name\":\"happyHour\",\"skin\":{\"machineSkinTextureUrl\":\"adsfsdfsdf\",\"machineBgColor\":\"\"},\"action\":\"start\",\"devOnly\":true,\"multiplier\":3,\"betPrice\":2}"}

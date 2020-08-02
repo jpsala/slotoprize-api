@@ -4,7 +4,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { getSetting } from './../settings.service'
 import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
-import { createEvent, Event, EventDTO } from './event'
+import { createEvent, Event, EventDTO, EventPayload } from './event'
 
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
 let allEvents: Event[] = []
@@ -15,6 +15,8 @@ export const init = async (): Promise<void> => {
   processEvents(rulesFromDB)
 }
 export function processEvents(eventsFromDB: EventDTO[]): void {
+  allEvents.forEach(event => { if (event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler) })
+  allEvents.forEach(event => event.laterTimerHandler?.clear())
   allEvents = []
   for (const eventFromDB of eventsFromDB) {
     const savedEvent = allEvents.find(event => !isArray(event.payload) && event.payload.id === eventFromDB.id)
@@ -51,7 +53,8 @@ export function scheduleEvent(event: Partial<Event>): Event {
     if(event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler)
     event.next = event.sched?.next(1, new Date()) as Date | 0
     event.distance = event.next !== 0 ? formatDistanceToNow(event.next) : ''
-    if(event.duration == null || event.duration == undefined) event.duration = 0
+    if (event.duration == null || event.duration == undefined) event.duration = 0
+    event.payload = event.payload as EventPayload
     if (event.callBackForStart) event.callBackForStart(event as Event)
     event.endTimeoutHandler = setTimeout(() => {
       if ((event.duration || 0) > 0 && event.callBackForStop) event.callBackForStop(event as Event)
