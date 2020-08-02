@@ -13,7 +13,7 @@ export const runCommand = (cmd: string, data: Message): void => {
     payload: data,
     msgType:'webSocket'
   }
-  wsServer.send(wsMessage)
+  wsServer.send(wsMessage, data.client)
 }
 
 PubSub.subscribe('error', runCommand)
