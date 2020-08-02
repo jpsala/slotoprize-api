@@ -53,13 +53,13 @@ const createWsServerService = (): WsServerService => {
     const msg = JSON.stringify(msgStr)
     // console.log('msg', msg)
     if (client) {
+      console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
       client.send(msg)
-      console.log('sended to specific client')
     }
     else {
-      console.log('sending msg to all clients', msg)
+      console.log('sending msg to all clients', _msg.payload.name, _msg.payload.action)
       server.clients.forEach((client) => {
-        console.log('sended to client')
+        console.log('sended to specific client inside send to all')
         client.send(msg)
       })
     }

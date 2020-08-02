@@ -25,7 +25,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   let { winPoints, winType, symbolsData, isWin } = await getWinData()
 
   if (winType === 'jackpot' || winType === 'ticket') multiplier = 1
-  const winAmount = winPoints * multiplier
+  let winAmount = winPoints * multiplier
 
   // siempre se descuenta el costo del spin
   wallet.coins -= bet
@@ -34,7 +34,9 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     isWin = true
   } else if (isWin) {
     const eventMultiplier = getActiveEventMultiplier()
-    wallet.coins += (winAmount * eventMultiplier)
+    console.log('eventMul', eventMultiplier)
+    winAmount = winAmount * eventMultiplier
+    wallet.coins += (winAmount)
   }
 
   await walletService.updateWallet(deviceId, wallet)
