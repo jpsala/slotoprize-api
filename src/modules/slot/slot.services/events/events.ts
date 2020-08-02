@@ -7,7 +7,7 @@ import { query } from './../../../../db'
 import { createEvent, Event, EventDTO } from './event'
 
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
-const allEvents: Event[] = []
+let allEvents: Event[] = []
 export const init = async (): Promise<void> => {
   const rulesFromDB = await query('select * from event where active = 1')
   for (const ruleFromDb of rulesFromDB)
@@ -15,6 +15,7 @@ export const init = async (): Promise<void> => {
   processEvents(rulesFromDB)
 }
 export function processEvents(eventsFromDB: EventDTO[]): void {
+  allEvents = []
   for (const eventFromDB of eventsFromDB) {
     const savedEvent = allEvents.find(event => !isArray(event.payload) && event.payload.id === eventFromDB.id)
     if (savedEvent) {

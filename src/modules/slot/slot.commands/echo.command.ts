@@ -12,7 +12,7 @@ export const runCommand = (cmd: string, data: any): void => {
 
       wsServer.sendRaw(data?.payload)
     } catch (error) {
-      wsServer.sendRaw(data)
+      wsServer.sendRaw(data, data.client)
 
     }
 }

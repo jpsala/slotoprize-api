@@ -1,8 +1,8 @@
 import PubSub from 'pubsub-js'
 import WebSocket from 'ws'
 import { getActiveEvents } from '../slot.services/events/events'
-import wsServer, { WebSocketMessage } from './../slot.services/webSocket/ws'
-import { EventPayload } from './../slot.services/events/event'
+import wsServer, { WebSocketMessage } from '../slot.services/webSocket/ws'
+import { EventPayload } from '../slot.services/events/event'
 
 type Message = { command: 'getEventState', eventType: string, client: WebSocket }
 
@@ -17,7 +17,7 @@ export const runCommand = (cmd: string, data: Message): void => {
       msgType: 'eventsState',
       payload: wsMessages
     }
-    wsServer.send(wsMessage as WebSocketMessage)
+    wsServer.send(wsMessage as WebSocketMessage, data.client)
 }
 
 PubSub.subscribe('getEventState', runCommand)
