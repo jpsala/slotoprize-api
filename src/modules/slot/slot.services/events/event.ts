@@ -107,7 +107,7 @@ export function createEvent(eventDto: EventDTO): Event {
       name: eventDto.name,
       skin: eventDto.skin,
       action: undefined,
-      devOnly: true,
+      devOnly: eventDto.devOnly === 1,
       multiplier: eventDto.multiplier,
       betPrice: eventDto.betPrice
     }
@@ -115,5 +115,3 @@ export function createEvent(eventDto: EventDTO): Event {
   return event
 }
 
-
-const aaaaaa = {"code":200,"message":"OK","msgType":"events","payload":"{\"id\":1,\"popupMessage\":\"popupMessage\",\"popupTextureUrl\":\"popupTextureUrl\",\"notificationMessage\":\"textureUrl\",\"notificationTextureUrl\":\"notificationTextureUrl\",\"name\":\"happyHour\",\"skin\":{\"machineSkinTextureUrl\":\"adsfsdfsdf\",\"machineBgColor\":\"\"},\"action\":\"start\",\"devOnly\":true,\"multiplier\":3,\"betPrice\":2}"}
