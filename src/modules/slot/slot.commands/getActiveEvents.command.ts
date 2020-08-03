@@ -4,7 +4,7 @@ import { getActiveEvents } from '../slot.services/events/events'
 import wsServer, { WebSocketMessage } from '../slot.services/webSocket/ws'
 import { EventPayload } from '../slot.services/events/event'
 
-type Message = { command: 'getEventState', eventType: string, client: WebSocket }
+type Message = { payload: any, client: WebSocket }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const runCommand = (cmd: string, data: Message): void => {
