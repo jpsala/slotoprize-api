@@ -1,4 +1,3 @@
-import { isArray } from 'util'
 import { raffleTime } from '../../../meta/meta.repo/raffle.repo'
 import { isValidJSON } from '../../../../helpers'
 import wsServer, { WebSocketMessage } from './../webSocket/ws'
@@ -63,7 +62,7 @@ const wsMessage: Partial<WebSocketMessage> = {
 }
 
 const callBackForStart = async(event: Event):Promise<void> => {
-  event.payload = event.payload as EventPayload
+  if(Array.isArray(event.payload)) throw new Error('Here event.payload can not be an array')
   if (event.eventType === 'generic') {
     event.isActive = true
     event.payload.action = 'start'
@@ -76,7 +75,6 @@ const callBackForStart = async(event: Event):Promise<void> => {
 }
 
 const callBackForStop = (event): void => {
-  event.payload = event.payload as EventPayload
   event.isActive = false
   event.payload.action = 'stop'
   wsMessage.payload = event.payload

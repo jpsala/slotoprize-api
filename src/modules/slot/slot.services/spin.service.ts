@@ -34,7 +34,6 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     isWin = true
   } else if (isWin) {
     const eventMultiplier = getActiveEventMultiplier()
-    console.log('eventMul', eventMultiplier)
     winAmount = winAmount * eventMultiplier
     wallet.coins += (winAmount)
   }

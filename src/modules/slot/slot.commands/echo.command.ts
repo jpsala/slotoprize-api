@@ -6,13 +6,13 @@ type Message = { command: 'getEventState', eventType: string, client: WebSocket 
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const runCommand = (cmd: string, data: any): void => {
-  console.log('echo', data)
+  const client: WebSocket = data.client
     delete data.command
+    delete data.client
     try {
-
       wsServer.sendRaw(data?.payload)
     } catch (error) {
-      wsServer.sendRaw(data, data.client)
+      wsServer.sendRaw(data, client)
 
     }
 }

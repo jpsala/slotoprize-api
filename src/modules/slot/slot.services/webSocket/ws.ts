@@ -43,7 +43,7 @@ const createWsServerService = (): WsServerService => {
   })
   server.on('connection', function (ws) {
     console.log(`[SERVER] connection()`)
-    ws.on('message', onMessage)
+    ws.on('message', (msg) => onMessage(msg, ws))
   })
   const send = (_msg: WebSocketMessage, client: WebSocket | undefined = undefined): void => {
     // @TODO ver abajo
@@ -83,7 +83,7 @@ const createWsServerService = (): WsServerService => {
       })
     }
   }
-  const onMessage = function (message): void {
+  const onMessage = function (message, ws: WebSocket): void {
     console.log('message', message)
     try {
       // console.log(`[SERVER] Received:`, message.subsrtr(0,60))
@@ -96,9 +96,9 @@ const createWsServerService = (): WsServerService => {
         msg.client = ws
         PubSub.publish(msg.command, msg)
       }
-      PubSub.publish('ws', msg)
+      // PubSub.publish('ws', msg)
     } catch (error) {
-      PubSub.publish('error', JSON.stringify({ "error": error.message }))
+      PubSub.publish('error', { error: JSON.stringify({ "error": error.message }), client: ws  })
     }
   }
   return { server, ws, send, sendRaw }
