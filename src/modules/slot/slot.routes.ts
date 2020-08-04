@@ -1,7 +1,7 @@
-import { Router } from 'express'
 
 import { checkToken } from '../meta/authMiddleware'
 import * as slot from './slot.controller'
+import { Router } from 'express'
 
 const router = Router()
 router.route('/auth').post(slot.authPost)
@@ -23,6 +23,9 @@ router.route('/postman').get(slot.postmanGet)
 router.route('/language_code').get(checkToken, slot.languageCodeGet)
 router.route('/support_request').post(checkToken, slot.soportePost)
 // router.route('/event').post(checkToken, slot.eventPost)
+router.route('/events').get(checkToken, slot.eventsForCrudGet)
+router.route('/skins').get(checkToken, slot.skinsGet)
+router.route('/event').post(checkToken, slot.eventPost)
 router.route('/eventsReload').post(checkToken, slot.eventsReloadPost)
 router.route('/daily_reward_claim').get(checkToken, slot.dailyRewardClaimGet)
 

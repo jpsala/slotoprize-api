@@ -1,8 +1,8 @@
-import {NextFunction, Request, Response} from 'express'
 import createError from 'http-errors'
 
 import {verifyToken} from '../../services/jwtService'
 import {getGameUserByDeviceId} from "./meta-services/meta.service"
+import {NextFunction, Request, Response} from 'express'
 
 const reqUser: { deviceId?: string, user?: number } = {}
 
@@ -36,7 +36,10 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
   }
   let { sessionToken } = req.query
   if (!sessionToken)  sessionToken = req.body.sessionToken
-  const {decodedToken, error} = verifyToken(sessionToken as string)
+  if (!sessionToken)  sessionToken = req.headers.token
+  const { decodedToken, error } = verifyToken(sessionToken as string)
+  console.log('sestoken', decodedToken)
+
   if (error || !decodedToken.id) {
     const message = error ? error.message : 'no user foune in token'
     console.log(`checkToken: ${message}`, req.baseUrl, sessionToken)

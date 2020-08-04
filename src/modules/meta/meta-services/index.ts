@@ -1,1 +1,1 @@
-export * as miscService from './meta.service'
+export * from './meta.service'
