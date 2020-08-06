@@ -1,3 +1,4 @@
+import formidable from 'formidable'
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import { verifyToken, getNewToken } from '../../services/jwtService'
@@ -96,18 +97,12 @@ export async function raffleWinnersGet(req: Request, res: Response): Promise<any
 // End Raffles
 export async function withTokenGet(req: Request, res: Response): Promise<any>
 {
-  console.log('req', req)
   const loginToken = req.query.token as string
   const statusToken = verifyToken(loginToken)
-  console.log('st', statusToken.decodedToken)
-  console.log('statusToken.decodedToken', statusToken.decodedToken)
   const { id } = statusToken.decodedToken as User
-  console.log('id', id)
   const user = await metaService.getUserById(id)
-  console.log('user', user)
   if (!user)
     return res.status(401).send({ auth: false, message: 'The user in the token was not found in the db' })
-  console.log('user', user)
   const token = getNewToken({ id: user.id, deviceId: undefined })
   res.setHeader('token', token)
   setReqUser(undefined, user.id)
@@ -153,10 +148,14 @@ export async function skinsGet(req: Request, res: Response): Promise<any>
   const resp = await getSkinsForCrud()
   res.status(200).json(resp)
 }
-export async function eventPost(req: Request, res: Response): Promise<any>
+export function eventPost(req: Request, res: Response): void
 {
-  const resp = await setEvent(req.body)
-  res.status(200).json(resp)
+  const form = formidable({ multiples: false })
+  form.parse(req, async (err, fields, files) =>
+  {
+    const resp = await setEvent(fields, files)
+    res.status(200).json(resp)
+  })
 }
 export async function eventsReloadPost(req: Request, res: Response): Promise<any>
 {

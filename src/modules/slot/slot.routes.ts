@@ -1,5 +1,6 @@
-
 import { checkToken } from '../meta/authMiddleware'
+import { toggleLog } from './slot.services/events/events'
+
 import * as slot from './slot.controller'
 import { Router } from 'express'
 
@@ -24,9 +25,10 @@ router.route('/language_code').get(checkToken, slot.languageCodeGet)
 router.route('/support_request').post(checkToken, slot.soportePost)
 // router.route('/event').post(checkToken, slot.eventPost)
 router.route('/events').get(checkToken, slot.eventsForCrudGet)
-router.route('/skins').get(checkToken, slot.skinsGet)
 router.route('/event').post(checkToken, slot.eventPost)
+router.route('/skins').get(checkToken, slot.skinsGet)
 router.route('/eventsReload').post(checkToken, slot.eventsReloadPost)
+router.route('/toggleLog').post(checkToken, (req, res) => { res.status(200).json({ logging: toggleLog() }) })
 router.route('/daily_reward_claim').get(checkToken, slot.dailyRewardClaimGet)
 
 export default router

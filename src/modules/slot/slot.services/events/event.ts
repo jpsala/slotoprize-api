@@ -5,7 +5,8 @@ import { Skin } from './../../slot.repo/skin.repo'
 //#region interface
 export type EventType = 'raffle' | 'generic'
 // later.date.localTime()
-export interface Event {
+export interface Event
+{
   eventType: EventType;
   rule: string;
   duration: number;
@@ -22,10 +23,11 @@ export interface Event {
   callBackForBeforeDelete?(event: Event): void;
   data?: any;
 }
-export interface EventPayload {
+export interface EventPayload
+{
   id: number;
   name: string;
-  action: 'start' | 'stop' | 'notification' | undefined;
+  action: 'start' | 'stop' | 'notification';
   popupMessage: string;
   popupTextureUrl: string;
   notificationMessage: string;
@@ -35,7 +37,8 @@ export interface EventPayload {
   skin?: Skin;
   devOnly: boolean;
 }
-export interface EventDTO {
+export interface EventDTO
+{
   id: number;
   name: string;
   eventType: string;
@@ -61,27 +64,30 @@ const wsMessage: Partial<WebSocketMessage> = {
   msgType: 'events',
 }
 
-const callBackForStart = async(event: Event):Promise<void> => {
-  if(Array.isArray(event.payload)) throw new Error('Here event.payload can not be an array')
-  if (event.eventType === 'generic') {
+const callBackForStart = async (event: Event): Promise<void> =>
+{
+  if (Array.isArray(event.payload)) throw new Error('Here event.payload can not be an array')
+  if (event.eventType === 'generic')
+  {
     event.isActive = true
-    event.payload.action = 'start'
     wsMessage.payload = event.payload
     wsServer.send(wsMessage as WebSocketMessage)
   }
-  else if (event.eventType === 'raffle') {
+  else if (event.eventType === 'raffle')
+  {
     await raffleTime(event.data.id)
   }
 }
 
-const callBackForStop = (event): void => {
+const callBackForStop = (event): void =>
+{
   event.isActive = false
-  event.payload.action = 'stop'
   wsMessage.payload = event.payload
   wsServer.send(wsMessage as WebSocketMessage)
 }
 
-export function createEvent(eventDto: EventDTO): Event {
+export function createEvent(eventDto: EventDTO): Event
+{
   if (!['generic', 'raffle'].includes(eventDto.eventType)) throw new Error('Events createEvent, eventType invalid ' + eventDto.eventType)
   const event: Event = {
     eventType: eventDto.eventType as EventType,
@@ -104,7 +110,7 @@ export function createEvent(eventDto: EventDTO): Event {
       notificationTextureUrl: eventDto.notificationTextureUrl,
       name: eventDto.name,
       skin: eventDto.skin,
-      action: undefined,
+      action: 'stop',
       devOnly: eventDto.devOnly === 1,
       multiplier: eventDto.multiplier,
       betPrice: eventDto.betPrice

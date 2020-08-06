@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import path from 'path'
+import fs, { unlinkSync } from 'fs'
+import os from 'os'
 import { getSetting } from './../slot.services/settings.service'
 import { exec, query } from './../../../db'
 import { EventDTO, Event } from './../slot.services/events/event'
@@ -36,18 +40,50 @@ export async function getEventsForCrud(): Promise<any>
   }
   return { events, newEvent }
 }
-export async function setEvent(event: Event & { id: number }): Promise<void>
+
+type EventDto = Event &
 {
-  console.log('event', event)
-  if (event.id === -1)
+  skin?: any,
+  notificationFile?: any,
+  popupFile?: any,
+  id: number,
+  popupTextureUrl?: string | undefined,
+  notificationTextureUrl?: string | undefined
+}
+export async function setEvent(eventDto: EventDto, files: { notificationFile?: any, popupFile?: any }): Promise<any>
+{
+  delete eventDto.skin
+  delete eventDto.notificationFile
+  delete eventDto.popupFile
+  let isNew = false
+  if (String(eventDto.id) === '-1')
   {
-    delete event.id
-    await query(`insert
-    into from event set ?`, <any>event)
+    isNew = true
+    delete eventDto.id
   }
-  else
+
+  const resp = await exec(`REPLACE into event set ?`, <any>eventDto)
+  const notificationFile = saveFileAndGetFilePath(files?.notificationFile, resp.insertId, 'notification')
+  const popupFile = saveFileAndGetFilePath(files?.popupFile, resp.insertId, 'popup')
+  eventDto.popupTextureUrl = popupFile ?? eventDto.popupTextureUrl
+  eventDto.notificationTextureUrl = notificationFile ?? eventDto.notificationTextureUrl
+  if(isNew) eventDto.id = resp.insertId
+  await exec(`REPLACE into event set ?`, <any>eventDto)
+  function saveFileAndGetFilePath(file: any, eventId: number, whichFile: 'notification' | 'popup'): string | undefined
   {
-    const resp = await exec(`REPLACE into event set ?`, <any>event)
-    console.log('resp', resp)
+    if (!file) return undefined
+    const eventImgPath = '/var/www/html/public/assets/img/events'
+    const fileNamePart = whichFile === 'notification' ? 'notificationImg' : 'popupImg'
+    const fileName = `${eventId}_${fileNamePart}.${file.name.split('.').pop()}`
+    // const fileNameWithPath = path.join(file.path, fileName)
+    const oldPath = file.path
+    const newPath = path.join(eventImgPath, fileName)
+    const rawData = fs.readFileSync(oldPath)
+    fs.writeFileSync(newPath, rawData)
+    unlinkSync(oldPath)
+    console.log('os.hostname()', os.hostname())
+    const url = os.hostname() === 'jpnote' ? 'http://localhost' : 'http://wopidom.homelinux.com'
+    return `${url}/public/assets/img/events/${fileName}`
   }
+  return { notificationFile, popupFile, id: isNew ? resp.insertId : -1, isNew }
 }

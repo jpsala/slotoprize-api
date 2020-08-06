@@ -1,4 +1,5 @@
 /* eslint-disable babel/no-unused-expressions */
+import { execPath } from 'process'
 import {createConnection, ResultSetHeader, Connection} from 'mysql2/promise'
 import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
@@ -49,9 +50,14 @@ export const query = async (select: string, params: string[] = [], camelCase = f
 }
 export const exec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
   const conn = await getConnection()
-  try {
+  try
+  {
     const [respExec] = await conn.query(select, params)
     return respExec as ResultSetHeader
+  }catch (err)
+    {
+    console.dir(err)
+    throw err
   } finally {
     conn.destroy()
   }
