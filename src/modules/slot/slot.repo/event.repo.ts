@@ -78,7 +78,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
     if (!file) return undefined
     const eventImgPath = `/var/www/html/public/assets/img/events`
     const fileNamePart = whichFile === 'notification' ? 'notificationImg' : 'popupImg'
-    const fileNameStartWith = `${eventId}_${fileNamePart}_`
+    const fileNameStartWith = `${eventId}_${fileNamePart}`
     fs.readdir(eventImgPath, (err, files) => {
       files.forEach(file => {
         if(file.startsWith(`${fileNameStartWith}`))
