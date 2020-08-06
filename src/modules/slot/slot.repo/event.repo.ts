@@ -56,6 +56,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   delete eventDto.notificationFile
   delete eventDto.popupFile
   let isNew = false
+  console.log('eventDto', eventDto)
   if (String(eventDto.id) === '-1')
   {
     isNew = true
