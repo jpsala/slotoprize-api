@@ -2,6 +2,7 @@
 import path from 'path'
 import fs, { unlinkSync } from 'fs'
 import os from 'os'
+import { getRandomNumber } from './../../../helpers'
 import { getSetting } from './../slot.services/settings.service'
 import { exec, query } from './../../../db'
 import { EventDTO, Event } from './../slot.services/events/event'
@@ -56,7 +57,6 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   delete eventDto.notificationFile
   delete eventDto.popupFile
   let isNew = false
-  console.log('eventDto', eventDto)
   if (String(eventDto.id) === '-1')
   {
     isNew = true
@@ -64,18 +64,35 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   }
 
   const resp = await exec(`REPLACE into event set ?`, <any>eventDto)
+  removeActualImage(files?.notificationFile, resp.insertId, 'notification')
+  removeActualImage(files?.popupFile, resp.insertId, 'popup')
   const notificationFile = saveFileAndGetFilePath(files?.notificationFile, resp.insertId, 'notification')
   const popupFile = saveFileAndGetFilePath(files?.popupFile, resp.insertId, 'popup')
   eventDto.popupTextureUrl = popupFile ?? eventDto.popupTextureUrl
   eventDto.notificationTextureUrl = notificationFile ?? eventDto.notificationTextureUrl
   if(isNew) eventDto.id = resp.insertId
   await exec(`REPLACE into event set ?`, <any>eventDto)
+
+  function removeActualImage(file: any, eventId: number, whichFile: 'notification' | 'popup'): void
+  {
+    if (!file) return undefined
+    const eventImgPath = `/var/www/html/public/assets/img/events`
+    const fileNamePart = whichFile === 'notification' ? 'notificationImg' : 'popupImg'
+    const fileNameStartWith = `${eventId}_${fileNamePart}_`
+    fs.readdir(eventImgPath, (err, files) => {
+      files.forEach(file => {
+        if(file.startsWith(`${fileNameStartWith}`))
+         unlinkSync(path.join(eventImgPath, file))
+      })
+    })
+  }
   function saveFileAndGetFilePath(file: any, eventId: number, whichFile: 'notification' | 'popup'): string | undefined
   {
     if (!file) return undefined
-    const eventImgPath = '/var/www/html/public/assets/img/events'
+    const rand = getRandomNumber(111, 10000)
+    const eventImgPath = `/var/www/html/public/assets/img/events`
     const fileNamePart = whichFile === 'notification' ? 'notificationImg' : 'popupImg'
-    const fileName = `${eventId}_${fileNamePart}.${file.name.split('.').pop()}`
+    const fileName = `${eventId}_${fileNamePart}_${rand}.${file.name.split('.').pop()}`
     // const fileNameWithPath = path.join(file.path, fileName)
     const oldPath = file.path
     const newPath = path.join(eventImgPath, fileName)
