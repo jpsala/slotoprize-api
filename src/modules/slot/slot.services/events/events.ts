@@ -58,9 +58,15 @@ export function scheduleEvent(event: Partial<Event>): Event
 
   const scheduleData = later.parse.cron(event.rule, true)
 
-  event.sched = later.schedule(scheduleData)
-  event.next = event.sched.next(1, new Date()) as Date | 0
-  event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next) : ''
+  try
+  {
+    log && console.log('scheduleData', scheduleData, event.rule)
+    event.sched = later.schedule(scheduleData)
+    event.next = event.sched.next(1, new Date()) as Date | 0
+    event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next) : ''
+  } catch (error) {
+    console.log('error in events, later.schedule', error, scheduleData)
+  }
 
   log && console.log('Interval begins in %O', event.distance)
   event.laterTimerHandler = later.setInterval(function ()

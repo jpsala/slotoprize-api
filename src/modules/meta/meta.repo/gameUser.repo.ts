@@ -2,8 +2,9 @@ import snakeCaseKeys from 'snakecase-keys'
 import camelcaseKeys from 'camelcase-keys'
 import { classToPlain } from "class-transformer"
 import { RowDataPacket } from 'mysql2'
-import getConnection, {queryOne, exec} from '../../../db'
+import getConnection, {queryOne, exec, query } from '../../../db'
 import {LanguageData, GameUser, fakeUser } from '../meta.types'
+
 
 export async function getLanguage(userId: number): Promise<LanguageData> {
   const localizationData = await queryOne(`
@@ -102,4 +103,14 @@ export async function setLanguageCode(userId: number, languageCode: string): Pro
   // const resp = await exec(qry)
   // const changed=resp.affectedRows === 1 ? 'changed' : 'dont\' changed'
   return { languageCode }
+}
+export const getPlayersForFront = async (from: number, limit: number, filter: string): Promise < any > => {
+  const players = (await query(`
+  select * from game_user
+    where first_name like '%${filter}%' or last_name like '%${filter}%'
+          or email like '%${filter}%' or device_id like '%${filter}%'
+    limit ${from}, ${limit}
+`))
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return players
 }

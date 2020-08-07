@@ -6,8 +6,9 @@ import { GameUser, User, RafflePrizeDataDB } from "../meta/meta.types"
 import * as metaRepo from '../meta/meta.repo'
 import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
-import { setLanguageCode } from '../meta/meta.repo/gameUser.repo'
-import { setSoporte } from '../meta/meta.repo/soporte.repo'
+import { setLanguageCode , getPlayersForFront } from '../meta/meta.repo/gameUser.repo'
+import { setSoporte, getSupportRequestForCrud } from '../meta/meta.repo/soporte.repo'
+
 import { getSkins, getSkinsForCrud } from './slot.repo/skin.repo'
 import { updateRulesFromDb } from './slot.services/events/events'
 import { dailyRewardClaim } from './slot.repo/dailyReward.repo'
@@ -15,9 +16,14 @@ import * as slotService from './slot.services'
 import * as walletService from "./slot.services/wallet.service"
 // import {spin} from './slot.services/spin.service'
 import { symbolsInDB } from './slot.services/symbol.service'
-import { addEvent, getEvents, setEvent, getEventsForCrud } from './slot.repo/event.repo'
+import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
 import { Request, Response } from 'express'
 
+export async function playersForFrontGet(req: Request, res: Response): Promise<any>
+{
+  const resp = await getPlayersForFront(Number(req.query.from), Number(req.query.limit), String(req.query.filter))
+  res.status(200).json(resp)
+}
 export async function symbolsInDBGet(req: Request, res: Response): Promise<any>
 {
   const resp = await symbolsInDB()
@@ -57,7 +63,6 @@ export async function purchaseTicketsGet(req: Request, res: Response): Promise<a
   )
   res.status(200).json(resp)
 }
-// Raffles
 export async function rafflePost(req: Request, res: Response): Promise<any>
 {
   const resp = await metaRepo.raffleRepo.newRaffle(req.body as RafflePrizeDataDB)
@@ -141,6 +146,11 @@ export async function soportePost(req: Request, res: Response): Promise<any>
 export async function eventsForCrudGet(req: Request, res: Response): Promise<any>
 {
   const resp = await getEventsForCrud()
+  res.status(200).json(resp)
+}
+export async function supportRequestForCrudGet(req: Request, res: Response): Promise<any>
+{
+  const resp = await getSupportRequestForCrud(req.query.userId as string)
   res.status(200).json(resp)
 }
 export async function skinsGet(req: Request, res: Response): Promise<any>
