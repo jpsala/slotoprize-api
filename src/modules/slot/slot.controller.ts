@@ -6,8 +6,9 @@ import { GameUser, User, RafflePrizeDataDB } from "../meta/meta.types"
 import * as metaRepo from '../meta/meta.repo'
 import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
-import { setLanguageCode , getPlayersForFront } from '../meta/meta.repo/gameUser.repo'
+import { setLanguageCode , getPlayersForFront, getLoginData } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte, getSupportRequestForCrud } from '../meta/meta.repo/soporte.repo'
+import { getSpinData, setSpinData } from './slot.repo/spin.repo'
 
 import { getSkins, getSkinsForCrud } from './slot.repo/skin.repo'
 import { updateRulesFromDb } from './slot.services/events/events'
@@ -53,6 +54,11 @@ export async function gameInitGet(req: Request, res: Response): Promise<any>
 export async function walletGet(req: Request, res: Response): Promise<any>
 {
   const resp = await walletService.getWallet(req.query.deviceId as string)
+  res.status(200).json(resp)
+}
+export async function loginDataGet(req: Request, res: Response): Promise<any>
+{
+  const resp = await getLoginData(Number(req.query.userId))
   res.status(200).json(resp)
 }
 export async function purchaseTicketsGet(req: Request, res: Response): Promise<any>
@@ -171,6 +177,14 @@ export async function eventsReloadPost(req: Request, res: Response): Promise<any
 {
   await updateRulesFromDb()
   res.status(200).json({ status: 'ok' })
+}
+export async function spinDataGet(req: Request, res: Response): Promise<any>{
+  const spinData = await getSpinData()
+  res.status(200).json(spinData)
+}
+export async function spinDataPost(req: Request, res: Response): Promise<any>{
+  await setSpinData(req.body)
+  res.status(200).json({status: 'ok'})
 }
 export async function dailyRewardClaimGet(req: Request, res: Response): Promise<any>
 {

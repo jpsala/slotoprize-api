@@ -39,6 +39,26 @@ export async function getGameUser(userId: number): Promise<GameUser> {
   // cachedUser = user
   return user
 }
+export async function setGameUserSpinData(userId: number): Promise<void>
+{
+  const spinCountResp = await queryOne(`select id, spinCount from game_user_spin where game_user_id = ${userId}`)
+  console.log('sc', spinCountResp)
+  const response = await exec(`
+    replace into game_user_spin set ?
+  `, {
+      "id": spinCountResp?.id,
+      "game_user_id": userId,
+      "spinCount": spinCountResp?.spinCount >= 0 ? (Number(spinCountResp.spinCount )+1) : 0
+  })
+  console.log('response', response)
+}
+export async function getLoginData(userId: number): Promise<{count: number, lastLogin: Date}> {
+  const response = await queryOne(`
+    select
+      (select count(*) from game_user_login u where u.game_user_id = ${userId}) as count,
+      (select max(u.date) from game_user_login u where u.game_user_id = ${userId}) as lastLogin`)
+  return response as {count: number, lastLogin: Date}
+}
 export async function getHaveWinRaffle(userId: number): Promise<boolean> {
   const winData = await queryOne(`
     select count(*) as win from raffle_history rh
@@ -94,6 +114,20 @@ export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Pro
   const fakedUser = fakeUser(override)
   const newUser = await addGameUser(fakedUser)
   return newUser
+}
+export async function setGameUserLogin(deviceId: string): Promise<any>
+{
+  const gameUser = await getGameUserByDeviceId(deviceId)
+  const resp = await exec(`
+    replace into game_user_login set ?
+  `,
+    {
+      "game_user_id": gameUser.id,
+      "game_id": 1,
+      "device_id": deviceId
+    }
+  )
+  console.log('resp', resp)
 }
 export async function setLanguageCode(userId: number, languageCode: string): Promise<{ languageCode: string }> {
   const qry = `

@@ -4,6 +4,8 @@ import createError from 'http-errors'
 import getSlotConnection from '../../../db'
 import { SpinData } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
+import { setGameUserSpinData } from '../../meta/meta.repo/gameUser.repo'
+import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import * as walletService from "./wallet.service"
@@ -37,7 +39,8 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     winAmount = winAmount * eventMultiplier
     wallet.coins += (winAmount)
   }
-
+  const user = await getGameUserByDeviceId(deviceId)
+  await setGameUserSpinData(user.id)
   await walletService.updateWallet(deviceId, wallet)
   const returnData: SpinData = { symbolsData, isWin, walletData: wallet }
 
@@ -146,11 +149,12 @@ async function getWinData() {
   // @TODO Quitar
   // const isWin = false
   const payTable = await getPayTable()
+  const jackpotCycle = Number(await getSetting('jackpotCycle', 10))
   let winRow
   let winType
   const spinCount = Number(await getSetting('spinCount', 0))
   // const jackpot = (spinCount >= 1000000)
-  const jackpot = (spinCount >= 10)
+  const jackpot = (spinCount >= jackpotCycle)
   if (jackpot) {
     winRow = getJackpotRow(payTable)
     winType = 'jackpot'
