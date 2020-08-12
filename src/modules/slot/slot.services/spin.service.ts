@@ -5,6 +5,7 @@ import getSlotConnection from '../../../db'
 import { SpinData } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
 import { setGameUserSpinData } from '../../meta/meta.repo/gameUser.repo'
+
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 

@@ -1,3 +1,4 @@
+import {hostname} from 'os'
 import createError from 'http-errors'
 import * as statusCodes from 'http-status-codes'
 /* eslint-disable no-undef */
@@ -55,4 +56,8 @@ export function isValidJSON(text: string): boolean {
   catch (error) {
     return false
   }
+}
+export const isNotebook = (): boolean =>
+{
+  return hostname() === 'jpnote'
 }

@@ -8,15 +8,16 @@ import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
 import { setLanguageCode , getPlayersForFront, getLoginData } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte, getSupportRequestForCrud } from '../meta/meta.repo/soporte.repo'
+import { getTombolaForCrud } from './slot.services/tombola.service'
 import { getSpinData, setSpinData } from './slot.repo/spin.repo'
 
-import { getSkins, getSkinsForCrud } from './slot.repo/skin.repo'
+import { getSkinsForCrud } from './slot.repo/skin.repo'
 import { updateRulesFromDb } from './slot.services/events/events'
 import { dailyRewardClaim } from './slot.repo/dailyReward.repo'
 import * as slotService from './slot.services'
 import * as walletService from "./slot.services/wallet.service"
 // import {spin} from './slot.services/spin.service'
-import { symbolsInDB } from './slot.services/symbol.service'
+import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.services/symbol.service'
 import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
 import { Request, Response } from 'express'
 
@@ -28,6 +29,25 @@ export async function playersForFrontGet(req: Request, res: Response): Promise<a
 export async function symbolsInDBGet(req: Request, res: Response): Promise<any>
 {
   const resp = await symbolsInDB()
+  res.status(200).json(toCamelCase(resp))
+}
+export function symbolPost(req: Request, res: Response): void
+{
+  const form = formidable({ multiples: false })
+  form.parse(req, async (err, fields, files) =>
+  {
+    const resp = await setSymbol(fields, files)
+    res.status(200).json(resp)
+  })
+}
+export async function symbolDelete(req: Request, res: Response): Promise<any>
+{
+  const resp = await deleteSymbol(req.query.id as string)
+  res.status(200).json(toCamelCase(resp))
+}
+export async function symbolsGet(req: Request, res: Response): Promise<any>
+{
+  const resp = await getSymbols()
   res.status(200).json(toCamelCase(resp))
 }
 export async function profilePost(req: Request, res: Response): Promise<any>
@@ -177,6 +197,10 @@ export async function eventsReloadPost(req: Request, res: Response): Promise<any
 {
   await updateRulesFromDb()
   res.status(200).json({ status: 'ok' })
+}
+export async function tombolaForCrudGet(req: Request, res: Response): Promise<any>{
+  const data = await getTombolaForCrud()
+  res.status(200).json(data)
 }
 export async function spinDataGet(req: Request, res: Response): Promise<any>{
   const spinData = await getSpinData()
