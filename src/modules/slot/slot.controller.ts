@@ -8,6 +8,7 @@ import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
 import { setLanguageCode , getPlayersForFront, getLoginData } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte, getSupportRequestForCrud } from '../meta/meta.repo/soporte.repo'
+import { getRafflesForCrud } from '../meta/meta.repo/raffle.repo'
 import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
 import { getSpinData, setSpinData } from './slot.repo/spin.repo'
 
@@ -197,6 +198,10 @@ export async function eventsReloadPost(req: Request, res: Response): Promise<any
 {
   await updateRulesFromDb()
   res.status(200).json({ status: 'ok' })
+}
+export async function trafflesForCrudGet(req: Request, res: Response): Promise<any>{
+  const data = await getRafflesForCrud()
+  res.status(200).json(data)
 }
 export async function tombolaForCrudGet(req: Request, res: Response): Promise<any>{
   const data = await getTombolaForCrud()

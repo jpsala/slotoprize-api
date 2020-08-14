@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 
 import {BAD_REQUEST} from 'http-status-codes'
 /* eslint-disable babel/camelcase */
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
-import { query, queryOne, exec } from '../../../db'
+import { query, queryOne, exec , query } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData, RafflePrizeDataDB } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
 import { getRandomNumber } from "../../../helpers"
@@ -11,6 +12,7 @@ import { getWallet, updateWallet } from '../../slot/slot.services/wallet.service
 import { getReqUser } from "../authMiddleware"
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
+
 import { dateToRule, updateRulesFromDb } from './../../slot/slot.services/events/events'
 import { getGameUser } from './gameUser.repo'
 
@@ -74,6 +76,27 @@ export async function prizeNotified(raffleId: number): Promise<string> {
   //console.log('resp.affectedRows', resp.affectedRows)
   if (resp.affectedRows < 1) throw createError(createError.BadRequest, 'No modifications, check raffleId')
   return 'ok'
+}
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function getRafflesForCrud()
+{
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const raffles = await query(`
+      select r.id, date_format(r.closing_date, '%Y/%d/%m %H:%i') as closingDay, r.texture_url textureURl,
+          r.item_highlight itemHighlight, r.raffle_number_price price, rl.name, rl.description,
+          concat(gu.last_name,', ',gu.first_name) as winner, gu.email, gu.device_id deviceID
+      from raffle r
+          inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
+          left join game_user gu on r.winner = gu.id
+      left join state s on rl.name = s.name
+  `)
+  for (const raffle of raffles)
+    raffle.localization = await query(`
+      select * from raffle_localization rl where rl.raffle_id = ${raffle.id}
+    `)
+  const languages = await query('select * from language')
+  return {raffles, languages}
+
 }
 export async function getRaffle(id: number,
   fieldsToExclude: string[] | undefined = undefined, camelCased = true, rawAllFields = false): Promise<RafflePrizeData> {
