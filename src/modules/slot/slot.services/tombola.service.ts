@@ -1,5 +1,5 @@
 import camelcaseKeys from 'camelcase-keys'
-import { query, queryOne } from './../../../db'
+import getConnection, { query, queryOne } from './../../../db'
 import { getSymbols } from './symbol.service'
 
 export const getPayTableForCrud = async (): Promise<any> => {
@@ -12,6 +12,34 @@ export const getPayTableForCrud = async (): Promise<any> => {
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return camelcaseKeys(payTable)
+}
+export const postTombolaForCrud = async (body: any): Promise<any> =>
+{
+  const conn = await getConnection()
+  await conn.beginTransaction()
+  try {
+    console.log('b', body)
+    await conn.query(`delete from pay_table`)
+    for (const row of body) {
+      if(row.new) delete row.id
+      await conn.query(`insert into pay_table set ?`,
+        [{
+          "id": row.id,
+          "symbol_id": row.symbolId,
+          "symbol_amount": row.symbolAmount,
+          "probability": row.probability,
+          "points": row.points
+      }])
+    }
+    await conn.commit()
+  }catch (err) {
+    await conn.rollback()
+    throw err
+  } finally {
+    conn.destroy()
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return {status: 'ok'}
 }
 export const getTombolaForCrud = async (): Promise<any> =>
 {

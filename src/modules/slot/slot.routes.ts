@@ -37,6 +37,7 @@ router.route('/eventsReload').post(checkToken, slot.eventsReloadPost)
 router.route('/toggleLog').post(checkToken, (req, res) => { res.status(200).json({ logging: toggleLog() }) })
 router.route('/daily_reward_claim').get(checkToken, slot.dailyRewardClaimGet)
 router.route('/tombola_for_crud').get(checkToken, slot.tombolaForCrudGet)
+router.route('/tombola_for_crud').post(checkToken, slot.tombolaForCrudPost)
 router.route('/spin_data').get(checkToken, slot.spinDataGet)
 router.route('/spin_data').post(checkToken, slot.spinDataPost)
 
