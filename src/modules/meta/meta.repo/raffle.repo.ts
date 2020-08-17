@@ -4,7 +4,7 @@ import {BAD_REQUEST} from 'http-status-codes'
 /* eslint-disable babel/camelcase */
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
-import { query, queryOne, exec , query } from '../../../db'
+import { query, queryOne, exec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData, RafflePrizeDataDB } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
 import { getRandomNumber } from "../../../helpers"
@@ -82,18 +82,21 @@ export async function getRafflesForCrud()
 {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const raffles = await query(`
-      select r.id, date_format(r.closing_date, '%Y/%d/%m %H:%i') as closingDay, r.texture_url textureURl,
+      select r.id, date_format(r.closing_date, '%Y/%m/%d %H:%i') as closingDay, r.texture_url textureUrl,
           r.item_highlight itemHighlight, r.raffle_number_price price, rl.name, rl.description,
           concat(gu.last_name,', ',gu.first_name) as winner, gu.email, gu.device_id deviceID
       from raffle r
           inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
           left join game_user gu on r.winner = gu.id
       left join state s on rl.name = s.name
+      order by r.closing_date asc
   `)
   for (const raffle of raffles)
     raffle.localization = await query(`
-      select * from raffle_localization rl where rl.raffle_id = ${raffle.id}
-    `)
+      select rl.* from raffle
+        left join raffle_localization rl on raffle.id = rl.raffle_id
+      where rl.raffle_id = ${raffle.id}
+  `)
   const languages = await query('select * from language')
   return {raffles, languages}
 

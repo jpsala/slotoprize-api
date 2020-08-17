@@ -199,7 +199,7 @@ export async function eventsReloadPost(req: Request, res: Response): Promise<any
   await updateRulesFromDb()
   res.status(200).json({ status: 'ok' })
 }
-export async function trafflesForCrudGet(req: Request, res: Response): Promise<any>{
+export async function rafflesForCrudGet(req: Request, res: Response): Promise<any>{
   const data = await getRafflesForCrud()
   res.status(200).json(data)
 }
