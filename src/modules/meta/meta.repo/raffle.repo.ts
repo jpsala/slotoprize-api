@@ -1,17 +1,21 @@
+import { unlinkSync } from 'fs'
+import {join} from 'path'
+import snakeCaseKeys from 'snakecase-keys'
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-
 import {BAD_REQUEST} from 'http-status-codes'
 /* eslint-disable babel/camelcase */
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
+import { format } from 'date-fns'
 import { query, queryOne, exec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData, RafflePrizeDataDB } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
-import { getRandomNumber } from "../../../helpers"
+import { getRandomNumber, saveFile } from "../../../helpers"
 import { getWallet, updateWallet } from '../../slot/slot.services/wallet.service'
 import { getReqUser } from "../authMiddleware"
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
+import { Localization } from './../models/localization'
 
 import { dateToRule, updateRulesFromDb } from './../../slot/slot.services/events/events'
 import { getGameUser } from './gameUser.repo'
@@ -56,12 +60,6 @@ export async function getRaffles(fieldsToExclude: string[] | undefined = undefin
     if (name == null) throw createError(BAD_REQUEST, 'no localization data for this raffle')
     raffle.name = name
     raffle.description = description
-    // const resp = await query(`
-    //   select language_code, name, description from raffle_localization rl where rl.raffle_id = ${raffle.id}
-    // `) as LocalizationData[]
-    // const localizationData = camelCased ? camelcaseKeys(resp) : resp
-    // // eslint-disable-next-line require-atomic-updates
-    // raffle.localizationData = localizationData
     if (fieldsToExclude)
       fieldsToExclude.forEach((fieldToExclude) => delete raffle[fieldToExclude])
   }
@@ -80,9 +78,9 @@ export async function prizeNotified(raffleId: number): Promise<string> {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function getRafflesForCrud()
 {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
     const raffles = await query(`
-      select r.id, date_format(r.closing_date, '%Y/%m/%d %H:%i') as closingDay, r.texture_url textureUrl,
+      select r.id, date_format(r.closing_date, '%Y/%m/%d %H:%i') as closingDate, r.texture_url textureUrl,
           r.item_highlight itemHighlight, r.raffle_number_price price, rl.name, rl.description,
           concat(gu.last_name,', ',gu.first_name) as winner, gu.email, gu.device_id deviceID
       from raffle r
@@ -97,17 +95,31 @@ export async function getRafflesForCrud()
         left join raffle_localization rl on raffle.id = rl.raffle_id
       where rl.raffle_id = ${raffle.id}
   `)
+  const newRaffle = {
+    "id": "-1",
+    "closing_date": format(new Date(), 'yyyy/MM/dd HH:mm'),
+    "raffle_number_price": 0,
+    "texture_url": '',
+    "item_highlight": 0,
+    "winner": '',
+    "isNew": true,
+    "localization": await query(`select l.language_code, '' name, '' description from language l`)
+  }
   const languages = await query('select * from language')
-  return {raffles, languages}
+  return {raffles, languages, newRaffle}
 
 }
 export async function getRaffle(id: number,
   fieldsToExclude: string[] | undefined = undefined, camelCased = true, rawAllFields = false): Promise<RafflePrizeData> {
   const select = rawAllFields
-    ? `SELECT * FROM raffle r where r.id = ${id}`
-    : `SELECT r.id, closing_date,
+    ? `SELECT r.*, rl.name, rl.description FROM raffle r
+      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
+    where r.id = ${id}`
+    : `SELECT r.id, closing_date, rl.name, rl.description,
       r.raffle_number_price, r.texture_url, r.item_highlight
-      FROM raffle r where r.id = ${id}`
+      FROM raffle r
+      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
+      where r.id = ${id}`
   const raffle = await queryOne(select) as RafflePrizeData
   if (fieldsToExclude)
     fieldsToExclude.forEach((fieldToExclude) => delete raffle[fieldToExclude])
@@ -129,22 +141,67 @@ export async function saveRaffle(raffle: RafflePrizeData, user: GameUser, ticket
     throw createError(createError.InternalServerError, error)
   }
 }
-export async function newRaffle(raffle: RafflePrizeDataDB): Promise<number> {
-  //console.log('raffle', raffle)
-  if (!raffle.localization_data || raffle.localization_data.length < 1)
-    throw createError(createError.BadRequest, 'raffle.localizationData is required')
-  const { localization_data, ...raffleForDB } = raffle
-  const respRaffle = await exec(`insert into raffle SET ?`, raffleForDB)
-  const newRaffleId = respRaffle.insertId
-  for (const localizationData of localization_data) {
-    localizationData.raffle_id = newRaffleId
-    /* const respLocalization =  */await exec(`insert into raffle_localization SET ?`, localizationData)
-    //console.log("respLocalization", respLocalization)
+export async function newRaffle(raffle: any, files: any): Promise<any>
+{
+  console.log('raffle.closingDate', raffle.closingDate, raffle)
+  const image = files.image
+  const localizationData = JSON.parse(raffle.localization)
+  const date = raffle.closingDate ? new Date(raffle.closingDate) : new Date()
+  const raffleForDB = {
+    "id": raffle.id,
+    "closing_date": format(date, 'yyyy/MM/dd HH:mm:ss'),
+    "raffle_number_price": raffle.raffle_number_price || 0,
+    "texture_url": raffle.textureUrl || '',
+    "item_highlight": 0
   }
-  const _raffle = await getRaffle(newRaffleId, undefined, true, true)
+  console.log('raffleForDB', raffleForDB)
+  throw new Error('hola')
+  if (!localizationData || localizationData.length < 1)
+    throw createError(createError.BadRequest, 'raffle.localizationData is required')
+  for (const localization of localizationData)
+    if (localization.name === '' || localization.description === '')
+      throw new Error('missing')
+
+  const isNew = raffle.isNew === 'true'
+
+  let respRaffle
+  if (isNew) {
+    delete raffleForDB.id
+    respRaffle = await exec(`insert into raffle SET ?`, raffleForDB)
+  } else {
+    respRaffle = await exec(`update raffle SET ? where id = ${raffleForDB.id}`, raffleForDB)
+  }
+
+  const raffleId = isNew ? respRaffle.insertId : raffle.id
+
+  for (const localizationDataRow of localizationData) {
+    localizationDataRow.raffle_id = raffleId
+    const localizationData = await queryOne(`
+      select id from raffle_localization
+        where raffle_id = ${raffleId} and language_code = "${localizationDataRow.language_code}"`)
+    if (localizationData?.id) {
+      console.log('localizationData', localizationData.id, snakeCaseKeys(localizationDataRow))
+      await exec(`
+        update raffle_localization SET ? where id = ${localizationData.id} `,
+        snakeCaseKeys(localizationDataRow)
+      )
+    } else {
+      await exec(`
+      insert into raffle_localization SET ?`,
+      snakeCaseKeys(localizationDataRow)
+    )
+    }
+
+  }
+
+  const _raffle = await getRaffle(raffleId, undefined, true, true) as any
+  if (image) {
+    const saveResp = saveFile({ file: image, path: 'raffleItems', id: String(_raffle.id), delete: true })
+    if(!saveResp) throw new Error('could not save image for this raffle')
+    await exec(`update raffle set texture_url = ? where id = ${_raffle.id}`, [saveResp.url])
+    _raffle.textureUrl = saveResp.url
+  }
   const rule = dateToRule(_raffle.closingDate)
-  // newEvent.rule
-  // addRaffleAsTask(_raffle)
   await exec(`insert into event set ? `, [
     {
       "eventType": "raffle",
@@ -156,7 +213,9 @@ export async function newRaffle(raffle: RafflePrizeDataDB): Promise<number> {
     }
   ])
   await updateRulesFromDb()
-  return newRaffleId
+  _raffle.closingDate = format(new Date(_raffle.closingDate), 'yyyy/MM/dd HH:mm')
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return _raffle
 }
 export async function getRafflePurchaseHistory(deviceId: string): Promise<RaffleRecordData[]> {
   if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')

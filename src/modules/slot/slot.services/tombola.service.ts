@@ -18,7 +18,6 @@ export const postTombolaForCrud = async (body: any): Promise<any> =>
   const conn = await getConnection()
   await conn.beginTransaction()
   try {
-    console.log('b', body)
     await conn.query(`delete from pay_table`)
     for (const row of body) {
       if(row.new) delete row.id

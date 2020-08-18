@@ -1,18 +1,16 @@
 
-import express, { Express, Request, Response, NextFunction } from 'express'
-import bodyParser from "body-parser"
+import {urlencoded} from "body-parser"
 import cors from 'cors'
 
 
 import { HttpError } from 'http-errors'
-import 'express-async-errors'
-
-// import errorMiddleware from './middleware/error.middleware'
-// import multer from "multer"
 import routes from './routes'
+// eslint-disable-next-line import/default
+import express, { Express, Request, Response, NextFunction } from 'express'
+// import 'express-async-errors'
+require('express-async-errors')
 import './modules/slot/slot.services/events/events'
 import './modules/slot/slot.services/webSocket/ws'
-// const upload = multer()
 
 
 const createApp = (): Express => {
@@ -26,7 +24,7 @@ const createApp = (): Express => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     next()
   })
-  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(urlencoded({ extended: true }))
   // app.use(upload.array())
   app.use('/api/', routes)
   app.use((req, res) => {
@@ -34,6 +32,7 @@ const createApp = (): Express => {
     res.status(404).json({ message: `${req.path} not found!` })
   })
   app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
+    console.log('app error handler', error)
     // console.log('Error catched in error handler: ', error.status || 500)
     // console.log("%cError catched in error handler", "color: red; font-size: large")
     // eslint-disable-next-line no-process-env

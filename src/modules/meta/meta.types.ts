@@ -97,7 +97,7 @@ export interface RafflePrizeDataDB {
   texture_url: string;
   raffle_number_price: number
   item_highlight: boolean;
-  localization_data: LocalizationDataDB[];
+  localizationData: LocalizationDataDB[];
 }
 export interface LocalizationData{
   id: number;

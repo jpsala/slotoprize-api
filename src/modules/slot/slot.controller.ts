@@ -8,7 +8,7 @@ import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
 import { setLanguageCode , getPlayersForFront, getLoginData } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte, getSupportRequestForCrud } from '../meta/meta.repo/soporte.repo'
-import { getRafflesForCrud } from '../meta/meta.repo/raffle.repo'
+import { getRafflesForCrud, newRaffle } from '../meta/meta.repo/raffle.repo'
 import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
 import { getSpinData, setSpinData } from './slot.repo/spin.repo'
 
@@ -20,7 +20,7 @@ import * as walletService from "./slot.services/wallet.service"
 // import {spin} from './slot.services/spin.service'
 import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.services/symbol.service'
 import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 
 export async function playersForFrontGet(req: Request, res: Response): Promise<any>
 {
@@ -90,10 +90,19 @@ export async function purchaseTicketsGet(req: Request, res: Response): Promise<a
   )
   res.status(200).json(resp)
 }
-export async function rafflePost(req: Request, res: Response): Promise<any>
+export function rafflePost(req: Request, res: Response, next: NextFunction): any
 {
-  const resp = await metaRepo.raffleRepo.newRaffle(req.body as RafflePrizeDataDB)
-  res.status(200).json(resp)
+  try {
+    const form = formidable({ multiples: false })
+    form.parse(req, async (err, fields, files) =>
+    {
+      const resp = await newRaffle(fields, files)
+      res.status(200).json(resp)
+    })
+  } catch (error) {
+    console.log('catched', 234234)
+    next(error)
+  }
 }
 export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any>
 {
