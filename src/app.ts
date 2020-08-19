@@ -7,10 +7,13 @@ import { HttpError } from 'http-errors'
 import routes from './routes'
 // eslint-disable-next-line import/default
 import express, { Express, Request, Response, NextFunction } from 'express'
-// import 'express-async-errors'
-require('express-async-errors')
+import 'express-async-errors'
+
+// import errorMiddleware from './middleware/error.middleware'
+// import multer from "multer"
 import './modules/slot/slot.services/events/events'
 import './modules/slot/slot.services/webSocket/ws'
+// const upload = multer()
 
 
 const createApp = (): Express => {
@@ -32,7 +35,6 @@ const createApp = (): Express => {
     res.status(404).json({ message: `${req.path} not found!` })
   })
   app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
-    console.log('app error handler', error)
     // console.log('Error catched in error handler: ', error.status || 500)
     // console.log("%cError catched in error handler", "color: red; font-size: large")
     // eslint-disable-next-line no-process-env
