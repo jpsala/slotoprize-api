@@ -1,20 +1,12 @@
-
+/* eslint-disable import/default */
 import {urlencoded} from "body-parser"
 import cors from 'cors'
-
-
+import 'express-async-errors'
 import { HttpError } from 'http-errors'
 import routes from './routes'
-// eslint-disable-next-line import/default
 import express, { Express, Request, Response, NextFunction } from 'express'
-import 'express-async-errors'
-
-// import errorMiddleware from './middleware/error.middleware'
-// import multer from "multer"
 import './modules/slot/slot.services/events/events'
 import './modules/slot/slot.services/webSocket/ws'
-// const upload = multer()
-
 
 const createApp = (): Express => {
 
@@ -28,20 +20,14 @@ const createApp = (): Express => {
     next()
   })
   app.use(urlencoded({ extended: true }))
-  // app.use(upload.array())
   app.use('/api/', routes)
   app.use((req, res) => {
     console.log('req.route.path', req.path)
     res.status(404).json({ message: `${req.path} not found!` })
   })
   app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
-    // console.log('Error catched in error handler: ', error.status || 500)
-    // console.log("%cError catched in error handler", "color: red; font-size: large")
-    // eslint-disable-next-line no-process-env
     if (process.env.NODE_ENV !== 'testing')
       console.error(error)
-    // console.warn(`%c${JSON.stringify(error, null, 2)}\r{JSON.stringify(error.stack, null, 2)}`, "color: red; font-size: 100%")
-    // console.warn(`%c${JSON.stringify(error.stack, null, 2)}`, "color: red; font-size: 100%")
     res.status(error.status || 500).json({ message: error.message })
   })
   return app

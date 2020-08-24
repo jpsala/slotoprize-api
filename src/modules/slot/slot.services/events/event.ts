@@ -66,6 +66,8 @@ const wsMessage: Partial<WebSocketMessage> = {
 
 const callBackForStart = async (event: Event): Promise<void> =>
 {
+  const payload = event.payload as EventPayload
+  console.log('Event start', payload.name, payload.notificationMessage)
   if (Array.isArray(event.payload)) throw new Error('Here event.payload can not be an array')
   if (event.eventType === 'generic')
   {
@@ -75,6 +77,10 @@ const callBackForStart = async (event: Event): Promise<void> =>
   }
   else if (event.eventType === 'raffle')
   {
+    console.log('(event.sched?.next', event.sched?.next(1, new Date()))
+    // @TODO Que pasa que llama 2 veces si no hago el clear?
+    event.laterTimerHandler?.clear()
+    console.log('start raffle event', event)
     await raffleTime(event.data.id)
   }
 }

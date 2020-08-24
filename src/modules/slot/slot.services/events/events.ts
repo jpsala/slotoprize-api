@@ -4,11 +4,11 @@ import { formatDistanceStrict, differenceInSeconds } from 'date-fns'
 import { getSetting } from './../settings.service'
 import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
-import { createEvent, Event, EventDTO } from './event'
+import { createEvent, Event, EventDTO, EventPayload } from './event'
 
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
 let allEvents: Event[] = []
-let log = false
+let log = true
 export const toggleLog = (): boolean => { return log = !log }
 export const init = async (): Promise<void> =>
 {
@@ -33,6 +33,8 @@ export function processEvents(eventsFromDB: EventDTO[]): void
       const newEvent: Partial<Event> = createEvent(eventFromDB)
       const event = scheduleEvent(newEvent)
       allEvents.push(event)
+      const payload = event.payload as EventPayload
+      log && console.log('event loaded ', payload.name, event.rule, event.distance)
     }
   }
   function updateEvent(savedEvent: Event, eventFromDB: EventDTO)
@@ -60,10 +62,11 @@ export function scheduleEvent(event: Partial<Event>): Event
 
   try
   {
-    log && console.log('scheduleData', scheduleData, event.rule)
+    const payload = event.payload as EventPayload
     event.sched = later.schedule(scheduleData)
     event.next = event.sched.next(1, new Date()) as Date | 0
     event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next) : ''
+    log && console.log('scheduling', event.rule, 'name', payload.name, ' distance:', event.distance)
   } catch (error) {
     console.log('error in events, later.schedule', error, scheduleData)
   }
@@ -71,21 +74,22 @@ export function scheduleEvent(event: Partial<Event>): Event
   log && console.log('Interval begins in %O', event.distance)
   event.laterTimerHandler = later.setInterval(function ()
   {
-    if (Array.isArray(event.payload)) throw new Error('Event.paylod can not be an array here')
-    if (event.payload == null) throw new Error('Event.paylod can not be undefined')
+    const payload = event.payload as EventPayload
     if (event.duration == null || event.duration == undefined) event.duration = 0
     const nexts = event.sched?.next(2, new Date()) as Date
+    console.log('nets', nexts)
     const seconds = differenceInSeconds(new Date(), nexts[0])
     event.next = seconds > 0 ? nexts[0] : nexts[1]
-    event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next as Date, { unit: 'second' }) : ''
-
-    // event.next = event.sched?.next(1, new Date()) as Date | 0
-    // event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next, { unit: 'second' }) : ''
-
+    console.log('event.next', event.next)
+    try {
+      event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next as Date, { unit: 'second' }) : ''
+    } catch (error) {
+      event.distance = 'error'
+    }
     if (event.callBackForStart)
     {
-      event.payload.action = 'start'
-      log && console.log('later.setInterval name %O, action %O, ends in %O, start again in %O', event.payload?.name, event.payload?.action, event.duration, event.distance)
+      payload.action = 'start'
+      log && console.log('later.setInterval name %O, action %O, ends in %O, start again in %O', payload?.name, payload?.action, event.duration, event.distance)
       event.callBackForStart(event as Event)
     }
     if (event.duration > 0 && event.callBackForStop)
@@ -94,11 +98,11 @@ export function scheduleEvent(event: Partial<Event>): Event
         clearTimeout(event.endTimeoutHandler)
       event.endTimeoutHandler = setTimeout(() =>
       {
-        if (Array.isArray(event.payload)) throw new Error('event.payload have to be an array')
-        if (event.payload && event.payload.action) event.payload.action = 'stop'
+        if (Array.isArray(payload)) throw new Error('payload have to be an array')
+        if (payload && payload.action) payload.action = 'stop'
         event.next = event.sched?.next(1, new Date()) as Date | 0
         event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next) : ''
-        log && console.log('later.setInterval name %O, action %O, starts again in %O', event.payload?.name, event.payload?.action, event.distance)
+        log && console.log('later.setInterval name %O, action %O, starts again in %O', payload?.name, payload?.action, event.distance)
         event.callBackForStop && event.callBackForStop(event as Event)
       }, event.duration * 1000)
     }
@@ -110,14 +114,15 @@ export function scheduleEvent(event: Partial<Event>): Event
 }
 export function dateToRule(date: Date): string
 {
-  const day = date.getUTCDate()
-  const month = date.getUTCMonth()
+
+  const day = date.getDate()
+  const month = date.getMonth()
   const monthName = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][month]
   const year = date.getFullYear()
   const hours = date.getHours()
   const minutes = date.getMinutes()
-  // console.log('dateToRule', date, `0 ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`)
-  return `0 ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`
+  // console.log('dateToRule', date, `* ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`)
+  return `* ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`
 }
 export const updateRulesFromDb = async (): Promise<void> =>
 {

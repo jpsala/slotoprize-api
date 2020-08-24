@@ -2,6 +2,7 @@
 import path from 'path'
 import fs, { unlinkSync } from 'fs'
 import os from 'os'
+import { updateRulesFromDb } from './../slot.services/events/events'
 import { getRandomNumber } from './../../../helpers'
 import { getSetting } from './../slot.services/settings.service'
 import { exec, query } from './../../../db'
@@ -11,6 +12,7 @@ export async function addEvent(eventRule: EventDTO): Promise<void>
 {
   console.log('eventRule', eventRule)
   await exec('insert into event set ?', eventRule)
+  await updateRulesFromDb()
 }
 export async function getEvents(eventId?: number, onlyGeneric = false): Promise<Event[]>
 {
@@ -72,7 +74,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   eventDto.notificationTextureUrl = notificationFile ?? eventDto.notificationTextureUrl
   if(isNew) eventDto.id = resp.insertId
   await exec(`REPLACE into event set ?`, <any>eventDto)
-
+  await updateRulesFromDb()
   function removeActualImage(file: any, eventId: number, whichFile: 'notification' | 'popup'): void
   {
     if (!file) return undefined

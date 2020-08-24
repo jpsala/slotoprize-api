@@ -1,3 +1,4 @@
+/* eslint-disable import/no-named-as-default-member */
 import { unlinkSync } from 'fs'
 import {join} from 'path'
 import snakeCaseKeys from 'snakecase-keys'
@@ -6,7 +7,8 @@ import {BAD_REQUEST} from 'http-status-codes'
 /* eslint-disable babel/camelcase */
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
-import { format } from 'date-fns'
+import { format , differenceInSeconds } from 'date-fns'
+import moment from "moment"
 import { query, queryOne, exec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData, RafflePrizeDataDB } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
@@ -76,38 +78,50 @@ export async function prizeNotified(raffleId: number): Promise<string> {
   return 'ok'
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export async function getRafflesForCrud()
+export async function getRafflesForCrud(id?: number)
 {
-
+    const where = id ? ` where r.id = ${id} ` : ''
     const raffles = await query(`
-      select r.id, date_format(r.closing_date, '%Y/%m/%d %H:%i') as closingDate, r.texture_url textureUrl,
+      select r.id, r.state, date_format(r.closing_date, '%Y/%m/%d %H:%i:%s') as closingDate, r.texture_url textureUrl,
           r.item_highlight itemHighlight, r.raffle_number_price price, rl.name, rl.description,
           concat(gu.last_name,', ',gu.first_name) as winner, gu.email, gu.device_id deviceID
       from raffle r
           inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
           left join game_user gu on r.winner = gu.id
-      left join state s on rl.name = s.name
+          left join state s on rl.name = s.name
+      ${where}
       order by r.closing_date asc
   `)
-  for (const raffle of raffles)
+  for (const raffle of raffles) {
+    const closingDate = moment.utc(raffle.closingDate)
+    const diff = closingDate.diff(moment.utc(), 'seconds')
+    const diffH = moment.duration(diff, 'seconds')
+    const isPast = diff <= 0
+    raffle.isPast = isPast
+    console.log('seconds', diff, diffH, diffH.humanize(), raffle.closingDate)
+    raffle.distance = diffH.humanize()
     raffle.localization = await query(`
       select rl.* from raffle
         left join raffle_localization rl on raffle.id = rl.raffle_id
       where rl.raffle_id = ${raffle.id}
-  `)
-  const newRaffle = {
-    "id": "-1",
-    "closing_date": format(new Date(), 'yyyy/MM/dd HH:mm'),
-    "raffle_number_price": 0,
-    "texture_url": '',
-    "item_highlight": 0,
-    "winner": '',
-    "isNew": true,
-    "localization": await query(`select l.language_code, '' name, '' description from language l`)
+    `)
   }
-  const languages = await query('select * from language')
-  return {raffles, languages, newRaffle}
-
+  if (!id) {
+    const newRaffle = {
+      "id": "-1",
+      "closingDate": format(new Date(), 'yyyy/MM/dd HH:mm:ss'),
+      "price": 0,
+      "textureUrl": '',
+      "itemHighlight": 0,
+      "winner": '',
+      "isNew": true,
+      "localization": await query(`select l.language_code, '' name, '' description from language l`)
+    }
+    const languages = await query('select * from language')
+    return { raffles, languages, newRaffle }
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return raffles[0]
 }
 export async function getRaffle(id: number,
   fieldsToExclude: string[] | undefined = undefined, camelCased = true, rawAllFields = false): Promise<RafflePrizeData> {
@@ -141,28 +155,42 @@ export async function saveRaffle(raffle: RafflePrizeData, user: GameUser, ticket
     throw createError(createError.InternalServerError, error)
   }
 }
+export async function deleteRaffle(id: string): Promise<any>
+{
+  const eventData = JSON.stringify({"id": Number(id)})
+  const respEvent = await exec(`delete from event where data = '${eventData}'`)
+  console.log('respEvent', respEvent, eventData)
+  const resp = await exec(`delete from raffle where id = ${id}`)
+  console.log('resp', )
+  return resp.affectedRows === 1
+}
 export async function newRaffle(raffle: any, files: any): Promise<any>
 {
   console.log('raffle.closingDate', raffle.closingDate, raffle)
   const image = files.image
   const localizationData = JSON.parse(raffle.localization)
   const date = raffle.closingDate ? new Date(raffle.closingDate) : new Date()
+  const now = moment.utc(raffle.closingDate)
+  const diff = now.diff(moment.utc(), 'seconds')
+  console.log('diff', diff)
+  if(diff <= 0) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
   const raffleForDB = {
-    "id": raffle.id,
-    "closing_date": format(date, 'yyyy/MM/dd HH:mm:ss'),
-    "raffle_number_price": raffle.raffle_number_price || 0,
-    "texture_url": raffle.textureUrl || '',
-    "item_highlight": 0
+    id: raffle.id,
+    closing_date: format(date, 'yyyy/MM/dd HH:mm:ss'),
+    raffle_number_price: raffle.price || 0,
+    texture_url: raffle.textureUrl || '',
+    item_highlight: 0
   }
-  console.log('raffleForDB', raffleForDB)
-  throw new Error('hola')
   if (!localizationData || localizationData.length < 1)
     throw createError(createError.BadRequest, 'raffle.localizationData is required')
+  if(Number(raffleForDB.raffle_number_price) <= 0)
+    throw createError(createError.BadRequest, 'raffle.price is required to be greater than 0')
   for (const localization of localizationData)
     if (localization.name === '' || localization.description === '')
-      throw new Error('missing')
+      throw createError(BAD_REQUEST, 'Missing localization name or description')
 
   const isNew = raffle.isNew === 'true'
+  if(!files.image && !raffleForDB.texture_url) throw createError(BAD_REQUEST, 'Missing image')
 
   let respRaffle
   if (isNew) {
@@ -191,21 +219,22 @@ export async function newRaffle(raffle: any, files: any): Promise<any>
       snakeCaseKeys(localizationDataRow)
     )
     }
-
   }
 
-  const _raffle = await getRaffle(raffleId, undefined, true, true) as any
+  const _raffle = await getRafflesForCrud(raffleId)
   if (image) {
     const saveResp = saveFile({ file: image, path: 'raffleItems', id: String(_raffle.id), delete: true })
     if(!saveResp) throw new Error('could not save image for this raffle')
     await exec(`update raffle set texture_url = ? where id = ${_raffle.id}`, [saveResp.url])
     _raffle.textureUrl = saveResp.url
   }
-  const rule = dateToRule(_raffle.closingDate)
+  const rule = dateToRule(new Date(_raffle.closingDate))
+  const eventIdAnt = JSON.stringify({ "id": _raffle.id })
+  await exec(`delete from event where data = '${eventIdAnt}'`)
   await exec(`insert into event set ? `, [
     {
       "eventType": "raffle",
-      "name": _raffle.localizationData[0]?.name,
+      "name": _raffle.localization[0]?.name,
       rule,
       "duration": 0,
       "active": 1,
@@ -213,7 +242,7 @@ export async function newRaffle(raffle: any, files: any): Promise<any>
     }
   ])
   await updateRulesFromDb()
-  _raffle.closingDate = format(new Date(_raffle.closingDate), 'yyyy/MM/dd HH:mm')
+  _raffle.closingDate = format(new Date(_raffle.closingDate), 'yyyy/MM/dd HH:mm:ss')
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return _raffle
 }
@@ -240,7 +269,14 @@ export async function raffleTime(raffleId: number): Promise<any> {
     from raffle_history
     where raffle_id = ${raffleId}
   `)
-  if (!purchases || purchases.length < 1) return false
+  if (!purchases || purchases.length < 1) {
+    await exec(`update raffle set state = "nopurchase" where id = ${raffleId}`)
+    const eventData = JSON.stringify({"id": Number(raffleId)})
+    await exec(`delete from event where data = '${eventData}'`)
+    await updateRulesFromDb()
+    console.log('no purchases, skipping')
+    return false
+  }
   const totalNumbers = purchases.reduce((ant: number, current) => ant + current.numbers, 0)
   let floor = 0
   const randomNumber = getRandomNumber(1, totalNumbers)
@@ -252,7 +288,10 @@ export async function raffleTime(raffleId: number): Promise<any> {
   console.log('winner', raffleId, winnerRaffleHistory)
   if (!winnerRaffleHistory) throw new Error('There was a problem in raffle time')
   await saveWinner(winnerRaffleHistory.id)
-  await exec(`update raffle set winner = ${winnerRaffleHistory.game_user_id} where id = ${raffleId}`)
+  const eventData = JSON.stringify({"id": Number(raffleId)})
+  await exec(`delete from event where data = '${eventData}'`)
+  await updateRulesFromDb()
+  await exec(`update raffle set winner = ${winnerRaffleHistory.game_user_id}, state = "raffled" where id = ${raffleId}`)
   await exec(`update raffle_history set win = 1 where id = ${winnerRaffleHistory.id}`)
   return winnerRaffleHistory
 }

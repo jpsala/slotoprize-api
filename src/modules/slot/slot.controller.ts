@@ -1,3 +1,4 @@
+import { BAD_REQUEST } from 'http-status-codes'
 import formidable from 'formidable'
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
@@ -8,7 +9,7 @@ import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
 import { setLanguageCode , getPlayersForFront, getLoginData } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte, getSupportRequestForCrud } from '../meta/meta.repo/soporte.repo'
-import { getRafflesForCrud, newRaffle } from '../meta/meta.repo/raffle.repo'
+import { getRafflesForCrud, newRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
 import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
 import { getSpinData, setSpinData } from './slot.repo/spin.repo'
 
@@ -90,19 +91,16 @@ export async function purchaseTicketsGet(req: Request, res: Response): Promise<a
   )
   res.status(200).json(resp)
 }
-export function rafflePost(req: Request, res: Response, next: NextFunction): any
+export async function rafflePost(req: Request, res: Response, next: NextFunction): Promise<void>
 {
-  try {
-    const form = formidable({ multiples: false })
-    form.parse(req, async (err, fields, files) =>
-    {
-      const resp = await newRaffle(fields, files)
-      res.status(200).json(resp)
-    })
-  } catch (error) {
-    console.log('catched', 234234)
-    next(error)
-  }
+  const resp = await newRaffle(req.fields, req.files)
+  res.status(200).json(resp)
+}
+export async function raffleDelete(req: Request, res: Response, next: NextFunction): Promise<void>
+{
+  if(typeof req.query?.id !== 'string') throw createError(BAD_REQUEST, 'Raffle ID is required')
+  const resp = await deleteRaffle(req.query.id)
+  res.status(200).json(resp)
 }
 export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any>
 {
@@ -194,14 +192,11 @@ export async function skinsGet(req: Request, res: Response): Promise<any>
   const resp = await getSkinsForCrud()
   res.status(200).json(resp)
 }
-export function eventPost(req: Request, res: Response): void
+export async function eventPost(req: Request, res: Response): Promise<void>
 {
-  const form = formidable({ multiples: false })
-  form.parse(req, async (err, fields, files) =>
-  {
-    const resp = await setEvent(fields, files)
+    console.log('req.fields, req.files', req.fields, req.files)
+    const resp = await setEvent(req.fields, req.files)
     res.status(200).json(resp)
-  })
 }
 export async function eventsReloadPost(req: Request, res: Response): Promise<any>
 {
