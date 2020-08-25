@@ -7,9 +7,10 @@ import { GameUser, User, RafflePrizeDataDB } from "../meta/meta.types"
 import * as metaRepo from '../meta/meta.repo'
 import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
-import { setLanguageCode , getPlayersForFront, getLoginData } from '../meta/meta.repo/gameUser.repo'
+import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte, getSupportRequestForCrud } from '../meta/meta.repo/soporte.repo'
-import { getRafflesForCrud, newRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
+import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
+
 import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
 import { getSpinData, setSpinData } from './slot.repo/spin.repo'
 
@@ -23,6 +24,12 @@ import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.service
 import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
 import { Request, Response, NextFunction } from 'express'
 
+export async function playerForFrontGet(req: Request, res: Response): Promise<any>
+{
+  console.log('req', req)
+  const resp = await getPlayerForFront(String(req.query.id))
+  res.status(200).json(resp)
+}
 export async function playersForFrontGet(req: Request, res: Response): Promise<any>
 {
   const resp = await getPlayersForFront(Number(req.query.from), Number(req.query.limit), String(req.query.filter))
@@ -93,7 +100,7 @@ export async function purchaseTicketsGet(req: Request, res: Response): Promise<a
 }
 export async function rafflePost(req: Request, res: Response, next: NextFunction): Promise<void>
 {
-  const resp = await newRaffle(req.fields, req.files)
+  const resp = await postRaffle(req.fields, req.files)
   res.status(200).json(resp)
 }
 export async function raffleDelete(req: Request, res: Response, next: NextFunction): Promise<void>

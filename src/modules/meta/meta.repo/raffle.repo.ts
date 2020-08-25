@@ -1,26 +1,23 @@
 /* eslint-disable import/no-named-as-default-member */
-import { unlinkSync } from 'fs'
-import {join} from 'path'
 import snakeCaseKeys from 'snakecase-keys'
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {BAD_REQUEST} from 'http-status-codes'
 /* eslint-disable babel/camelcase */
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
-import { format , differenceInSeconds } from 'date-fns'
+import { format} from 'date-fns'
 import moment from "moment"
 import { query, queryOne, exec } from '../../../db'
-import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData, RafflePrizeDataDB } from '../meta.types'
+import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
 import { getRandomNumber, saveFile } from "../../../helpers"
 import { getWallet, updateWallet } from '../../slot/slot.services/wallet.service'
 import { getReqUser } from "../authMiddleware"
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
-import { Localization } from './../models/localization'
 
 import { dateToRule, updateRulesFromDb } from './../../slot/slot.services/events/events'
-import { getGameUser } from './gameUser.repo'
+import { getGameUser, getHaveWinRaffle, getHaveProfile } from './gameUser.repo'
 
 export const rafflePurchase = async (deviceId: string, raffleId: number, amount: number): Promise<Wallet> => {
   if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
@@ -82,9 +79,13 @@ export async function getRafflesForCrud(id?: number)
 {
     const where = id ? ` where r.id = ${id} ` : ''
     const raffles = await query(`
-      select r.id, r.state, date_format(r.closing_date, '%Y/%m/%d %H:%i:%s') as closingDate, r.texture_url textureUrl,
-          r.item_highlight itemHighlight, r.raffle_number_price price, rl.name, rl.description,
-          concat(gu.last_name,', ',gu.first_name) as winner, gu.email, gu.device_id deviceID
+      select r.id, r.state, rl.name, rl.description, gu.email, gu.device_id deviceID,
+             date_format(r.closing_date, '%Y/%m/%d %H:%i:%s') as closingDate,
+             date_format(r.live_date, '%Y/%m/%d %H:%i:%s') as liveDate,
+             r.texture_url textureUrl, r.item_highlight itemHighlight, r.raffle_number_price price,
+             IF(CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date, true, false) as isLive,
+             concat(gu.last_name,', ',gu.first_name) as winner, gu.id as gameUserId,
+             (select count(*) as sold from raffle_history where raffle_id = r.id) as sold
       from raffle r
           inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
           left join game_user gu on r.winner = gu.id
@@ -98,6 +99,10 @@ export async function getRafflesForCrud(id?: number)
     const diffH = moment.duration(diff, 'seconds')
     const isPast = diff <= 0
     raffle.isPast = isPast
+    if (raffle.gameUserId) {
+      const hasPendingPrize = await getHaveWinRaffle(raffle.gameUserId as number)
+      raffle.requireProfileData = hasPendingPrize && !await getHaveProfile(raffle.gameUserId as number)
+    }
     console.log('seconds', diff, diffH, diffH.humanize(), raffle.closingDate)
     raffle.distance = diffH.humanize()
     raffle.localization = await query(`
@@ -110,6 +115,7 @@ export async function getRafflesForCrud(id?: number)
     const newRaffle = {
       "id": "-1",
       "closingDate": format(new Date(), 'yyyy/MM/dd HH:mm:ss'),
+      "liveDate": format(new Date(), 'yyyy/MM/dd HH:mm:ss'),
       "price": 0,
       "textureUrl": '',
       "itemHighlight": 0,
@@ -164,22 +170,24 @@ export async function deleteRaffle(id: string): Promise<any>
   console.log('resp', )
   return resp.affectedRows === 1
 }
-export async function newRaffle(raffle: any, files: any): Promise<any>
+export async function postRaffle(raffle: any, files: any): Promise<any>
 {
-  console.log('raffle.closingDate', raffle.closingDate, raffle)
   const image = files.image
   const localizationData = JSON.parse(raffle.localization)
-  const date = raffle.closingDate ? new Date(raffle.closingDate) : new Date()
-  const now = moment.utc(raffle.closingDate)
-  const diff = now.diff(moment.utc(), 'seconds')
-  console.log('diff', diff)
+  const closingDate = raffle.closingDate ? new Date(raffle.closingDate) : new Date()
+  const liveDate = raffle.liveDate ? new Date(raffle.liveDate) : new Date()
+  const closingDateUtc = moment(raffle.closingDate)
+  const diff = closingDateUtc.diff(moment.utc(), 'seconds')
+  console.log('diff', diff, closingDateUtc.format(), closingDate)
   if(diff <= 0) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
   const raffleForDB = {
     id: raffle.id,
-    closing_date: format(date, 'yyyy/MM/dd HH:mm:ss'),
+    closing_date: format(closingDate, 'yyyy/MM/dd HH:mm:ss'),
+    live_date: format(liveDate, 'yyyy/MM/dd HH:mm:ss'),
     raffle_number_price: raffle.price || 0,
     texture_url: raffle.textureUrl || '',
-    item_highlight: 0
+    item_highlight: 0,
+    state: raffle.state || 'ready'
   }
   if (!localizationData || localizationData.length < 1)
     throw createError(createError.BadRequest, 'raffle.localizationData is required')
@@ -291,7 +299,7 @@ export async function raffleTime(raffleId: number): Promise<any> {
   const eventData = JSON.stringify({"id": Number(raffleId)})
   await exec(`delete from event where data = '${eventData}'`)
   await updateRulesFromDb()
-  await exec(`update raffle set winner = ${winnerRaffleHistory.game_user_id}, state = "raffled" where id = ${raffleId}`)
+  await exec(`update raffle set winner = ${winnerRaffleHistory.game_user_id}, state = "waiting" where id = ${raffleId}`)
   await exec(`update raffle_history set win = 1 where id = ${winnerRaffleHistory.id}`)
   return winnerRaffleHistory
 }

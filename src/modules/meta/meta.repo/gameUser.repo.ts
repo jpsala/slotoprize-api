@@ -138,6 +138,15 @@ export async function setLanguageCode(userId: number, languageCode: string): Pro
   // const changed=resp.affectedRows === 1 ? 'changed' : 'dont\' changed'
   return { languageCode }
 }
+export const getPlayerForFront = async (id: string): Promise<any> =>
+{
+  const player = await queryOne(`
+  select * from game_user
+    where id = ${id}
+` )
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return player
+}
 export const getPlayersForFront = async (from: number, limit: number, filter: string): Promise < any > => {
   const players = (await query(`
   select * from game_user
