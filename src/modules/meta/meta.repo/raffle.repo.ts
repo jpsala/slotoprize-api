@@ -179,7 +179,7 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
   const closingDateUtc = moment(raffle.closingDate)
   const diff = closingDateUtc.diff(moment.utc(), 'seconds')
   console.log('diff', diff, closingDateUtc.format(), closingDate)
-  if(diff <= 0) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
+  if(diff <= 0 && (raffle.state === 'ready' || raffle.status === '')) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
   const raffleForDB = {
     id: raffle.id,
     closing_date: format(closingDate, 'yyyy/MM/dd HH:mm:ss'),
