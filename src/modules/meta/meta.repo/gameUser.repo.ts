@@ -68,7 +68,18 @@ export async function getHaveWinRaffle(userId: number): Promise<boolean> {
 }
 export async function getHaveProfile(userId: number): Promise<boolean> {
   const profileData = await getGameUser(userId)
-  return profileData.lastName !== "" && profileData.firstName !== ""
+  console.log('profileData', profileData)
+  return profileData.lastName !== "" &&
+         profileData.firstName !== "" &&
+         profileData.address !== "" &&
+         profileData.age !== 0 &&
+         profileData.city !== "" &&
+         profileData.country !== "" &&
+         profileData.phoneCode !== "" &&
+         profileData.email !== "" &&
+         profileData.phoneNumber !== "" &&
+         profileData.state !== "" &&
+         profileData.zipCode !== ""
 }
 export async function delUser(deviceId: string): Promise < void > {
   const user = await getGameUserByDeviceId(deviceId)

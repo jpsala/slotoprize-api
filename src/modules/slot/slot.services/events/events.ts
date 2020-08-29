@@ -8,7 +8,7 @@ import { createEvent, Event, EventDTO, EventPayload } from './event'
 
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
 let allEvents: Event[] = []
-let log = true
+let log = false
 export const toggleLog = (): boolean => { return log = !log }
 export const init = async (): Promise<void> =>
 {

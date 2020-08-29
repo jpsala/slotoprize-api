@@ -80,7 +80,7 @@ const callBackForStart = async (event: Event): Promise<void> =>
     console.log('(event.sched?.next', event.sched?.next(1, new Date()))
     // @TODO Que pasa que llama 2 veces si no hago el clear?
     event.laterTimerHandler?.clear()
-    console.log('start raffle event', event)
+    console.log('start raffle event', event.payload.name, event.payload.notificationMessage)
     await raffleTime(event.data.id)
   }
 }

@@ -8,7 +8,7 @@ import * as metaRepo from '../meta/meta.repo'
 import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
 import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront } from '../meta/meta.repo/gameUser.repo'
-import { setSoporte, getSupportRequestForCrud } from '../meta/meta.repo/soporte.repo'
+import { setSoporte, getSupportRequestForCrud, supportAdminForCrud, postSupportAdminForCrud } from '../meta/meta.repo/support.repo'
 import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
 
 import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
@@ -220,6 +220,15 @@ export async function tombolaForCrudGet(req: Request, res: Response): Promise<an
 }
 export async function tombolaForCrudPost(req: Request, res: Response): Promise<any>{
   const data = await postTombolaForCrud(req.body)
+  res.status(200).json(data)
+}
+export async function supportAdminForCrudPost(req: Request, res: Response): Promise<any>
+{
+  const data = await postSupportAdminForCrud(req.body)
+  res.status(200).json(data)
+}
+export async function supportAdminForCrudGet(req: Request, res: Response): Promise<any>{
+  const data = await supportAdminForCrud()
   res.status(200).json(data)
 }
 export async function spinDataGet(req: Request, res: Response): Promise<any>{

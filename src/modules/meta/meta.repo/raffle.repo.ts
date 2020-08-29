@@ -80,8 +80,8 @@ export async function getRafflesForCrud(id?: number)
     const where = id ? ` where r.id = ${id} ` : ''
     const raffles = await query(`
       select r.id, r.state, rl.name, rl.description, gu.email, gu.device_id deviceID,
-             date_format(r.closing_date, '%Y/%m/%d %H:%i:%s') as closingDate,
-             date_format(r.live_date, '%Y/%m/%d %H:%i:%s') as liveDate,
+             date_format(r.closing_date, '%Y-%m-%d %H:%i:%s') as closingDate,
+             date_format(r.live_date, '%Y-%m-%d %H:%i:%s') as liveDate,
              r.texture_url textureUrl, r.item_highlight itemHighlight, r.raffle_number_price price,
              IF(CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date, true, false) as isLive,
              concat(gu.last_name,', ',gu.first_name) as winner, gu.id as gameUserId,
@@ -102,8 +102,8 @@ export async function getRafflesForCrud(id?: number)
     if (raffle.gameUserId) {
       const hasPendingPrize = await getHaveWinRaffle(raffle.gameUserId as number)
       raffle.requireProfileData = hasPendingPrize && !await getHaveProfile(raffle.gameUserId as number)
-    }
-    console.log('seconds', diff, diffH, diffH.humanize(), raffle.closingDate)
+      console.log('raffle.requireProfileData', raffle.requireProfileData)
+    }else {raffle.requireProfileData = true}
     raffle.distance = diffH.humanize()
     raffle.localization = await query(`
       select rl.* from raffle
@@ -114,8 +114,8 @@ export async function getRafflesForCrud(id?: number)
   if (!id) {
     const newRaffle = {
       "id": "-1",
-      "closingDate": format(new Date(), 'yyyy/MM/dd HH:mm:ss'),
-      "liveDate": format(new Date(), 'yyyy/MM/dd HH:mm:ss'),
+      "closingDate": format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+      "liveDate": format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
       "price": 0,
       "textureUrl": '',
       "itemHighlight": 0,
@@ -174,16 +174,22 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
 {
   const image = files.image
   const localizationData = JSON.parse(raffle.localization)
+
   const closingDate = raffle.closingDate ? new Date(raffle.closingDate) : new Date()
   const liveDate = raffle.liveDate ? new Date(raffle.liveDate) : new Date()
-  const closingDateUtc = moment(raffle.closingDate)
-  const diff = closingDateUtc.diff(moment.utc(), 'seconds')
-  console.log('diff', diff, closingDateUtc.format(), closingDate)
-  if(diff <= 0 && (raffle.state === 'ready' || raffle.status === '')) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
+
+  const liveDateUtc = moment(raffle.liveDate)
+
+  const closingDateUtc = moment.utc(raffle.closingDate)
+  const diffLiveDate = closingDateUtc.diff(liveDateUtc.utc(), 'seconds')
+  const diffClosigDate = closingDateUtc.diff(moment.utc(), 'seconds')
+
+  if(diffClosigDate <= 0 && (raffle.state === 'ready' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
+  if(diffLiveDate <= 0 && (raffle.state === 'ready' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle live date can not be after closing date')
   const raffleForDB = {
     id: raffle.id,
-    closing_date: format(closingDate, 'yyyy/MM/dd HH:mm:ss'),
-    live_date: format(liveDate, 'yyyy/MM/dd HH:mm:ss'),
+    closing_date: format(closingDate, 'yyyy-MM-dd HH:mm:ss'),
+    live_date: format(liveDate, 'yyyy-MM-dd HH:mm:ss'),
     raffle_number_price: raffle.price || 0,
     texture_url: raffle.textureUrl || '',
     item_highlight: 0,
@@ -250,7 +256,7 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
     }
   ])
   await updateRulesFromDb()
-  _raffle.closingDate = format(new Date(_raffle.closingDate), 'yyyy/MM/dd HH:mm:ss')
+  _raffle.closingDate = format(new Date(_raffle.closingDate), 'yyyy-MM-dd HH:mm:ss')
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return _raffle
 }
@@ -278,7 +284,7 @@ export async function raffleTime(raffleId: number): Promise<any> {
     where raffle_id = ${raffleId}
   `)
   if (!purchases || purchases.length < 1) {
-    await exec(`update raffle set state = "nopurchase" where id = ${raffleId}`)
+    await exec(`update raffle set state = "nowinner" where id = ${raffleId}`)
     const eventData = JSON.stringify({"id": Number(raffleId)})
     await exec(`delete from event where data = '${eventData}'`)
     await updateRulesFromDb()

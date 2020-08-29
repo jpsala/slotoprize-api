@@ -45,5 +45,7 @@ router.route('/raffles_for_crud').get(checkToken, slot.rafflesForCrudGet)
 router.route('/playerForFront').get(checkToken, slot.playerForFrontGet)
 router.route('/tombola_for_crud').get(checkToken, slot.tombolaForCrudGet)
 router.route('/tombola_for_crud').post(checkToken, slot.tombolaForCrudPost)
+router.route('/support_admin_for_crud').get(checkToken, slot.supportAdminForCrudGet)
+router.route('/support_admin_for_crud').post(checkToken, slot.supportAdminForCrudPost)
 
 export default router
