@@ -11,6 +11,7 @@ import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront 
 import { setSoporte, getSupportRequestForCrud, supportAdminForCrud, postSupportAdminForCrud } from '../meta/meta.repo/support.repo'
 import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
 
+import { getLanguagesForCrud, postLanguageForCrud, deleteLanguageForCrud } from '../meta/meta.repo/language.repo'
 import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
 import { getSpinData, setSpinData } from './slot.repo/spin.repo'
 
@@ -218,6 +219,11 @@ export async function tombolaForCrudGet(req: Request, res: Response): Promise<an
   const data = await getTombolaForCrud()
   res.status(200).json(data)
 }
+export async function languagesForCrudGet(req: Request, res: Response): Promise<any>
+{
+  const data = await getLanguagesForCrud(req.body)
+  res.status(200).json(data)
+}
 export async function tombolaForCrudPost(req: Request, res: Response): Promise<any>{
   const data = await postTombolaForCrud(req.body)
   res.status(200).json(data)
@@ -249,3 +255,13 @@ export function postmanGet(req: Request, res: Response): any
   res.status(200).json(req.body)
 }
 
+export async function languageForCrudDelete(req: Request, res: Response): Promise<any>
+{
+  const data = await deleteLanguageForCrud(req.query.languageId)
+  res.status(200).json(data)
+}
+export async function languageForCrudPost(req: Request, res: Response): Promise<any>
+{
+  const data = await postLanguageForCrud(req.fields, req.files)
+  res.status(200).json(data)
+}

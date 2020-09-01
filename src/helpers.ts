@@ -86,7 +86,8 @@ export function saveFile(
     path?: string,
     fileName?: string,
     id?: string,
-    delete?: boolean
+    delete?: boolean,
+    preppend?: string
   }):
   {
     newPath: string,
@@ -103,7 +104,8 @@ export function saveFile(
   const extension = options.file.name.split('.'). pop() || ''
   const url = baseUrl + (options.path ? options.path : 'img')
   const path = basePath + (options.path ? options.path : 'img')
-  const fileName = options.fileName ?? `${options.id ? options.id + '_' : ''}${uniqueName}.${extension}`
+  const preppend = options.preppend ? `_${options.preppend}_` : ''
+  const fileName = options.fileName ?? `${options.id ? options.id + '_' : ''}${preppend}${uniqueName}.${extension}`
   const oldPath = options.file.path
   const newPath = join(path, fileName)
   const rawData = readFileSync(oldPath)
