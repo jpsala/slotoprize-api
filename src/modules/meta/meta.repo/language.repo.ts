@@ -34,7 +34,7 @@ export async function postLanguageForCrud(fields, files): Promise<any>
   delete fields.isNew
   if (isNew) delete fields.id
   if (isNew && (!file && (!fields.localizationUrl || fields.localizationUrl === 'undefined')))
-      throw createHttpError(BAD_REQUEST, 'Select an image please')
+      throw createHttpError(BAD_REQUEST, 'Select a JSON file please')
   if(isNew) respQuery = await query('insert into language set ?', fields)
   else respQuery = await query(`update language set ? where id = ${fields.id}`, fields)
 
