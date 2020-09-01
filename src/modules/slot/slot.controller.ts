@@ -221,7 +221,7 @@ export async function tombolaForCrudGet(req: Request, res: Response): Promise<an
 }
 export async function languagesForCrudGet(req: Request, res: Response): Promise<any>
 {
-  const data = await getLanguagesForCrud(req.body)
+  const data = await getLanguagesForCrud()
   res.status(200).json(data)
 }
 export async function tombolaForCrudPost(req: Request, res: Response): Promise<any>{

@@ -23,7 +23,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     const betPrice = Number(await getSetting('betPrice', '1'))
     const ticketPrice = Number(await getSetting('ticketPrice', '1'))
     const maxMultiplier = Number(await getSetting('maxMultiplier', '3'))
-    const languages = (await languageRepo.getLanguages(['language_code', 'texture_url', 'localization_url'])) as Array<Partial<LanguageData>>
+    const languages = (await languageRepo.getLanguages()) as Array<Partial<LanguageData>>
     // const requireProfileData = Number(await settingGet('requireProfileData', 0))
     // const languageData = (await metaRepo.getLanguageData(rawUser.id + 3)) as Partial<LanguageData>
     // @URGENT crear savelogin
