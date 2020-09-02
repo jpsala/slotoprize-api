@@ -12,6 +12,7 @@ import { setSoporte, getSupportRequestForCrud, supportAdminForCrud, postSupportA
 import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
 
 import { getLanguagesForCrud, postLanguageForCrud, deleteLanguageForCrud } from '../meta/meta.repo/language.repo'
+import { getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/country.repo'
 import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
 import { getSpinData, setSpinData } from './slot.repo/spin.repo'
 
@@ -254,7 +255,6 @@ export function postmanGet(req: Request, res: Response): any
 {
   res.status(200).json(req.body)
 }
-
 export async function languageForCrudDelete(req: Request, res: Response): Promise<any>
 {
   const data = await deleteLanguageForCrud(req.query.languageId)
@@ -263,5 +263,16 @@ export async function languageForCrudDelete(req: Request, res: Response): Promis
 export async function languageForCrudPost(req: Request, res: Response): Promise<any>
 {
   const data = await postLanguageForCrud(req.fields, req.files)
+  res.status(200).json(data)
+}
+
+export async function countriesForCrudPost(req: Request, res: Response): Promise<any>
+{
+  const data = await postCountryForCrud(req.fields, req.files)
+  res.status(200).json(data)
+}
+export async function countriesForCrudGet(req: Request, res: Response): Promise<any>
+{
+  const data = await getCountriesForCrud()
   res.status(200).json(data)
 }

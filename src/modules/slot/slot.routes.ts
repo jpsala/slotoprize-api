@@ -50,5 +50,7 @@ router.route('/languages_for_crud').get(checkToken, slot.languagesForCrudGet)
 router.route('/support_admin_for_crud').post(checkToken, slot.supportAdminForCrudPost)
 router.route('/language_for_crud').post(formidableMiddleware(), checkToken, slot.languageForCrudPost)
 router.route('/language_for_crud').delete(checkToken, slot.languageForCrudDelete)
+router.route('/countries_for_crud').get(checkToken, slot.countriesForCrudGet)
+router.route('/country_for_crud').post(formidableMiddleware(), checkToken, slot.countriesForCrudPost)
 
 export default router

@@ -1,6 +1,11 @@
+import createError from 'http-errors'
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { BAD_REQUEST } from 'http-status-codes'
+import camelcaseKeys from 'camelcase-keys'
 // import createError from 'http-errors'
-import {query} from '../../../db'
 import {Country, State} from '../meta.types'
+import { saveFile } from '../../../helpers'
+import { queryOne, query } from './../../../db'
 
 export async function getCountries(fields: string[] | undefined = undefined): Promise<Country[] | Partial<Country>> {
   const countries = await query(`
@@ -18,4 +23,46 @@ export async function getCountries(fields: string[] | undefined = undefined): Pr
   }
   return countries
 }
+export async function getCountriesForCrud(): Promise<any> {
+  const countries = await query(`
+    select c.*, l.language_code from country c
+      left join language l on c.language_id = l.id
+  `)
+  const languages = await query(`
+    select * from language
+  `)
+  const data = {countries: camelcaseKeys(countries), languages:camelcaseKeys(languages)}
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return data
+}
+export async function postCountryForCrud(fields, files): Promise<any>
+{
+  console.log('fields', fields)
+  const isNew = fields.isNew
+  console.log('isNew', isNew)
+  const file = files.file ?? files.file
+  let respQuery
+  delete fields.isNew
+  if (isNew && (!file && (!fields.textureUrl))) throw createError(BAD_REQUEST, 'Select an image please')
+  if(!fields.currency) throw createError(BAD_REQUEST, 'Currency is required')
+  if(!fields.language_id) throw createError(BAD_REQUEST, 'Language is required')
+  if(!fields.phone_prefix) throw createError(BAD_REQUEST, 'Phone prefix is required')
+  if(isNew) respQuery = await query('insert into country set ?', fields)
+  else respQuery = await query(`update country set ? where id = ${fields.id}`, fields)
 
+  const countryId = isNew ? respQuery.insertId : fields.id
+  if (isNew) delete fields.id
+
+  if (file) {
+    const saveResp = saveFile({ file, path: 'localization', id: countryId, delete: true })
+    await query(`update country set texture_url = ? where id = ?`, [
+      saveResp.url, countryId
+    ])
+  }
+  const respCountry = await queryOne(`
+    select c.*, l.language_code from country c
+        left join language l on c.language_id = l.id where c.id = ${countryId}
+  `)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return camelcaseKeys(respCountry)
+}

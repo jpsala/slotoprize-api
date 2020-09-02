@@ -32,13 +32,13 @@ export async function postLanguageForCrud(fields, files): Promise<any>
   const file = files.file ?? files.file
   let respQuery
   delete fields.isNew
-  if (isNew) delete fields.id
   if (isNew && (!file && (!fields.localizationUrl || fields.localizationUrl === 'undefined')))
-      throw createHttpError(BAD_REQUEST, 'Select a JSON file please')
+  throw createHttpError(BAD_REQUEST, 'Select a JSON file please')
   if(isNew) respQuery = await query('insert into language set ?', fields)
   else respQuery = await query(`update language set ? where id = ${fields.id}`, fields)
 
   const languageId = isNew ? respQuery.insertId : fields.id
+  if (isNew) delete fields.id
 
   if (file) {
     const saveResp = saveFile({ file, path: 'localization', preppend:fields.language_code, id: languageId, delete: true })
