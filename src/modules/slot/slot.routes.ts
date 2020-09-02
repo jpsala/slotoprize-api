@@ -46,10 +46,16 @@ router.route('/playerForFront').get(checkToken, slot.playerForFrontGet)
 router.route('/tombola_for_crud').get(checkToken, slot.tombolaForCrudGet)
 router.route('/tombola_for_crud').post(checkToken, slot.tombolaForCrudPost)
 router.route('/support_admin_for_crud').get(checkToken, slot.supportAdminForCrudGet)
-router.route('/languages_for_crud').get(checkToken, slot.languagesForCrudGet)
 router.route('/support_admin_for_crud').post(checkToken, slot.supportAdminForCrudPost)
+
+router.route('/languages_for_crud').get(checkToken, slot.languagesForCrudGet)
 router.route('/language_for_crud').post(formidableMiddleware(), checkToken, slot.languageForCrudPost)
 router.route('/language_for_crud').delete(checkToken, slot.languageForCrudDelete)
+
+router.route('/skins_for_crud').get(checkToken, slot.skinsForCrudGet)
+router.route('/skin_for_crud').post(formidableMiddleware(), checkToken, slot.skinForCrudPost)
+// router.route('/skin_for_crud').delete(checkToken, slot.skinForCrudDelete)
+
 router.route('/countries_for_crud').get(checkToken, slot.countriesForCrudGet)
 router.route('/country_for_crud').post(formidableMiddleware(), checkToken, slot.countriesForCrudPost)
 

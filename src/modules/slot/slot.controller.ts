@@ -16,7 +16,7 @@ import { getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/count
 import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
 import { getSpinData, setSpinData } from './slot.repo/spin.repo'
 
-import { getSkinsForCrud } from './slot.repo/skin.repo'
+import { getSkinsForCrud, postSkinForCrud } from './slot.repo/skin.repo'
 import { updateRulesFromDb } from './slot.services/events/events'
 import { dailyRewardClaim } from './slot.repo/dailyReward.repo'
 import * as slotService from './slot.services'
@@ -218,6 +218,16 @@ export async function rafflesForCrudGet(req: Request, res: Response): Promise<an
 }
 export async function tombolaForCrudGet(req: Request, res: Response): Promise<any>{
   const data = await getTombolaForCrud()
+  res.status(200).json(data)
+}
+export async function skinsForCrudGet(req: Request, res: Response): Promise<any>
+{
+  const data = await getSkinsForCrud()
+  res.status(200).json(data)
+}
+export async function skinForCrudPost(req: Request, res: Response): Promise<any>
+{
+  const data = await postSkinForCrud(req.fields, req.files)
   res.status(200).json(data)
 }
 export async function languagesForCrudGet(req: Request, res: Response): Promise<any>
