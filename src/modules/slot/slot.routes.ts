@@ -54,7 +54,7 @@ router.route('/language_for_crud').delete(checkToken, slot.languageForCrudDelete
 
 router.route('/skins_for_crud').get(checkToken, slot.skinsForCrudGet)
 router.route('/skin_for_crud').post(formidableMiddleware(), checkToken, slot.skinForCrudPost)
-// router.route('/skin_for_crud').delete(checkToken, slot.skinForCrudDelete)
+router.route('/skin_for_crud').delete(checkToken, slot.skinForCrudDelete)
 
 router.route('/countries_for_crud').get(checkToken, slot.countriesForCrudGet)
 router.route('/country_for_crud').post(formidableMiddleware(), checkToken, slot.countriesForCrudPost)

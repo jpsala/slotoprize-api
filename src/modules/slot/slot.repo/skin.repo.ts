@@ -3,7 +3,7 @@ import createError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
 import { saveFile } from '../../../helpers'
-import { query, queryOne } from './../../../db'
+import { query, queryOne, exec } from './../../../db'
 export interface Skin
 {
   machineSkinTextureUrl: string;
@@ -37,20 +37,22 @@ export const getSkin = async (id: number): Promise<Skin | undefined> =>
 }
 export async function postSkinForCrud(fields, files): Promise<any>
 {
-  console.log('fields', fields)
   const isNew = fields.isNew
-  console.log('isNew', isNew)
+  console.log('fields', fields, 'isNew', isNew)
   const file = files.file ?? files.file
-  let respQuery
+  let skinId
   delete fields.isNew
   if (isNew && (!file && (!fields.machineSkinTextureUrl))) throw createError(BAD_REQUEST, 'Select an image please')
   if(!fields.machineBgColor) throw createError(BAD_REQUEST, 'Background color is required')
   if(!fields.name) throw createError(BAD_REQUEST, 'Name is required')
-  if(isNew) respQuery = await query('insert into skin set ?', fields)
-  else respQuery = await query(`update skin set ? where id = ${fields.id}`, fields)
-
-  const skinId = isNew ? respQuery.insertId : fields.id
-  if (isNew) delete fields.id
+  if (isNew) {
+    delete fields.id
+    const respQuery = await exec('insert into skin set ?', fields)
+    skinId = respQuery.insertId
+  } else {
+    skinId = fields.id
+    await query(`update skin set ? where id = ${skinId}`, fields)
+  }
 
   if (file) {
     const saveResp = saveFile({ file, path: 'skins', id: skinId, delete: true })
@@ -63,4 +65,8 @@ export async function postSkinForCrud(fields, files): Promise<any>
   `)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return camelcaseKeys(respSkin)
+}
+export async function deleteSkinForCrud(skinId: string): Promise<any> {
+  const data = await exec(`delete from skin where id = ${skinId}`)
+  return data.affectedRows
 }

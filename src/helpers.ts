@@ -87,6 +87,7 @@ export function saveFile(
     fileName?: string,
     id?: string,
     delete?: boolean,
+    deleteWithExtension?: boolean,
     preppend?: string
   }):
   {
@@ -111,13 +112,17 @@ export function saveFile(
   const rawData = readFileSync(oldPath)
   if (options.delete)
     if (!options.id) throw new Error('pass the id if yout want to delete this file')
+  if (options.deleteWithExtension)
+    if (!options.delete) throw new Error('deleteWithExtension parameter needs delete parameter also to be true')
   const fileNameStartWith = String(options?.id) + '_'
   const files = readdirSync(path)
-  files.forEach(file =>
-  {
-    if (file.startsWith(`${fileNameStartWith}`))
-      unlinkSync(join(path, file))
-  })
+  if (options.delete)
+    files.forEach(file =>
+    {
+      if (file.startsWith(fileNameStartWith))
+        if (!options.deleteWithExtension || (options.deleteWithExtension && file.endsWith(extension)))
+            unlinkSync(join(path, file))
+    })
 
   writeFileSync(newPath, rawData)
   unlinkSync(oldPath)
