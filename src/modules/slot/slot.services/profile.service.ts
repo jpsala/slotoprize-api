@@ -1,12 +1,13 @@
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
-import {getGameUserByDeviceId} from '../../meta/meta.repo/gameUser.repo'
+import {getGameUserByDeviceId, toTest} from '../../meta/meta.repo/gameUser.repo'
 import {queryOne, exec as metaExec} from '../../../db'
 import {GameUser} from "../../meta/meta.types"
 import { toBoolean } from './../../../helpers'
 
 export const getProfile = async (deviceId: string, fields: string[] | undefined = undefined): Promise<GameUser | Partial<GameUser>> => {
+  toTest()
   if (!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
   const gameUser = await getGameUserByDeviceId(deviceId, fields)
   if (!gameUser) throw createError(httpStatusCodes.BAD_REQUEST, 'there is no user associated with this deviceId')
@@ -18,18 +19,6 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   if (!userExists)
     throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
 
-
-  /* falta:
-              countryPhoneCode: string;
-              phoneNumber: string;
-              isMale: boolean;
-              age: number;
-              address: string;
-              city: string;
-              zipCode: string;
-              state: string;
-              country: string;
-*/
   const isMale = toBoolean(user.isMale)
   await metaExec(`
           update game_user set

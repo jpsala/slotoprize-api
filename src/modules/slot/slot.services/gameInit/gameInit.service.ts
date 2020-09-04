@@ -61,6 +61,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     const defaultSpinData = await getLooseSpin()
     delete rawUser.languageCode
     const initData = {
+      interstitialsRatio: await getSetting('interstitialsRatio', 5),
       sessionId: token,
       requireProfileData: requireProfileData ? 1 : 0,
       languageCode,

@@ -1,0 +1,44 @@
+import createError from 'http-errors'
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { BAD_REQUEST } from 'http-status-codes'
+import camelcaseKeys from 'camelcase-keys'
+// import createError from 'http-errors'
+import { saveFile } from '../../../helpers'
+import { queryOne, query } from './../../../db'
+
+export async function getSkinsForCrud(): Promise<any> {
+const data = await query(`select * from skin`)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return data
+}
+export async function postSkinForCrud(fields, files): Promise<any>
+{
+  console.log('fields', fields)
+  const isNew = fields.isNew
+  console.log('isNew', isNew)
+  const file = files.file ?? files.file
+  let respQuery
+  delete fields.isNew
+  if (isNew && (!file && (!fields.textureUrl))) throw createError(BAD_REQUEST, 'Select an image please')
+  if(!fields.currency) throw createError(BAD_REQUEST, 'Currency is required')
+  if(!fields.language_id) throw createError(BAD_REQUEST, 'Language is required')
+  if(!fields.phone_prefix) throw createError(BAD_REQUEST, 'Phone prefix is required')
+  if(isNew) respQuery = await query('insert into skin set ?', fields)
+  else respQuery = await query(`update skin set ? where id = ${fields.id}`, fields)
+
+  const skinId = isNew ? respQuery.insertId : fields.id
+  if (isNew) delete fields.id
+
+  if (file) {
+    const saveResp = saveFile({ file, path: 'localization', id: skinId, delete: true })
+    await query(`update skin set texture_url = ? where id = ?`, [
+      saveResp.url, skinId
+    ])
+  }
+  const respSkin = await queryOne(`
+    select c.*, l.language_code from skin c
+        left join language l on c.language_id = l.id where c.id = ${skinId}
+  `)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return camelcaseKeys(respSkin)
+}

@@ -8,6 +8,8 @@ export const getSetting = async (key: string, defaultValue: string | number | un
     await exec('insert into setting(name, value) values (?, ?)', [key, defaultValue])
     return defaultValue as string
   }
+  if (typeof defaultValue === 'number') setting.value = Number(setting.value)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return setting?.value
 }
 

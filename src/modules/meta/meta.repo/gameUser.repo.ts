@@ -4,8 +4,11 @@ import { classToPlain } from "class-transformer"
 import { RowDataPacket } from 'mysql2'
 import getConnection, {queryOne, exec, query } from '../../../db'
 import {LanguageData, GameUser, fakeUser } from '../meta.types'
-
-
+import * as thisModule from './gameUser.repo'
+export function toTest(msg = 'mal'): any
+{
+  return msg
+}
 export async function getLanguage(userId: number): Promise<LanguageData> {
   const localizationData = await queryOne(`
     select l.* from game_user gu
@@ -86,6 +89,9 @@ export async function delUser(deviceId: string): Promise < void > {
   if(!user) return
   const {id} = user
   await exec(`
+    delete from game_user_login where game_user_id = ${id}
+  `)
+  await exec(`
     delete from wallet where game_user_id = ${id}
   `)
   await exec(`
@@ -129,7 +135,7 @@ export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Pro
 export async function setGameUserLogin(deviceId: string): Promise<any>
 {
   const gameUser = await getGameUserByDeviceId(deviceId)
-  const resp = await exec(`
+  await exec(`
     replace into game_user_login set ?
   `,
     {
@@ -138,7 +144,6 @@ export async function setGameUserLogin(deviceId: string): Promise<any>
       "device_id": deviceId
     }
   )
-  console.log('resp', resp)
 }
 export async function setLanguageCode(userId: number, languageCode: string): Promise<{ languageCode: string }> {
   const qry = `

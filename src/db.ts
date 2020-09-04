@@ -15,7 +15,7 @@ export default function getConnection(host = 'localhost'): Promise<Connection> {
     host,
     user: 'jpsala',
     password: 'lani0363',
-    database: environment === 'testing' ? 'wopitest' : 'wopidom',
+    database: environment === 'XXtesting' ? 'wopitest' : 'wopidom',
     debug: false,
     charset: 'utf8mb4',
     // waitForConnections: true,

@@ -1,11 +1,11 @@
 /* eslint-disable no-undef */
 // import encodings from '../../../../node_modules/iconv-lite/encodings/';
-import {Request, Response} from 'express'
 import {gameInitGet} from '../slot.controller'
 import {delUser} from '../../meta/meta.repo/gameUser.repo'
 import {verifyToken} from '../../../services/jwtService'
 import {Fakexpress} from "../../../helpers"
 import {getSetting} from "../slot.services/settings.service"
+import {Request, Response} from 'express'
 
 
 let fakeExpres
@@ -30,6 +30,11 @@ describe(`game-init new user`, () => {
   })
   it('requireProfileData is 0', () => {
     expect(fakeExpres.responseData.requireProfileData).toBe(0)
+  })
+  it('interstitialsRatio is equal to interstitialsRatio setting', async () => {
+    const interstitialsRatio = await getSetting('interstitialsRatio', 5)
+    expect(fakeExpres.responseData.interstitialsRatio).toBeNumber()
+    expect(fakeExpres.responseData.interstitialsRatio).toEqual(interstitialsRatio)
   })
   it('requireProfileData is 0', () => {
     expect(fakeExpres.responseData.requireProfileData).toBe(0)
@@ -59,8 +64,13 @@ describe(`game-init new user`, () => {
       // 'requireProfileData is 1 or 0'
     expect(fakeExpres.responseData.requireProfileData).toBeLessThanOrEqual(1)
   })
-  describe('properties of profileData', () => {
-    const props = ['firstName', 'lastName', 'email', 'deviceName', 'deviceModel', 'age', 'phoneCode', 'phoneNumber', 'languageCode', 'countryPhoneCode', 'isMale', 'address', 'zipCode', 'state', 'country', 'city', 'isNew']
+  describe('properties of profileData', () =>
+  {
+    // it ('fakeExpress', () =>
+    // {
+    //   console.warn('fakeExpres.responseData.profileData)', fakeExpres.responseData.profileData))
+    // })
+    const props = ['firstName', 'lastName', 'email', 'isDev', 'deviceName', 'deviceModel', 'age', 'phoneCode', 'phoneNumber', 'isMale', 'address', 'zipCode', 'state', 'country', 'city', 'isNew']
     props.forEach((prop) => {
       it(`profileData to have prop ${prop}`, () => {
         expect(fakeExpres.responseData.profileData).toHaveProperty(prop)

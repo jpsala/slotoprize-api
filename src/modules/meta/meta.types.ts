@@ -43,6 +43,7 @@ export interface GameUser {
   state: string;
   country: string;
   isNew: boolean;
+  isDev: boolean;
   wallet?: Partial<Wallet>;
 }
 export const fakeUser = (override: Partial<GameUser> = {}): GameUser => {
@@ -68,6 +69,7 @@ export const fakeUser = (override: Partial<GameUser> = {}): GameUser => {
     zipCode: faker.address.zipCode(),
     state: faker.address.state(),
     country: faker.address.country(),
+    isDev: false,
     isNew: false,
     wallet: {
       coins: faker.random.number(100),
