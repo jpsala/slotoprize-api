@@ -5,7 +5,7 @@ import * as languageRepo from "../../../meta/meta.repo/language.repo"
 import {setReqUser} from '../../../meta/authMiddleware'
 import {getOrSetGameUserByDeviceId} from "../../../meta/meta-services/meta.service"
 import {getNewToken} from '../../../../services/jwtService'
-import {getHaveWinRaffle, getHaveProfile, setGameUserLogin} from '../../../meta/meta.repo/gameUser.repo'
+import {getHaveWinRaffle, setGameUserLogin, getHaveWinJackpot, getWinRaffle } from '../../../meta/meta.repo/gameUser.repo'
 import {getOrSetWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import {getReelsData} from "../symbol.service"
@@ -29,11 +29,13 @@ export async function gameInit(deviceId: string): Promise<any> {
     // @URGENT crear savelogin
     // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
-    const hasPendingPrize = await getHaveWinRaffle(rawUser.id as number)
-    const requireProfileData = hasPendingPrize && !await getHaveProfile(rawUser.id as number)
+    const hasPendingRaffle = await getHaveWinRaffle(rawUser.id as number)
+    const hasPendingJackpot = await getHaveWinJackpot(rawUser.id as number)
+    const pendingPrizeIsJackpot = hasPendingJackpot
+    const rafflePrizeData = hasPendingRaffle ? await getWinRaffle(rawUser.id as number) : undefined
+    const hasPendingPrize = hasPendingRaffle || hasPendingJackpot
     const token = getNewToken({id: rawUser.id, deviceId})
     await setGameUserLogin(deviceId)
-    // delete rawUser.id
     delete rawUser.deviceId
     delete rawUser.createdAt
     delete rawUser.modifiedAt
@@ -63,10 +65,12 @@ export async function gameInit(deviceId: string): Promise<any> {
     const initData = {
       interstitialsRatio: await getSetting('interstitialsRatio', 5),
       sessionId: token,
-      requireProfileData: requireProfileData ? 1 : 0,
+      // requireProfileData: requireProfileData ? 1 : 0,
       languageCode,
       defaultSpinData,
       hasPendingPrize: hasPendingPrize ? 1 : 0,
+      rafflePrizeData,
+      pendingPrizeIsJackpot,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
       consecutiveDailyLogs,
@@ -78,6 +82,8 @@ export async function gameInit(deviceId: string): Promise<any> {
       reelsData,
       walletData: wallet,
     }
+    if(!rafflePrizeData) delete initData.rafflePrizeData
+    if(!hasPendingPrize) delete initData.pendingPrizeIsJackpot
     return initData
   } catch (error) {
     throw createError(createError.InternalServerError, error)

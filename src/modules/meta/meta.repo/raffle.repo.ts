@@ -102,7 +102,6 @@ export async function getRafflesForCrud(id?: number)
     if (raffle.gameUserId) {
       const hasPendingPrize = await getHaveWinRaffle(raffle.gameUserId as number)
       raffle.requireProfileData = hasPendingPrize && !await getHaveProfile(raffle.gameUserId as number)
-      console.log('raffle.requireProfileData', raffle.requireProfileData)
     }else {raffle.requireProfileData = true}
     raffle.distance = diffH.humanize()
     raffle.localization = await query(`
