@@ -17,7 +17,8 @@ export const getLooseSpin = async (): Promise<any> => {
     "isWin": false,
     "walletData": {
         "coins": 0,
-        "tickets": 0
+        "tickets": 0,
+        "spins": 0
     }
   }
 }

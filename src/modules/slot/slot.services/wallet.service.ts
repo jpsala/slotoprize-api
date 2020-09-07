@@ -6,6 +6,7 @@ import * as metaService from '../../meta/meta-services/meta.service'
 import getSlotConnection, {exec} from '../../../db'
 import {Wallet} from '../slot.types'
 import * as slotRepo from "../slot.repo"
+import { getWalletByDeviceId } from '../slot.repo/wallet.repo'
 import { getSetting } from './settings.service'
 import * as slotService from '.'
 // import {slotService.setting.getSetting} from './settings.service'
@@ -16,7 +17,7 @@ export const getWallet = async (deviceId: string): Promise<Wallet> => {
             httpStatusCodes.BAD_REQUEST,
             'deviceId is a required parameter'
         )
-  return await slotRepo.wallet.getWalletByDeviceId(deviceId)
+  return await getWalletByDeviceId(deviceId)
 }
 export async function updateWallet(
     deviceId: string,
@@ -79,8 +80,11 @@ export const getOrSetWallet = async (
     const initialWalletCoins = Number(
             await slotService.setting.getSetting('initialWalletCoins', '10')
         )
+    const initialWalletSpins = Number(
+            await slotService.setting.getSetting('initialWalletSpins', '10')
+        )
     await exec(`
-      insert into wallet(game_user_id, coins, tickets) value (${userId}, ${initialWalletCoins}, ${initialWalletTickets})
+      insert into wallet(game_user_id, coins, tickets, spins) value (${userId}, ${initialWalletCoins}, ${initialWalletTickets}, ${initialWalletSpins})
     `)
     wallet = await getWallet(deviceId)
   }
