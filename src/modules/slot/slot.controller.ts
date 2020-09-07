@@ -13,8 +13,8 @@ import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/r
 
 import { getLanguagesForCrud, postLanguageForCrud, deleteLanguageForCrud } from '../meta/meta.repo/language.repo'
 import { getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/country.repo'
+import { getJackpotData, addJackpotNextRow } from './slot.services/jackpot.service'
 import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
-import { getSpinData, setSpinData } from './slot.repo/spin.repo'
 
 import { getSkinsForCrud, postSkinForCrud, deleteSkinForCrud } from './slot.repo/skin.repo'
 import { updateRulesFromDb } from './slot.services/events/events'
@@ -183,11 +183,11 @@ export async function eventsReloadPost(req: Request, res: Response): Promise<any
   res.status(200).json({ status: 'ok' })
 }
 export async function spinDataGet(req: Request, res: Response): Promise<any>{
-  const spinData = await getSpinData()
+  const spinData = await getJackpotData()
   res.status(200).json(spinData)
 }
 export async function spinDataPost(req: Request, res: Response): Promise<any>{
-  await setSpinData(req.body)
+  await addJackpotNextRow(req.body)
   res.status(200).json({status: 'ok'})
 }
 export async function dailyRewardClaimGet(req: Request, res: Response): Promise<any>{

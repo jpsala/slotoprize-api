@@ -5,16 +5,24 @@ import getSlotConnection from '../../../db'
 import { SpinData } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
 import { setGameUserSpinData } from '../../meta/meta.repo/gameUser.repo'
+import { GameUser } from './../../meta/meta.types'
+import * as jackpotService from './jackpot.service'
+
+
+
 
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import * as walletService from "./wallet.service"
-import { getSetting, setSetting } from './settings.service'
+import { getSetting } from './settings.service'
+
 
 const randomNumbers: number[] = []
 export async function spin(deviceId: string, multiplier: number): Promise<SpinData> {
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
+
+  const user = await getGameUserByDeviceId(deviceId)
 
   const wallet = await walletService.getWallet(deviceId)
   if (!wallet) throw createError(createError.BadRequest, 'Something went wrong, Wallet not found for this user, someting went wrong')
@@ -22,25 +30,24 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   const { bet, enoughCoins } = await getBetAndCheckFunds(multiplier, coinsInWallet)
   if (!enoughCoins) throw createError(400, 'Insufficient funds')
 
-  await saveSpinToDb(multiplier)
+  const jackpot = await jackpotService.addSpinsToJackpotLiveRow(multiplier, user)
 
   // eslint-disable-next-line prefer-const
-  let { winPoints, winType, symbolsData, isWin } = await getWinData()
+  let { winPoints, winType, symbolsData, isWin } = await getWinData(jackpot)
 
   if (winType === 'jackpot' || winType === 'ticket') multiplier = 1
   let winAmount = winPoints * multiplier
 
+
   // siempre se descuenta el costo del spin
   wallet.coins -= bet
   if (winType === 'jackpot') {
-    await resetSpinCount()
     isWin = true
   } else if (isWin) {
     const eventMultiplier = getActiveEventMultiplier()
     winAmount = winAmount * eventMultiplier
     wallet.coins += (winAmount)
   }
-  const user = await getGameUserByDeviceId(deviceId)
   await setGameUserSpinData(user.id)
   await walletService.updateWallet(deviceId, wallet)
   const returnData: SpinData = { symbolsData, isWin, walletData: wallet }
@@ -48,13 +55,6 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   if (isWin) returnData.winData = { type: winType, amount: winAmount }
 
   return returnData
-}
-const resetSpinCount = async () => {
-  await setSetting('spinCount', '0')
-}
-const saveSpinToDb = async (multiplier: number): Promise<void> => {
-  const spinCount = Number(await getSetting('spinCount', multiplier))
-  await setSetting('spinCount', String(Number(spinCount) + multiplier))
 }
 export const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   // console.log("getWinRowWithEmptyFilled -> winRow", winRow)
@@ -145,17 +145,13 @@ export async function getBetAndCheckFunds(multiplier: number, coins: number): Pr
   const enoughCoins = ((coins - bet) >= 0)
   return { bet, enoughCoins }
 }
-async function getWinData() {
+async function getWinData(jackpot) {
   const isWin = checkWithRandomIfWins()
   // @TODO Quitar
   // const isWin = false
   const payTable = await getPayTable()
-  const jackpotCycle = Number(await getSetting('jackpotCycle', 10))
   let winRow
   let winType
-  const spinCount = Number(await getSetting('spinCount', 0))
-  // const jackpot = (spinCount >= 1000000)
-  const jackpot = (spinCount >= jackpotCycle)
   if (jackpot) {
     winRow = getJackpotRow(payTable)
     winType = 'jackpot'

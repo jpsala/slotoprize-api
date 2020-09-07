@@ -6,10 +6,10 @@ import {queryOne, exec as metaExec} from '../../../db'
 import {GameUser} from "../../meta/meta.types"
 import { toBoolean } from './../../../helpers'
 
-export const getProfile = async (deviceId: string, fields: string[] | undefined = undefined): Promise<GameUser | Partial<GameUser>> => {
+export const getProfile = async (deviceId: string): Promise<GameUser | Partial<GameUser>> => {
   toTest()
   if (!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
-  const gameUser = await getGameUserByDeviceId(deviceId, fields)
+  const gameUser = await getGameUserByDeviceId(deviceId)
   if (!gameUser) throw createError(httpStatusCodes.BAD_REQUEST, 'there is no user associated with this deviceId')
   return gameUser
 }

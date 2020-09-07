@@ -1,5 +1,5 @@
+import { BAD_REQUEST } from 'http-status-codes'
 import createError from 'http-errors'
-import statusCodes from 'http-status-codes'
 import moment from 'moment'
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { Wallet } from './../../meta/models/wallet'
@@ -8,7 +8,7 @@ import { query, queryOne, exec } from './../../../db'
 
 export type SpinData = { last: Date, days: number, lastClaim: Date }
 export const getLastSpin = async (user: GameUser): Promise<SpinData | undefined> => {
-  const row = await queryOne(`select * from last_spin where game_user_id = ${user.id}`)
+  const row = await queryOne(`select * from last_spin where game_user_id = ${user.id} order by id limit 1`)
   if (!row) return undefined
   const spinData: SpinData = { days: Number(row.days), last: new Date(row.last), lastClaim: new Date(row.last_claim) }
   return spinData
@@ -45,13 +45,12 @@ export const getUserPrize = async (user: GameUser): Promise<DailyRewardPrize | u
   const lastSpin = await getLastSpin(user)
   if (lastSpin == null) return undefined
   const prizes = await getDailyRewardPrizes()
-  // console.log('lastspin', lastSpin)
-  if (lastSpin.days < 1 || lastSpin.days > prizes.length) return undefined
-  return prizes[lastSpin.days - 1]
+  if (lastSpin.days > prizes.length) lastSpin.days = prizes.length - 1
+  return prizes[lastSpin.days]
 }
 export const isDailyRewardClaimed = async (deviceId: string): Promise<boolean> => {
   const user = await getGameUserByDeviceId(deviceId)
-  if (user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
+  if (user == null) throw createError(BAD_REQUEST, 'there is no user with that deviceID')
   const lastSpin = await getLastSpin(user)
   if (lastSpin == null) return false
   const lastClaimDate = moment(lastSpin?.lastClaim)
@@ -61,14 +60,14 @@ export const isDailyRewardClaimed = async (deviceId: string): Promise<boolean> =
 }
 export const dailyRewardClaim = async (deviceId: string): Promise<Partial<Wallet>> => {
   const user = await getGameUserByDeviceId(deviceId)
-  if (user == null) throw createError(statusCodes.BAD_REQUEST, 'there is no user with that deviceID')
+  if (user == null) throw createError(BAD_REQUEST, 'there is no user with that deviceID')
   const isClaimed = await isDailyRewardClaimed(deviceId)
-  if (isClaimed) throw createError(statusCodes.BAD_REQUEST, 'The daily reward was allreaady claimed')
+  if (isClaimed) throw createError(BAD_REQUEST, 'The daily reward was allreaady claimed')
   const userPrize = await getUserPrize(user)
-  if (!userPrize) throw createError(statusCodes.BAD_REQUEST, 'User have no daily reward')
+  if (!userPrize) throw createError(BAD_REQUEST, 'User have no daily reward')
   const wallet = await queryOne(`select * from wallet where game_user_id = ?`, [user.id]) as Wallet
   wallet[`${userPrize.type}s`] += userPrize.amount
   await exec(`update last_spin set last_claim = ? where game_user_id = ?`, [new Date(), user.id])
   await exec(`update wallet set ${userPrize.type}s = ?`, [wallet[`${userPrize.type}s`]])
-  return { coins: wallet.coins, tickets: wallet.tickets }
+  return { coins: wallet.coins, tickets: wallet.tickets, spins: wallet.spins }
 }

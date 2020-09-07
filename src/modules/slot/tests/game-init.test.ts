@@ -111,11 +111,10 @@ describe(`game-init new user`, () => {
   it(`isNew to be true`, () => {
     expect(fakeExpres.responseData.profileData.isNew).toBe(true)
   })
-  it('walletData to have coins and tickets', () => {
-      // 'to have prop coins'
+  it('walletData to have coins, spins and tickets', () => {
     expect(fakeExpres.responseData.walletData).toHaveProperty('coins')
-      // 'to have prop tickets'
     expect(fakeExpres.responseData.walletData).toHaveProperty('tickets')
+    expect(fakeExpres.responseData.walletData).toHaveProperty('spins')
   })
   it(
         'walletData to have coins and tickets equal to initialWalletTickets and initialWalletCoins',

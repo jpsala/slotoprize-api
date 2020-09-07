@@ -1,4 +1,4 @@
-- [ ] Load countries data to db
+- [x] Load countries data to db
 
 borrar los datos existentes y los vuelvo a ingresar
 * Here is a spreadsheet with preliminary countries data.
@@ -19,7 +19,7 @@ will be obtained from the game's producer, through a backoffice setting.
 cada cuantos spins le va a mostrar una publicidad
 front - add settings - intersticials ratio ticket front #15
 ------
-- [ ] Daily Rewards Changes
+- [x] Daily Rewards Changes
 We need to tweak the system in order to:
 
 provide a reward from the very first day, instead of the second as we do now.
@@ -161,3 +161,5 @@ public class EventData
     public int multiplier;
 }
 ------------------
+
+

@@ -16,9 +16,9 @@ export const getWalletByDeviceId = async (deviceId: string): Promise<Wallet> => 
   const user = await metaService.getGameUserByDeviceId(deviceId)
   try {
     const [walletRows] = await conn.query(
-            `select coins, tickets from wallet where game_user_id ='${user.id}'`
+            `select coins, tickets, spins from wallet where game_user_id ='${user.id}'`
         )
-    const wallet = walletRows[0]
+    const wallet = walletRows[0] as Wallet
     if (!user)
       throw createError(
                 httpStatusCodes.BAD_REQUEST,
@@ -27,7 +27,7 @@ export const getWalletByDeviceId = async (deviceId: string): Promise<Wallet> => 
 
     return wallet
   } finally {
-    await conn.destroy()
+    conn.destroy()
   }
 }
 export async function updateWallet(
@@ -38,7 +38,7 @@ export async function updateWallet(
   try {
     const user = await metaService.getGameUserByDeviceId(deviceId)
     const [respUpdateRow] = await conn.query(`
-    update wallet set coins = ${wallet.coins}, tickets = ${wallet.tickets} where game_user_id = ${user.id}
+    update wallet set coins = ${wallet.coins}, tickets = ${wallet.tickets}, spins = ${wallet.spins} where game_user_id = ${user.id}
 `) as ResultSetHeader[]
     if (Number(respUpdateRow.affectedRows) !== 1)
       throw createError(
@@ -50,6 +50,6 @@ export async function updateWallet(
   } catch (error) {
     throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, error)
   } finally {
-    await conn.destroy()
+    conn.destroy()
   }
 }

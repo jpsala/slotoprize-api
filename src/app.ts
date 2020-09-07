@@ -29,6 +29,7 @@ const createApp = (): Express => {
     if (process.env.NODE_ENV !== 'testing')
       console.error(error)
     res.status(error.status || 500).json({ message: error.message })
+    next()
   })
   return app
 }

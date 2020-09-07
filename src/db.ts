@@ -1,5 +1,4 @@
 /* eslint-disable babel/no-unused-expressions */
-import { execPath } from 'process'
 import {createConnection, ResultSetHeader, Connection} from 'mysql2/promise'
 import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'

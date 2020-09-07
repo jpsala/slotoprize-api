@@ -6,6 +6,7 @@ import * as metaService from '../../meta/meta-services/meta.service'
 import getSlotConnection, {exec} from '../../../db'
 import {Wallet} from '../slot.types'
 import * as slotRepo from "../slot.repo"
+import { getSetting } from './settings.service'
 import * as slotService from '.'
 // import {slotService.setting.getSetting} from './settings.service'
 
@@ -51,7 +52,7 @@ export const purchaseTickets = async (
   let wallet = await getWallet(deviceId)
   const user = await metaService.getGameUserByDeviceId(deviceId)
     // until we have a value for a ticket
-  const ticketValue = Number(await slotService.setting.getSetting('ticketPrice', 1))
+  const ticketValue = Number(await getSetting('ticketPrice', 1))
   const coinsRequired = ticketAmount * ticketValue
   if (wallet.coins < coinsRequired)
     throw createError(400, 'There are no sufficient funds')
@@ -62,7 +63,7 @@ export const purchaseTickets = async (
         tickets = tickets + ${ticketAmount}
         where game_user_id = ${user.id}
   `)
-  await conn.destroy()
+  conn.destroy()
   wallet = await getWallet(deviceId)
   return wallet
 }

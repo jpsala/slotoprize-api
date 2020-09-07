@@ -129,3 +129,12 @@ export function saveFile(
   const host: string = isNotebook() ? 'http://localhost' : 'http://wopidom.homelinux.com'
   return { newPath, fileName, url: `${host}${url}/${fileName}` }
 }
+export const sleep = async ( time: number ): Promise<void> =>
+{
+  return await new Promise(resolve =>
+  {
+    setTimeout(() => {
+      resolve()
+    }, time)
+  })
+}
