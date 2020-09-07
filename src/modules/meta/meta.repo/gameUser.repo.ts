@@ -4,7 +4,7 @@ import { classToPlain } from "class-transformer"
 import { RowDataPacket } from 'mysql2'
 import getConnection, {queryOne, exec, query } from '../../../db'
 import {LanguageData, GameUser, fakeUser } from '../meta.types'
-import * as thisModule from './gameUser.repo'
+// import * as thisModule from './gameUser.repo'
 export function toTest(msg = 'mal'): any
 {
   return msg

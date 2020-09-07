@@ -30,32 +30,31 @@ daily reward dia ahora se paga a partir del día cero
 se le sigue pagando el del último día
 se puede agregar spins al tipo de pago
 -------
-- [ ] Game-init members requireProfileData and hasPendingPrize need changes to consider jackpot (besides raffles, as the current backend code does).
+- [x] Game-init members requireProfileData and hasPendingPrize need changes to consider jackpot (besides raffles, as the current backend code does).
 If player has a pending prize (thus, hasPendingPrize is true), it can either be a jackpot or a raffle. So we need a new bool in game-init stating the type of the pending prize, named "pendingPrizeIsJackpot" (true for jackpot, false for raffle).
 Also, if the pending prize is a raffle, game-init shall include its data, in a field named "rafflePrizeData" (which will hold the rafflePrizeData).
 If its a jackpot, hasPendingPrize will be true, pendingPrizeIsJackpot will be true, but rafflePrizeData wont be sent.
 
-[ ] haspendig prize hasta ahora se contempla que haya ganado una rifa, que se ponga en true con un jackpot, valor nuevo que diga que tipo de premio ganó - pendigPrizeIsJackpot (más pendingPrize in true) si gana un raffle devolver el raffle prize que ganó
+[x] haspendig prize hasta ahora se contempla que haya ganado una rifa, que se ponga en true con un jackpot, valor nuevo que diga que tipo de premio ganó - pendigPrizeIsJackpot (más pendingPrize in true) si gana un raffle devolver el raffle prize que ganó
 3 considere el haspendingprize es jackpot
 -------
-- [ ] Wallet - New "Spins" currency
-Wallet will now have a new currency "spins", besides coins and tickets. Spins will auto-regenerate over time at a ratio defined in the backoffice, and to a maxium also defined in the backoffice. When a new spin is available in the player wallet due to regeneration, if client is online, the backend must send the information.
+- [] Wallet - Spins Regeneration
+Spins will auto-regenerate over time at a ratio defined in the backoffice, and to a maxium also defined in the backoffice. When a new spin is available in the player wallet due to regeneration, if client is online, the backend must send the information.
 
+--------
+- [] Wallet - New "Spins" currency
+Wallet will now have a new currency "spins", besides coins and tickets. Coins wont be used for the slot machine anymore. Slot machine spins will now only consume spins from the wallet, instead of coins. Each spin will consume the number of spins determined by the multiplier, just as before it affected the bet amount.
+
+Ie:
+
+Player spins with multiplier = 1. Results on Standard paytable gains, and one spin discounted from wallet.
+Player spins with multiplier = 3. Results on 3 x paytable gains, and 3 x spins discounted from wallet.
 Spins will be credited from different sources:
 
-Regeneration (as defined above).
+Regeneration (see #40).
 Daily Rewards (see #38).
 Player watching rewarded ads (see #47).
 Slot Machine wins (see #46).
-
-[] en la billetera un currency nuevo: spins
-[] slotmachine no va a andar más con monedas, consume spins, eso multiplicado por el multiplier
-
-[] a su vez los spins van a tener una regeneración en el tiempo con un máximo seteable
-a un ratio definible
-la regeneración es si el tipo tiene menos spins que un máximo se van regenerando, mínimo, cada cuanto
-si baja de 100 spins le das 100 por hora
-
 --------
 - [ ] Game Init - hasPendingPrize and requireProfileData changes
 Game-init members requireProfileData and hasPendingPrize need changes to consider jackpot (besides raffles, as the current backend code does).

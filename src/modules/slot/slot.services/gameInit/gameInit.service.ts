@@ -68,7 +68,7 @@ export async function gameInit(deviceId: string): Promise<any> {
       // requireProfileData: requireProfileData ? 1 : 0,
       languageCode,
       defaultSpinData,
-      hasPendingPrize: hasPendingPrize ? 1 : 0,
+      hasPendingPrize: hasPendingPrize,
       rafflePrizeData,
       pendingPrizeIsJackpot,
       profileData: toCamelCase(rawUser),
