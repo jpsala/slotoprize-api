@@ -62,6 +62,18 @@ export async function getLoginData(userId: number): Promise<{count: number, last
       (select max(u.date) from game_user_login u where u.game_user_id = ${userId}) as lastLogin`)
   return response as {count: number, lastLogin: Date}
 }
+export async function getWinRaffle(userId: number): Promise<any> {
+  const winData = await queryOne(`
+  select r.id, r.closing_date,
+  r.raffle_number_price, r.texture_url, r.item_highlight
+  from raffle_history rh
+  inner join raffle r on rh.raffle_id = r.id
+  where win = 1 and rh.game_user_id = ${userId} and notified = 0
+  order by rh.id desc limit 1
+  `)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return winData
+}
 export async function getHaveWinRaffle(userId: number): Promise<boolean> {
   const winData = await queryOne(`
     select count(*) as win from raffle_history rh
@@ -69,22 +81,14 @@ export async function getHaveWinRaffle(userId: number): Promise<boolean> {
   `)
   return Number(winData.win) > 0
 }
-export async function getWinRaffle(userId: number): Promise<any> {
-  const winData = await queryOne(`
-    select r.id, r.closing_date,
-           r.raffle_number_price, r.texture_url, r.item_highlight
-           from raffle_history rh
-      inner join raffle r on rh.raffle_id = r.id
-    where win = 1 and rh.game_user_id = ${userId} and notified = 0
-    order by rh.id desc limit 1
-  `)
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return winData
+export async function resetPendingPrize(userId: number): Promise<void> {
+  await exec(`update raffle_history set notified = 1 where game_user_id = ${userId}`)
+  await exec(`update jackpot_win set notified = 1 where game_user_id = ${userId}`)
 }
 export async function getHaveWinJackpot(userId: number): Promise<boolean> {
   const winData = await queryOne(`
     select count(*) as win from jackpot_win jw
-    where state = 'new' and jw.game_user_id = ${userId}
+    where state = 'new' and jw.game_user_id = ${userId} and jw.notified = 0
   `)
   return winData.win > 0
 }

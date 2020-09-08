@@ -5,7 +5,7 @@ import * as languageRepo from "../../../meta/meta.repo/language.repo"
 import {setReqUser} from '../../../meta/authMiddleware'
 import {getOrSetGameUserByDeviceId} from "../../../meta/meta-services/meta.service"
 import {getNewToken} from '../../../../services/jwtService'
-import {getHaveWinRaffle, setGameUserLogin, getHaveWinJackpot, getWinRaffle } from '../../../meta/meta.repo/gameUser.repo'
+import {getHaveWinRaffle, setGameUserLogin, getHaveWinJackpot, getWinRaffle, resetPendingPrize } from '../../../meta/meta.repo/gameUser.repo'
 import {getOrSetWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import {getReelsData} from "../symbol.service"
@@ -34,6 +34,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     const pendingPrizeIsJackpot = hasPendingJackpot
     const rafflePrizeData = hasPendingRaffle ? await getWinRaffle(rawUser.id as number) : undefined
     const hasPendingPrize = hasPendingRaffle || hasPendingJackpot
+    await resetPendingPrize(rawUser.id as number)
     const token = getNewToken({id: rawUser.id, deviceId})
     await setGameUserLogin(deviceId)
     delete rawUser.deviceId
