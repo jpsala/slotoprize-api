@@ -2,9 +2,10 @@
 /* eslint-disable no-param-reassign */
 import createError from 'http-errors'
 import getSlotConnection from '../../../db'
-import { SpinData } from "../slot.types"
+import { SpinData , WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
 import { setGameUserSpinData } from '../../meta/meta.repo/gameUser.repo'
+
 import * as jackpotService from './jackpot.service'
 
 
@@ -150,7 +151,7 @@ async function getWinData(jackpot) {
   // const isWin = false
   const payTable = await getPayTable()
   let winRow
-  let winType: string
+  let winType: WinType
   if (jackpot) {
     winRow = getJackpotRow(payTable)
     winType = 'jackpot'

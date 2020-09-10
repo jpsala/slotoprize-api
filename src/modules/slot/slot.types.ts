@@ -1,4 +1,4 @@
-export type WinType = 'jackpot' | 'coin' | 'ticket'
+export type WinType = 'jackpot' | 'coin' | 'ticket' | 'spin'
 export type WinData = { type: WinType, amount: number }
 export type SpinData = { symbolsData: any, isWin: boolean, walletData: Wallet, winData?: WinData }
 export interface Wallet {
