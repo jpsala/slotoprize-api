@@ -26,7 +26,7 @@ export async function spinRegenerationInit(): Promise<void>{
 async function validateAndAddUserToUsersArray(partialSpinRegenerationData: Partial<UserSpinRegenerationData>, init = true): Promise<void>{
   const spinRegenerationData = partialSpinRegenerationData as UserSpinRegenerationData
   if (!partialSpinRegenerationData?.spinRegenerationTableId) {
-    console.log('Adding record in spins_regeneration', partialSpinRegenerationData.userId, partialSpinRegenerationData.spinRegenerationTableId)
+    console.log('Adding record in spins_regeneration', partialSpinRegenerationData.userId, partialSpinRegenerationData)
     const resp = await exec(`
       insert into spins_regeneration(game_user_id) values(?)
     `, [spinRegenerationData.userId])
