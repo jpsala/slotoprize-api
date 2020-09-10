@@ -1,6 +1,6 @@
 import PubSub from 'pubsub-js'
 import WebSocket from 'ws'
-import wsServer from '../slot.services/webSocket/ws'
+import { wsServer } from './../slot.services/webSocket/ws.service'
 
 type Message = { command: 'getEventState', eventType: string, client: WebSocket }
 

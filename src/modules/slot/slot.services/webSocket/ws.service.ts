@@ -1,8 +1,9 @@
+import url from 'url'
+import { shutDown } from '@src/modules/slot/slot.repo/spin.regeneration.repo'
 import WebSocket, { Server } from 'ws'
 import PubSub from 'pubsub-js'
 import { isValidJSON } from '../../../../helpers'
-import { EventPayload } from './../events/event'
-
+import { EventPayload } from '../events/event'
 //#region types
 type Subscription = { message: string, cb: () => void }
 
@@ -22,7 +23,7 @@ export interface WebSocketMessage
 {
   code: 200 | 400 | 500;
   message: 'OK' | string;
-  msgType: 'events' | 'webSocket' | 'eventsState';
+  msgType: 'events' | 'webSocket' | 'eventsState' | 'spinTimer' | 'getSpinTimer';
   payload: EventPayload | any
 }
 type WsServerService = {
@@ -30,6 +31,8 @@ type WsServerService = {
   ws: WebSocket,
   send(_msg: WebSocketMessage, client?: WebSocket): void,
   sendRaw(_msg: any, client?: WebSocket | undefined): void
+  sendToUser(_msg: WebSocketMessage, userId): void
+  shutDown(): void
 }
 type MessageForEmit = {
   command: string;
@@ -38,16 +41,35 @@ type MessageForEmit = {
 let server: WebSocket.Server
 let ws: WebSocket
 
+export interface ExtWebSocket extends WebSocket {
+  userId: number; // your custom property
+}
 const createWsServerService = (): WsServerService =>
 {
   server = new Server({
     port: 8890,
   })
-  server.on('connection', function (ws)
+  server.on('connection', function (ws: ExtWebSocket, req)
   {
-    console.log(`[SERVER] connection()`)
+    if(!req.url) throw Error('Url not in websocket connection')
+    const _url = url.parse(req.url)
+    const userId = Number(_url.query)
+    console.log(`[SERVER] connection()`, 'userId:', userId)
+    if(isNaN(userId)) throw Error('Url not in websocket connection')
+    ws.userId = userId
     ws.on('message', (msg) => onMessage(msg, ws))
   })
+  const sendToUser = (_msg: WebSocketMessage, userId): void =>
+  {
+    server.clients.forEach(_client =>
+    {
+      const client = <ExtWebSocket> _client
+      if (client.userId === userId) {
+        console.log('sended to specific client %O', userId, _msg)
+        send(_msg, client as WebSocket)
+      }
+    })
+  }
   const send = (_msg: WebSocketMessage, client: WebSocket | undefined = undefined): void =>
   {
     // @TODO ver abajo
@@ -96,12 +118,12 @@ const createWsServerService = (): WsServerService =>
   }
   const onMessage = function (message, ws: WebSocket): void
   {
-    console.log('message', message)
     try
     {
       // console.log(`[SERVER] Received:`, message.subsrtr(0,60))
       if (!(typeof message === 'string'))
         throw new Error('ws on message: message have to be string')
+
       const isValid = isValidJSON(message)
       if (!isValid) throw Error(`invalid JSON on webSocket incomming message: ${message}`)
       const msg = JSON.parse(message)
@@ -116,10 +138,14 @@ const createWsServerService = (): WsServerService =>
       PubSub.publish('error', { error: JSON.stringify({ "error": error.message }), client: ws })
     }
   }
-  return { server, ws, send, sendRaw }
+  const shutDown = function (): void
+  {
+    console.log('websocket shutdown', server.close())
+  }
+  return { server, ws, send, sendRaw, sendToUser, shutDown }
 }
 console.log('ws.ts')
-let wsServer: WsServerService
+export let wsServer: WsServerService
 if (process.env.NODE_ENV !== 'testing')
 {
   console.log('ws server started at port 8890...')
@@ -130,7 +156,6 @@ if (process.env.NODE_ENV !== 'testing')
   wsServer = { send: (_msg: WebSocketMessage, client?: WebSocket | undefined) => { console.log('ws mock send') } } as WsServerService
 }
 
-export default wsServer
 
 
 // client test:

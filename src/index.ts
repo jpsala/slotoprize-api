@@ -1,22 +1,30 @@
-// import WebSocket from 'ws'
+import { spinRegenerationInit, shutDown as spinRegenerationShutDown } from '@src/modules/slot/slot.repo/spin.regeneration.repo'
+import { wsServer } from './modules/slot/slot.services/webSocket/ws.service'
 import createApp from './app'
 import './modules/slot/slot.commands'
-void (function main() {
+
+
+void (async function main() {
+  await spinRegenerationInit()
+  process.on('SIGINT', () =>
+  {
+    void sendShutDownMessageToHooksAndShutdown()
+  })
+  process.on('SIGINT', () =>
+  {
+    void sendShutDownMessageToHooksAndShutdown()
+  })
+  async function sendShutDownMessageToHooksAndShutdown(): Promise<void>{
+    console.log('shutting down api, waiting processes to end')
+    await spinRegenerationShutDown()
+    wsServer.shutDown()
+    console.log('shutting down...')
+    process.exit(0)
+  }
   const app = createApp()
   const port = 8888
   const name = 'wopidom api'
   app.listen(port, () => {
     console.info(`${name} started at port ${port}`)
   })
-
-
-  // const client = new WebSocket('ws://localhost:8890')
-  // // const client = new WebSocket('ws://wopidom.homelinux.com:8890/ws/chat')
-  // client.on('open', function () {
-  //   client.send(JSON.stringify({ "command": "getEventState", "eventType": "happyHour" }))
-  //   console.log('client sended')
-  // })
-  // client.on('message', function (a, b) {
-  //   console.warn('msg received from server', a, b)
-  // })
 })()

@@ -4,7 +4,7 @@ import { formatDistanceStrict, differenceInSeconds } from 'date-fns'
 import { getSetting } from './../settings.service'
 import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
-import { createEvent, Event, EventDTO, EventPayload } from './event'
+import { createEvent, Event, EventDTO, EventPayload} from './event'
 
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
 let allEvents: Event[] = []

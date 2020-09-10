@@ -1,10 +1,32 @@
+import createError from 'http-errors'
+import * as httpStatusCodes from 'http-status-codes'
 import snakeCaseKeys from 'snakecase-keys'
 import camelcaseKeys from 'camelcase-keys'
 import { classToPlain } from "class-transformer"
 import { RowDataPacket } from 'mysql2'
+import * as metaService from '../../meta/meta-services/meta.service'
 import getConnection, {queryOne, exec, query } from '../../../db'
-import {LanguageData, GameUser, fakeUser } from '../meta.types'
-// import * as thisModule from './gameUser.repo'
+import { LanguageData, GameUser, fakeUser } from '../meta.types'
+import { Wallet } from './../models/wallet'
+import { getSetting } from './../../slot/slot.services/settings.service'
+import { insertWallet , getWallet, updateWallet } from '$src/modules/slot/slot.services/wallet.service'
+
+
+
+export const purchaseTickets = async (deviceId: string,ticketAmount: number): Promise<Wallet> => {
+  if (!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
+
+  const user = await metaService.getGameUserByDeviceId(deviceId)
+  const wallet = await getWallet(user)
+  const ticketValue = Number(await getSetting('ticketPrice', 1))
+  const coinsRequired = ticketAmount * ticketValue
+  if (wallet.coins < coinsRequired)
+    throw createError(400, 'There are no sufficient funds')
+  wallet.coins-=coinsRequired
+  wallet.tickets += ticketAmount
+  await updateWallet(user, wallet)
+  return wallet as Wallet
+}
 export function toTest(msg = 'mal'): any
 {
   return msg
@@ -18,8 +40,8 @@ export async function getLanguage(userId: number): Promise<LanguageData> {
   return localizationData
 }
 export async function getGameUserByDeviceId(deviceId: string): Promise<GameUser>;
-export async function getGameUserByDeviceId(deviceId: string, fields: string[] | undefined): Promise<Partial <GameUser> | GameUser>;
-export async function getGameUserByDeviceId(deviceId: string, fields: string[] | undefined = undefined): Promise<Partial <GameUser> | GameUser> {
+export async function getGameUserByDeviceId(deviceId: string): Promise<Partial <GameUser> | GameUser>;
+export async function getGameUserByDeviceId(deviceId: string): Promise<Partial <GameUser> | GameUser> {
   const userSelect = `
       select *
         from game_user
@@ -27,33 +49,25 @@ export async function getGameUserByDeviceId(deviceId: string, fields: string[] |
   const user = await queryOne(userSelect, undefined, false) as GameUser
   return user
 }
-// let cachedUser: GameUser
 export async function getGameUser(userId: number): Promise<GameUser> {
-  // if(cachedUser && cachedUser.id === userId) return cachedUser
   const userSelect = `
     select *
     from game_user
     where id =${userId}`
   const user = camelcaseKeys(await queryOne(userSelect)) as GameUser
-  const wallet = await queryOne(
-    `select coins, tickets from wallet where game_user_id = ${userId}`
-  )
-  user.wallet = wallet
-  // cachedUser = user
+  user.wallet = await getWallet(user)
   return user
 }
 export async function setGameUserSpinData(userId: number): Promise<void>
 {
   const spinCountResp = await queryOne(`select id, spinCount from game_user_spin where game_user_id = ${userId}`)
-  console.log('sc', spinCountResp)
-  const response = await exec(`
+  await exec(`
     replace into game_user_spin set ?
   `, {
       "id": spinCountResp?.id,
       "game_user_id": userId,
       "spinCount": spinCountResp?.spinCount >= 0 ? (Number(spinCountResp.spinCount )+1) : 0
   })
-  console.log('response', response)
 }
 export async function getLoginData(userId: number): Promise<{count: number, lastLogin: Date}> {
   const response = await queryOne(`
@@ -131,17 +145,19 @@ export async function addGameUser(user: GameUser): Promise<GameUser> {
   const wallet = snakeCasedUser.wallet
   delete snakeCasedUser.wallet
   const conn = await getConnection()
-  let userGameId: number
+  let gameUserId: number
   await conn.beginTransaction()
   try {
       const [result] = await conn.query('insert into game_user set ?', snakeCasedUser) as RowDataPacket[]
-      userGameId = result.insertId
-    user.id = userGameId
+      gameUserId = result.insertId
+      user.id = gameUserId
       let walletDTO: WalletDTO
       if (user.wallet) {
         walletDTO = <WalletDTO>classToPlain(wallet)
-        walletDTO.game_user_id = userGameId
-        await conn.query('insert into wallet set ?', walletDTO)
+        walletDTO.game_user_id = gameUserId
+        await insertWallet(user, wallet?.coins, wallet?.spins, wallet?.tickets)
+      } else {
+        await insertWallet(user)
       }
     await conn.commit()
     } finally {

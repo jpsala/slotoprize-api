@@ -4,18 +4,16 @@ import createError from 'http-errors'
 import ParamRequiredException from '../../../error'
 import {queryOne, query} from '../../../db'
 import {GameUser, User} from '../meta.types'
+import { insertWallet } from '$src/modules/slot/slot.services/wallet.service'
 
 export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<GameUser> => {
   if (!deviceId) throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId')
   let user = await getGameUserByDeviceId(deviceId)
-    // eslint-disable-next-line no-negated-condition
   if (!user) {
-    await query(`
-          insert into game_user(device_id) value('${deviceId}')
-      `)
+    await query(`insert into game_user(device_id) value('${deviceId}')`)
     user = await getGameUserByDeviceId(deviceId)
+    await insertWallet(user)
     user.isNew = true
-        // id: respInsert.insertId,
   } else {user.isNew = false}
   return user
 }
@@ -23,19 +21,18 @@ export async function getAll(): Promise<User> {
   const [users]: Array<User> = await query('select * from user limit 2')
   return users
 }
-const getGame = async (name) => {
-  const [gameRows] = await query(`SELECT * FROM game WHERE UPPER(name) = '${name.toUpperCase()}'`)
-  const game = gameRows.length === 0 ? undefined : gameRows[0]
-  return game
-}
-export const saveLogin = async (userId: string, gameName: string, deviceId: string): Promise<void> => {
-  const game = await getGame(gameName)
-  if (!game) throw createError(400, `Game ${gameName} not found in db`)
-  await query(`
-          insert into game_user_login(game_user_id,game_id,device_id)
-          values(${userId}, ${game.id}, '${deviceId}')
-      `)
-}
+// const getGame = async (name: string): Promise<{id: number, name: string}> => {
+//   const game = await queryOne(`SELECT * FROM game WHERE UPPER(name) = '${name.toUpperCase()}'`)
+//   return game as {id: number, name: string}
+// }
+// export const saveLogin = async (userId: string, gameName: string, deviceId: string): Promise<void> => {
+//   const game = await getGame(gameName)
+//   if (!game) throw createError(400, `Game ${gameName} not found in db`)
+//   await query(`
+//           insert into game_user_login(game_user_id,game_id,device_id)
+//           values(${userId}, ${game.id}, '${deviceId}')
+//       `)
+// }
 export const getUserById = async (id: number): Promise<User> => {
   const userSelect = `
         select *
@@ -43,6 +40,7 @@ export const getUserById = async (id: number): Promise<User> => {
         where id = "${id}"`
   const user = await queryOne(userSelect)
   // const user = rows.length ? rows[0] : false
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return user
 }
 export const getGameUserByDeviceId = async (deviceId: string): Promise<GameUser> => {

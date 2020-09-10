@@ -5,7 +5,6 @@ import getSlotConnection from '../../../db'
 import { SpinData } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
 import { setGameUserSpinData } from '../../meta/meta.repo/gameUser.repo'
-import { GameUser } from './../../meta/meta.types'
 import * as jackpotService from './jackpot.service'
 
 
@@ -14,8 +13,8 @@ import * as jackpotService from './jackpot.service'
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
-import * as walletService from "./wallet.service"
 import { getSetting } from './settings.service'
+import { getWallet, updateWallet } from './wallet.service'
 
 
 const randomNumbers: number[] = []
@@ -23,15 +22,13 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
   const user = await getGameUserByDeviceId(deviceId)
-
-  const wallet = await walletService.getWallet(deviceId)
+  const wallet = await getWallet(user)
   if (!wallet) throw createError(createError.BadRequest, 'Something went wrong, Wallet not found for this user, someting went wrong')
-  const { coins: coinsInWallet } = wallet
-  const { bet, enoughCoins } = await getBetAndCheckFunds(multiplier, coinsInWallet)
-  if (!enoughCoins) throw createError(400, 'Insufficient funds')
+  const { spins: spinsInWallet } = wallet
+  const { bet, enoughSpins } = await getBetAndCheckFunds(multiplier, spinsInWallet)
+  if (!enoughSpins) throw createError(400, 'Insufficient funds')
 
   const jackpot = await jackpotService.addSpinsToJackpotLiveRow(multiplier, user)
-
   // eslint-disable-next-line prefer-const
   let { winPoints, winType, symbolsData, isWin } = await getWinData(jackpot)
 
@@ -40,16 +37,16 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
 
 
   // siempre se descuenta el costo del spin
-  wallet.coins -= bet
+  wallet.spins -= bet
   if (winType === 'jackpot') {
     isWin = true
   } else if (isWin) {
     const eventMultiplier = getActiveEventMultiplier()
     winAmount = winAmount * eventMultiplier
-    wallet.coins += (winAmount)
+    wallet.spins += (winAmount)
   }
   await setGameUserSpinData(user.id)
-  await walletService.updateWallet(deviceId, wallet)
+  await updateWallet(user, wallet)
   const returnData: SpinData = { symbolsData, isWin, walletData: wallet }
 
   if (isWin) returnData.winData = { type: winType, amount: winAmount }
@@ -59,18 +56,19 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
 export const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   // console.log("getWinRowWithEmptyFilled -> winRow", winRow)
   const winSymbolAmount = winRow.symbol_amount || 0
+  const winSymbolSymbolName = winRow.symbol_name || ""
   const winSymbolPaymentType = winRow.payment_type || ""
   const filledSymbolRowToReturn: any[] = []
   for (let idx = 0; idx < winSymbolAmount; idx++)
-    filledSymbolRowToReturn.push({ paymentType: winSymbolPaymentType, isPaying: true })
-  // console.log("getWinRowWithEmptyFilled -> winSymbolPaymentType", winSymbolPaymentType.payment_type)
+    filledSymbolRowToReturn.push({ paymentType: winSymbolPaymentType, symbolName: winSymbolSymbolName, isPaying: true })
+  // console.log("getWinRowWithEmptyFilled -> winSymbolSymbolName", winSymbolSymbolName.symbol_name)
 
   // console.log('filledSymbolRowToReturn', filledSymbolRowToReturn)
   const symbolsAmountToFill = 3 - winSymbolAmount
   for (let idx = 0; idx < symbolsAmountToFill; idx++) {
     // const symbolRowsForFilling = getSymbolRowsForFilling(fillTable)
     const symbolRowForFilling = getSymbolForFilling(fillTable, filledSymbolRowToReturn)
-    filledSymbolRowToReturn.push({ paymentType: symbolRowForFilling.payment_type, isPaying: false })
+    filledSymbolRowToReturn.push({ paymentType: symbolRowForFilling.payment_type, symbolName: symbolRowForFilling.symbol_name, isPaying: false })
   }
   return filledSymbolRowToReturn
 }
@@ -81,9 +79,9 @@ const getSymbolForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
       return fillingSymbolRow
 
     const isInValid = allreadyFilledSymbols.find((afSymbol) => {
-      const encontrado = (afSymbol.paymentType === fillingSymbolRow.payment_type)
+      const encontrado = (afSymbol.symbolName === fillingSymbolRow.symbol_name)
       // if (!encontrado)
-      //   console.log('symbol', fillingSymbolRow.payment_type)
+      //   console.log('symbol', fillingSymbolRow.symbol_name)
 
       return encontrado
     })
@@ -91,14 +89,14 @@ const getSymbolForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
   })
 
   const randomNumber = getRandomNumber(0, symbolsToReturn.length - 1)
-  // console.log("getSymbolForFilling -> symbolsForFilling[randomNumber]", symbolsForFilling[randomNumber].payment_type)
+  // console.log("getSymbolForFilling -> symbolsForFilling[randomNumber]", symbolsForFilling[randomNumber].symbol_name)
   return symbolsToReturn[randomNumber]
 }
 export const getPayTable = async (): Promise<any> => {
   const conn = await getSlotConnection()
   try {
     const [payTable] = await conn.query(`
-      select s.payment_type, pt.symbol_amount, pt.probability, pt.points
+      select s.symbol_name, s.payment_type, pt.symbol_amount, pt.probability, pt.points
         from pay_table pt
       inner join symbol s on s.id = pt.symbol_id
       order by pt.probability asc`)
@@ -112,7 +110,7 @@ export const getFillTable = (payTable) => {
   const rowsWithLessThan3 = payTable.filter((payTableRow) => payTableRow.symbol_amount < 3)
   return rowsWith3.filter((rowWith3) => {
     const isInOtherRow = rowsWithLessThan3.find((rowWithLessThan3) => {
-      const found = (rowWithLessThan3.payment_type === rowWith3.payment_type)
+      const found = (rowWithLessThan3.symbol_name === rowWith3.symbol_name)
       return found
     })
     return !isInOtherRow
@@ -124,7 +122,9 @@ const getWinRow = (table) => {
   if (!randomNumbers[randomNumber]) randomNumbers[randomNumber] = 0
   randomNumbers[randomNumber]++
   let floor = 0
-  const winRow = table.find((row) => {
+  const winRow = table.find((row) =>
+  {
+    if(row.payment_type === 'jackpot') return false
     const isWin = ((randomNumber > floor) && (randomNumber <= floor + Number(row.probability)))
     floor += Number(row.probability)
     return isWin
@@ -138,12 +138,11 @@ async function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: numb
   if (multiplier > maxMultiplier) throw createError(createError[502], `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`)
 
 }
-export async function getBetAndCheckFunds(multiplier: number, coins: number): Promise<{ bet: number, enoughCoins: boolean }> {
+export async function getBetAndCheckFunds(multiplier: number, spins: number): Promise<{ bet: number, enoughSpins: boolean }> {
   const betPrice = Number(await getActiveBetPrice() )
   const bet = betPrice * multiplier
-
-  const enoughCoins = ((coins - bet) >= 0)
-  return { bet, enoughCoins }
+  const enoughSpins = ((spins - bet) >= 0)
+  return { bet, enoughSpins }
 }
 async function getWinData(jackpot) {
   const isWin = checkWithRandomIfWins()
@@ -157,7 +156,7 @@ async function getWinData(jackpot) {
     winType = 'jackpot'
   } else {
     winRow = isWin ? await getWinRow(payTable) : []
-    winType = winRow.payment_type === 'ticket' ? 'ticket' : 'coin'
+    winType = winRow.payment_type
   }
   const filltable = await getFillTable(payTable)
 
@@ -165,5 +164,5 @@ async function getWinData(jackpot) {
   return { winPoints: winRow.points, winType, symbolsData, isWin }
 }
 function getJackpotRow(payTable) {
-  return payTable[0]
+  return payTable.find(row => row.payment_type === 'jackpot')
 }

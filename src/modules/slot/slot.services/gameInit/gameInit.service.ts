@@ -6,7 +6,7 @@ import {setReqUser} from '../../../meta/authMiddleware'
 import {getOrSetGameUserByDeviceId} from "../../../meta/meta-services/meta.service"
 import {getNewToken} from '../../../../services/jwtService'
 import {getHaveWinRaffle, setGameUserLogin, getHaveWinJackpot, getWinRaffle, resetPendingPrize } from '../../../meta/meta.repo/gameUser.repo'
-import {getOrSetWallet} from "../wallet.service"
+import {getWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import {getReelsData} from "../symbol.service"
 import {getPayTable} from "../spin.service"
@@ -18,7 +18,7 @@ export async function gameInit(deviceId: string): Promise<any> {
   try {
     const rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
     setReqUser(deviceId, rawUser.id as number)
-    const wallet = await getOrSetWallet(deviceId, String(rawUser.id))
+    const wallet = await getWallet(rawUser as GameUser)
     const payTable = await getPayTable()
     const betPrice = Number(await getSetting('betPrice', '1'))
     const ticketPrice = Number(await getSetting('ticketPrice', '1'))
@@ -64,11 +64,11 @@ export async function gameInit(deviceId: string): Promise<any> {
     const defaultSpinData = await getLooseSpin()
     delete rawUser.languageCode
     const initData = {
-      interstitialsRatio: await getSetting('interstitialsRatio', 5),
       sessionId: token,
       // requireProfileData: requireProfileData ? 1 : 0,
       languageCode,
       defaultSpinData,
+      interstitialsRatio: await getSetting('interstitialsRatio', 5),
       hasPendingPrize: hasPendingPrize,
       rafflePrizeData,
       pendingPrizeIsJackpot,

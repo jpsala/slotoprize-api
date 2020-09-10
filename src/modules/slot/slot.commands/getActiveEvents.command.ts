@@ -1,8 +1,8 @@
 import PubSub from 'pubsub-js'
 import WebSocket from 'ws'
 import { getActiveEvents } from '../slot.services/events/events'
-import wsServer, { WebSocketMessage } from '../slot.services/webSocket/ws'
 import { EventPayload } from '../slot.services/events/event'
+import { WebSocketMessage, wsServer } from './../slot.services/webSocket/ws.service'
 
 type Message = { payload: any, client: WebSocket }
 

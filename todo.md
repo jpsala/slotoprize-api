@@ -56,7 +56,7 @@ Daily Rewards (see #38).
 Player watching rewarded ads (see #47).
 Slot Machine wins (see #46).
 --------
-- [ ] Game Init - hasPendingPrize and requireProfileData changes
+- [x] Game Init - hasPendingPrize and requireProfileData changes
 Game-init members requireProfileData and hasPendingPrize need changes to consider jackpot (besides raffles, as the current backend code does).
 
 If player has a pending prize (thus, hasPendingPrize is true), it can either be a jackpot or a raffle. So we need a new bool in game-init stating the type of the pending prize, named "pendingPrizeIsJackpot" (true for jackpot, false for raffle).

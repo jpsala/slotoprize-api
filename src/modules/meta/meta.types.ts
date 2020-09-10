@@ -28,7 +28,6 @@ export interface GameUser {
   deviceId: string;
   deviceModel: string;
   deviceName: string;
-  countryPhoneCode: string;
   phoneNumber: string;
   createdAt?: Date;
   modifiedAt?: Date;
@@ -44,7 +43,8 @@ export interface GameUser {
   country: string;
   isNew: boolean;
   isDev: boolean;
-  wallet?: Partial<Wallet>;
+  // wallet?: Partial<Wallet>;
+  wallet?: Wallet;
 }
 export const fakeUser = (override: Partial<GameUser> = {}): GameUser => {
   return {
@@ -55,7 +55,6 @@ export const fakeUser = (override: Partial<GameUser> = {}): GameUser => {
     deviceId: 'fakeDevice1',
     deviceModel: faker.lorem.word(),
     deviceName: faker.lorem.word(),
-    countryPhoneCode: faker.address.countryCode(),
     phoneCode: faker.lorem.word().substr(0, 2),
     phoneNumber: faker.phone.phoneNumber().substr(0, 19),
     createdAt: faker.date.past(),
@@ -72,8 +71,10 @@ export const fakeUser = (override: Partial<GameUser> = {}): GameUser => {
     isDev: false,
     isNew: false,
     wallet: {
+      id: -1,
       coins: faker.random.number(100),
-      tickets: faker.random.number(100)
+      tickets: faker.random.number(100),
+      spins: faker.random.number(100)
     }, ...override
   }
 }

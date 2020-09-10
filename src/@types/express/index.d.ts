@@ -10,3 +10,8 @@ declare global {
     }
   }
 }
+declare module "WebSocket" {
+  interface WebSocket {
+      userId: string;
+  }
+}

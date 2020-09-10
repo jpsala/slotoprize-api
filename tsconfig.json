@@ -19,6 +19,7 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "moduleResolution": "node",
+        "allowSyntheticDefaultImports":true,
         "lib": ["es6"],
         "typeRoots": [
             "src/@types",
@@ -26,15 +27,13 @@
         ],
         "baseUrl": "./src",
         "paths": {
-            "@/*": ["*"],
-            "@meta/*": ["modules/meta/*"],
-            "@slot/*": ["modules/slot/*"]
+          "$src/*": ["*"]
         }
     },
     "setupFiles": [
         "<rootDir>/src/setupTests.ts"
     ],
-    "include": ["**/src/**/*.ts"],
+    "include": ["**/src/**/*.ts", "src/modules/slot/slot.commands/.command.ts"],
     // "include": ["src/**/*"]
     "exclude": ["node_modules", "**/*.js", "**/*.old", "**/*.spec.ts"]
 }

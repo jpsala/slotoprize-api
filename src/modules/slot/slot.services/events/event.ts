@@ -1,6 +1,6 @@
 import { raffleTime } from '../../../meta/meta.repo/raffle.repo'
 import { isValidJSON } from '../../../../helpers'
-import wsServer, { WebSocketMessage } from './../webSocket/ws'
+import { WebSocketMessage, wsServer } from './../webSocket/ws.service'
 import { Skin } from './../../slot.repo/skin.repo'
 //#region interface
 export type EventType = 'raffle' | 'generic'

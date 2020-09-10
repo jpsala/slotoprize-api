@@ -15,7 +15,12 @@
     "dev2": "cross-env NODE_ENV=development nodemon src/index.js --exec ts-node ",
     "pm2-dev": "pm2 start -n api npm -- run dev",
     "pm2-prod": "pm2 delete api ;npm run build && cross-env NODE_ENV=production pm2 start -n api npm -- run start",
-    "pm2-restart": "pm2 delete api ; npm run pm2-prod"
+    "pm2-restart": "pm2 delete api ; npm run pm2-prod",
+    "postinstall": "link-module-alias",
+    "preinstall": "command -v link-module-alias && link-module-alias clean || true"
+  },
+  "_moduleAliases": {
+    "$src"      : "./src/"
   },
   "dependencies": {
     "@types/faker": "^4.1.12",
@@ -45,7 +50,6 @@
     "jsonwebtoken": "^8.5.1",
     "later": "^1.2.0",
     "lodash.merge": "^4.6.2",
-    "module-alias": "^2.2.2",
     "moment": "^2.27.0",
     "multer": "^1.4.2",
     "mysql2": "^2.1.0",
@@ -76,6 +80,7 @@
     "jest": "^26.1.0",
     "jest-extended": "^0.11.5",
     "jest-module-name-mapper": "^0.1.5",
+    "link-module-alias": "^1.2.0",
     "prettier": "^2.0.5",
     "serve": "^11.3.2",
     "source-map-support": "^0.5.19",

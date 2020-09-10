@@ -6,7 +6,7 @@ import { HttpError } from 'http-errors'
 import routes from './routes'
 import express, { Express, Request, Response, NextFunction } from 'express'
 import './modules/slot/slot.services/events/events'
-import './modules/slot/slot.services/webSocket/ws'
+import '@src/modules/slot/slot.services/webSocket/ws.service'
 
 const createApp = (): Express => {
 

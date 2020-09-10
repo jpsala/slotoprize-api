@@ -1,23 +1,24 @@
+import createError from 'http-errors'
 /* eslint-disable import/no-named-as-default-member */
 import snakeCaseKeys from 'snakecase-keys'
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {BAD_REQUEST} from 'http-status-codes'
 /* eslint-disable babel/camelcase */
 import camelcaseKeys from 'camelcase-keys'
-import createError from 'http-errors'
+
 import { format} from 'date-fns'
 import moment from "moment"
 import { query, queryOne, exec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
 import { getRandomNumber, saveFile } from "../../../helpers"
-import { getWallet, updateWallet } from '../../slot/slot.services/wallet.service'
+import { updateWallet, getWallet } from '../../slot/slot.services/wallet.service'
 import { getReqUser } from "../authMiddleware"
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
 
 import { dateToRule, updateRulesFromDb } from './../../slot/slot.services/events/events'
-import { getGameUser, getHaveWinRaffle, getHaveProfile } from './gameUser.repo'
+import { getHaveWinRaffle, getHaveProfile } from './gameUser.repo'
 
 export const rafflePurchase = async (deviceId: string, raffleId: number, amount: number): Promise<Wallet> => {
   if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
@@ -26,7 +27,7 @@ export const rafflePurchase = async (deviceId: string, raffleId: number, amount:
   if (isNaN(raffleId)) throw createError(createError.BadRequest, 'raffleId is a required parameter')
 
   const user = await getGameUserByDeviceId(deviceId)
-  const wallet = await getWallet(deviceId)
+  const wallet = await getWallet(user)
   const raffle = await getRaffle(raffleId)
   if (!raffle) throw createError(createError.BadRequest, 'there is no raffle with that ID')
   const raffleCostInTickets = raffle.raffleNumberPrice
@@ -35,34 +36,40 @@ export const rafflePurchase = async (deviceId: string, raffleId: number, amount:
   const raffleInsertedId = await saveRaffle(raffle, user, totalTicketsNeeded, amount)
   if (raffleInsertedId < 0) throw createError(createError.InternalServerError, 'Error saving raffle to db')
   wallet.tickets -= totalTicketsNeeded
-  await updateWallet(deviceId, wallet)
-  // eslint-disable-next-line no-return-await
-  return await getWallet(deviceId)
+  await updateWallet(user, wallet)
+  return await getWallet(user)
 }
-async function getRaffleLocalizationData(raffleId: number): Promise<LocalizationData> {
-  const { languageCode } = await getGameUser(getReqUser().user as number)
+async function getRaffleLocalizationData(user: GameUser,raffleId: number): Promise<LocalizationData> {
+  const { languageCode } = user
   const localizationData = await queryOne(`
     select * from raffle_localization
       where raffle_id = ${raffleId} and language_code = "${languageCode}"
   `)
+  if (!localizationData)
+    return {
+      id: -1,
+      raffleId: -1,
+      languageCode: languageCode,
+      name: 'No localization for ' + languageCode,
+      description: 'No description for '+ languageCode
+    }
+
   return camelcaseKeys(localizationData) as LocalizationData
 }
-export async function getRaffles(fieldsToExclude: string[] | undefined = undefined, camelCased = true): Promise<RafflePrizeData[]> {
+export async function getRaffles(user: GameUser): Promise<RafflePrizeData[]> {
   const raffles = await query(`
     SELECT r.id, r.closing_date,
       r.raffle_number_price, r.texture_url, r.item_highlight
     FROM raffle r
   `) as RafflePrizeData[]
   for (const raffle of raffles) {
-    const { name, description } = await getRaffleLocalizationData(raffle.id)
+    const { name, description } = await getRaffleLocalizationData(user, raffle.id)
     if (raffle == null) throw createError(BAD_REQUEST, 'no localization data for this raffle')
     if (name == null) throw createError(BAD_REQUEST, 'no localization data for this raffle')
     raffle.name = name
     raffle.description = description
-    if (fieldsToExclude)
-      fieldsToExclude.forEach((fieldToExclude) => delete raffle[fieldToExclude])
   }
-  return camelCased ? camelcaseKeys(raffles) : raffles
+  return camelcaseKeys(raffles)
 }
 export async function prizeNotified(raffleId: number): Promise<string> {
   if (isNaN(raffleId)) throw new ParamRequiredException('raffleId')
@@ -137,7 +144,7 @@ export async function getRaffle(id: number,
     : `SELECT r.id, closing_date, rl.name, rl.description,
       r.raffle_number_price, r.texture_url, r.item_highlight
       FROM raffle r
-      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
+      left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
       where r.id = ${id}`
   const raffle = await queryOne(select) as RafflePrizeData
   if (fieldsToExclude)
@@ -267,7 +274,7 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
            rh.closing_date, rh.raffle_numbers, rl.name, rl.description
     FROM raffle_history rh
         inner join raffle on rh.raffle_id = raffle.id
-        inner join raffle_localization rl on raffle.id = rl.raffle_id and
+        left join raffle_localization rl on raffle.id = rl.raffle_id and
                                              rl.language_code = "${gameUser.languageCode}"
     where rh.game_user_id = ${gameUser.id}
     order by rh.id desc

@@ -4,15 +4,19 @@ import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import { verifyToken, getNewToken } from '../../services/jwtService'
 import { GameUser, User } from "../meta/meta.types"
-import * as metaRepo from '../meta/meta.repo'
+import * as raffleRepo from '../meta/meta.repo/raffle.repo'
 import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
-import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront } from '../meta/meta.repo/gameUser.repo'
+import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront, getGameUser , purchaseTickets } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte, getSupportRequestForCrud, supportAdminForCrud, postSupportAdminForCrud } from '../meta/meta.repo/support.repo'
 import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
 
 import { getLanguagesForCrud, postLanguageForCrud, deleteLanguageForCrud } from '../meta/meta.repo/language.repo'
-import { getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/country.repo'
+import { getCountriesForCrud, postCountryForCrud, getCountries } from '../meta/meta.repo/country.repo'
+
+import { gameUserRepo } from '../meta/meta.repo'
+import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
+import { setProfile } from './slot.services/profile.service'
 import { getJackpotData, addJackpotNextRow } from './slot.services/jackpot.service'
 import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
 
@@ -24,7 +28,7 @@ import * as walletService from "./slot.services/wallet.service"
 // import {spin} from './slot.services/spin.service'
 import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.services/symbol.service'
 import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
-import { Request, Response, NextFunction } from 'express'
+import { Request, Response } from 'express'
 
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
   console.log('req', req)
@@ -56,7 +60,7 @@ export async function symbolsGet(req: Request, res: Response): Promise<any>{
   res.status(200).json(toCamelCase(resp))
 }
 export async function profilePost(req: Request, res: Response): Promise<any>{
-  const resp = await slotService.profile.setProfile(req.body as GameUser)
+  const resp = await setProfile(req.body as GameUser)
   res.status(200).json(toCamelCase(resp))
 }
 export async function spinGet(req: Request, res: Response): Promise<any>{
@@ -64,16 +68,18 @@ export async function spinGet(req: Request, res: Response): Promise<any>{
   res.status(200).json(resp)
 }
 export async function countriesGet(req: Request, res: Response): Promise<void>{
-  const countries = await metaRepo.countryRepo.getCountries()
+  const countries = await getCountries()
   res.status(200).json(countries)
 }
 export async function gameInitGet(req: Request, res: Response): Promise<any>{
   const initData = await slotService.gameInit.gameInit(req.query.deviceId as string)
   res.status(200).json(initData)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return initData
 }
 export async function walletGet(req: Request, res: Response): Promise<any>{
-  const resp = await walletService.getWallet(req.query.deviceId as string)
+  const user = await getGameUserByDeviceId(String(req.query.deviceId))
+  const resp = await walletService.getWallet(user)
   res.status(200).json(resp)
 }
 export async function loginDataGet(req: Request, res: Response): Promise<any>{
@@ -81,32 +87,34 @@ export async function loginDataGet(req: Request, res: Response): Promise<any>{
   res.status(200).json(resp)
 }
 export async function purchaseTicketsGet(req: Request, res: Response): Promise<any>{
-  const resp = await walletService.purchaseTickets(
+  const resp = await gameUserRepo.purchaseTickets(
     req.query.deviceId as string,
     Number(req.query.ticketAmount)
   )
   res.status(200).json(resp)
 }
-export async function rafflePost(req: Request, res: Response, next: NextFunction): Promise<void>{
+export async function rafflePost(req: Request, res: Response): Promise<void>
+{
   const resp = await postRaffle(req.fields, req.files)
   res.status(200).json(resp)
 }
-export async function raffleDelete(req: Request, res: Response, next: NextFunction): Promise<void>{
+export async function raffleDelete(req: Request, res: Response): Promise<void>{
   if(typeof req.query?.id !== 'string') throw createError(BAD_REQUEST, 'Raffle ID is required')
   const resp = await deleteRaffle(req.query.id)
   res.status(200).json(resp)
 }
-export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any>{
-  const resp = await metaRepo.raffleRepo.getRaffles()
+export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any>
+{
+  const user = await getGameUser(req.user.id)
+  const resp = await raffleRepo.getRaffles(user)
   res.status(200).json(resp)
-  return resp
 }
 export async function rafflePurchaseHistoryGet(req: Request, res: Response): Promise<any>{
-  const resp = await metaRepo.raffleRepo.getRafflePurchaseHistory(req.query.deviceId as string)
+  const resp = await raffleRepo.getRafflePurchaseHistory(req.query.deviceId as string)
   res.status(200).json(resp)
 }
 export async function rafflePurchaseGet(req: Request, res: Response): Promise<any>{
-  const resp = await metaRepo.raffleRepo.rafflePurchase(
+  const resp = await raffleRepo.rafflePurchase(
     req.query.deviceId as string,
     Number(req.query.raffleId),
     Number(req.query.amount)
@@ -114,12 +122,12 @@ export async function rafflePurchaseGet(req: Request, res: Response): Promise<an
   res.status(200).json(resp)
 }
 export async function prizeNotifiedPost(req: Request, res: Response): Promise<any>{
-  await metaRepo.raffleRepo.prizeNotified(Number(req.query.raffleId as string))
+  await raffleRepo.prizeNotified(Number(req.query.raffleId as string))
   res.status(200).json({ status: 'ok' })
 
 }
 export async function raffleWinnersGet(req: Request, res: Response): Promise<any>{
-  const resp: string[] = await metaRepo.raffleRepo.getWinners()
+  const resp: string[] = await raffleRepo.getWinners()
   res.status(200).json(resp)
 }
 export async function withTokenGet(req: Request, res: Response): Promise<any>{

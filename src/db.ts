@@ -4,7 +4,6 @@ import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
 
 import camelcaseKeys from 'camelcase-keys'
-
 const log = false
 export default function getConnection(host = 'localhost'): Promise<Connection> {
   // eslint-disable-next-line no-process-env

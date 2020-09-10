@@ -1,3 +1,4 @@
+import { getWallet } from '@src/modules/slot/slot.services/wallet.service'
 import { BAD_REQUEST } from 'http-status-codes'
 import createError from 'http-errors'
 import moment from 'moment'
@@ -65,7 +66,7 @@ export const dailyRewardClaim = async (deviceId: string): Promise<Partial<Wallet
   if (isClaimed) throw createError(BAD_REQUEST, 'The daily reward was allreaady claimed')
   const userPrize = await getUserPrize(user)
   if (!userPrize) throw createError(BAD_REQUEST, 'User have no daily reward')
-  const wallet = await queryOne(`select * from wallet where game_user_id = ?`, [user.id]) as Wallet
+  const wallet = await getWallet(user)
   wallet[`${userPrize.type}s`] += userPrize.amount
   await exec(`update last_spin set last_claim = ? where game_user_id = ?`, [new Date(), user.id])
   await exec(`update wallet set ${userPrize.type}s = ?`, [wallet[`${userPrize.type}s`]])

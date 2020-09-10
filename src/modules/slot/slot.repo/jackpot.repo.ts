@@ -1,8 +1,5 @@
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'http-status-codes'
-import createHttpError from 'http-errors'
 import { query, queryOne, exec } from './../../../db'
-import { GameUser } from '@/modules/meta/meta.types'
-// import * as thisModule from './jackpot.repo'
+import { GameUser } from '@src/modules/meta/meta.types'
 export type JackpotState = 'next' | 'live' | 'past'
 export type JackpotData = {
   id?: number;
