@@ -4,7 +4,7 @@ import createError from 'http-errors'
 import ParamRequiredException from '../../../error'
 import {queryOne, query} from '../../../db'
 import {GameUser, User} from '../meta.types'
-import { insertWallet } from '$src/modules/slot/slot.services/wallet.service'
+import { insertWallet } from '../../slot/slot.repo/wallet.repo'
 
 export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<GameUser> => {
   if (!deviceId) throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId')

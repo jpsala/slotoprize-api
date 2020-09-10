@@ -1,5 +1,4 @@
 import url from 'url'
-import { shutDown } from '@src/modules/slot/slot.repo/spin.regeneration.repo'
 import WebSocket, { Server } from 'ws'
 import PubSub from 'pubsub-js'
 import { isValidJSON } from '../../../../helpers'

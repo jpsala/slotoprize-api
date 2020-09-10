@@ -24,11 +24,11 @@
         "typeRoots": [
             "src/@types",
             "./node_modules/@types"
-        ],
-        "baseUrl": "./src",
-        "paths": {
-          "$src/*": ["*"]
-        }
+        ]
+        // "baseUrl": "./src"
+        // "paths": {
+        //   "$src/*": ["*"]
+        // }
     },
     "setupFiles": [
         "<rootDir>/src/setupTests.ts"

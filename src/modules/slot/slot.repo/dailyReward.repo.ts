@@ -1,7 +1,7 @@
-import { getWallet } from '@src/modules/slot/slot.services/wallet.service'
 import { BAD_REQUEST } from 'http-status-codes'
 import createError from 'http-errors'
 import moment from 'moment'
+import { getWallet } from '../slot.services/wallet.service'
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { Wallet } from './../../meta/models/wallet'
 import { GameUser } from './../../meta/meta.types'

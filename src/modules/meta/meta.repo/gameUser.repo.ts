@@ -7,9 +7,9 @@ import { RowDataPacket } from 'mysql2'
 import * as metaService from '../../meta/meta-services/meta.service'
 import getConnection, {queryOne, exec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser } from '../meta.types'
+import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
 import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
-import { insertWallet , getWallet, updateWallet } from '$src/modules/slot/slot.services/wallet.service'
 
 
 

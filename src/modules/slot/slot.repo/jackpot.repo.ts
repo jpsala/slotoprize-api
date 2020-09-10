@@ -1,5 +1,5 @@
+import { GameUser } from './../../meta/meta.types'
 import { query, queryOne, exec } from './../../../db'
-import { GameUser } from '@src/modules/meta/meta.types'
 export type JackpotState = 'next' | 'live' | 'past'
 export type JackpotData = {
   id?: number;

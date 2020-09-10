@@ -6,7 +6,7 @@
   "scripts": {
     "test": "cross-env NODE_ENV=testing jest --runInBand --watch",
     "test2": "cross-env NODE_ENV=testing node --inspect=9230 node_modules/.bin/jest test/unit  --runInBand --watchAll",
-    "test:debug": "node --inspect=9230 -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --watchAll",
+    "test:debug": "node --inspect=9230 -r ts-node/register node_modules/.bin/jest --runInBand --watchAll",
     "build": "tsc",
     "start": "node build/index.js",
     "deploy": "npm run build && ./deploy.sh",
@@ -15,12 +15,7 @@
     "dev2": "cross-env NODE_ENV=development nodemon src/index.js --exec ts-node ",
     "pm2-dev": "pm2 start -n api npm -- run dev",
     "pm2-prod": "pm2 delete api ;npm run build && cross-env NODE_ENV=production pm2 start -n api npm -- run start",
-    "pm2-restart": "pm2 delete api ; npm run pm2-prod",
-    "postinstall": "link-module-alias",
-    "preinstall": "command -v link-module-alias && link-module-alias clean || true"
-  },
-  "_moduleAliases": {
-    "$src"      : "./src/"
+    "pm2-restart": "pm2 delete api ; npm run pm2-prod"
   },
   "dependencies": {
     "@types/faker": "^4.1.12",
@@ -80,13 +75,11 @@
     "jest": "^26.1.0",
     "jest-extended": "^0.11.5",
     "jest-module-name-mapper": "^0.1.5",
-    "link-module-alias": "^1.2.0",
     "prettier": "^2.0.5",
     "serve": "^11.3.2",
     "source-map-support": "^0.5.19",
     "ts-jest": "^26.1.4",
     "ts-node": "^8.10.2",
-    "tsconfig-paths": "^3.9.0",
     "typescript": "^3.9.7"
   }
 }

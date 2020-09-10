@@ -1,7 +1,7 @@
-import { spinRegenerationInit, shutDown as spinRegenerationShutDown } from '@src/modules/slot/slot.repo/spin.regeneration.repo'
 import { wsServer } from './modules/slot/slot.services/webSocket/ws.service'
 import createApp from './app'
 import './modules/slot/slot.commands'
+import { spinRegenerationInit, shutDown as spinRegenerationShutDown } from './modules/slot/slot.repo/spin.regeneration.repo'
 
 
 void (async function main() {
