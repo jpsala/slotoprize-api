@@ -45,7 +45,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     reelsData.forEach((reel) => {
       reel.symbolsData.forEach((reelSymbol) => {
         const symbolPays: any[] = []
-        payTable.filter((payTableSymbol) => payTableSymbol.payment_type === reelSymbol.paymentType)
+        payTable.filter((payTableSymbol) => payTableSymbol.symbol_name === reelSymbol.symbolName)
           .forEach((_symbol) => symbolPays.push(_symbol))
         const symbolAllPays: any[] = []
         for (let index = 1; index < 4; index++) {
