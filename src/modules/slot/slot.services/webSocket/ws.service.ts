@@ -64,7 +64,7 @@ const createWsServerService = (): WsServerService =>
     {
       const client = <ExtWebSocket> _client
       if (client.userId === userId) {
-        console.log('sended to specific client %O', userId, _msg)
+        console.log('sended to specific client %O', userId, _msg.message)
         send(_msg, client as WebSocket)
       }
     })

@@ -13,10 +13,18 @@ type Message = { command: 'getSpinTimer', eventType: string, client: WebSocket }
 export const runCommand = async (cmd: string, data: any): Promise<void> => {
   const userSpinRegenerationData = getUserSpinRegenerationData(data.client.userId)
   const client: ExtWebSocket = data.client
+  const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', 10))
+  const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 5000))
   const lastMoment = utc(userSpinRegenerationData.last)
   const nowMoment = utc(new Date())
-  const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 5000))
-  const diff = lapseForSpinRegeneration - nowMoment.diff(lastMoment.utc())
+  let diff = nowMoment.diff(lastMoment.utc())
+
+  if (diff > lapseForSpinRegeneration || userSpinRegenerationData.spins >= maxSpinsForSpinRegeneration)
+    diff = 0
+
+  console.log('nowMoment.diff(lastMoment.utc())', nowMoment.diff(lastMoment.utc()))
+      // console.log('ok')
+
 
   const wsMessage: WebSocketMessage = {
     code: 200,
@@ -27,9 +35,8 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
       pendingMiliseconds:  diff > 0 ? diff : 0
     }
   }
-    delete data.command
+  delete data.command
   delete data.client
-  console.log('sending', wsMessage)
     try {
       wsServer.sendToUser(wsMessage, client.userId)
     } catch (error) {
