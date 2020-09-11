@@ -3,8 +3,8 @@ import {urlencoded} from "body-parser"
 import cors from 'cors'
 import 'express-async-errors'
 import { HttpError } from 'http-errors'
-import routes from './routes'
 import express, { Express, Request, Response, NextFunction } from 'express'
+import routes from './routes'
 import './modules/slot/slot.services/events/events'
 
 const createApp = (): Express => {

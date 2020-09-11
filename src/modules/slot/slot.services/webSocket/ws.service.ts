@@ -139,7 +139,8 @@ const createWsServerService = (): WsServerService =>
   }
   const shutDown = function (): void
   {
-    console.log('websocket shutdown', server.close())
+    server.close()
+    console.log('websocket shutdown')
   }
   return { server, ws, send, sendRaw, sendToUser, shutDown }
 }

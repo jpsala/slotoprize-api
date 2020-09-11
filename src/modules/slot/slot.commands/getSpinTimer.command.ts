@@ -15,8 +15,8 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
   const client: ExtWebSocket = data.client
   const lastMoment = utc(userSpinRegenerationData.last)
   const nowMoment = utc(new Date())
-  const diff = nowMoment.diff(lastMoment.utc())
   const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 5000))
+  const diff = lapseForSpinRegeneration - nowMoment.diff(lastMoment.utc())
 
   const wsMessage: WebSocketMessage = {
     code: 200,
@@ -24,11 +24,12 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
     msgType: 'spinTimer',
     payload: {
       spins: userSpinRegenerationData.spins,
-      pendingMiliseconds: lapseForSpinRegeneration - diff
+      pendingMiliseconds:  diff > 0 ? diff : 0
     }
   }
     delete data.command
-    delete data.client
+  delete data.client
+  console.log('sending', wsMessage)
     try {
       wsServer.sendToUser(wsMessage, client.userId)
     } catch (error) {
