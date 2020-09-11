@@ -21,7 +21,7 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
   const wsMessage: WebSocketMessage = {
     code: 200,
     message: 'OK',
-    msgType: 'getSpinTimer',
+    msgType: 'spinTimer',
     payload: {
       spins: userSpinRegenerationData.spins,
       pendingMiliseconds: lapseForSpinRegeneration - diff
