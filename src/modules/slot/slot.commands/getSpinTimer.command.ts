@@ -19,13 +19,10 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
   const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 10)) * 1000
   const lastMoment = utc(userSpinRegenerationData.last)
   const nowMoment = utc(new Date())
-  let pendingSeconds
-  const diff = nowMoment.diff(lastMoment.utc())
+  let diff = nowMoment.diff(lastMoment.utc())
   console.log('dif', diff)
   if (diff > lapseForSpinRegeneration || userSpinRegenerationData.spins >= maxSpinsForSpinRegeneration)
-    pendingSeconds = Math.trunc((lapseForSpinRegeneration - diff) / 1000)
-
-  if(pendingSeconds < 0)  pendingSeconds = -1
+    diff = 0
   console.log('userSpinRegenerationData', userSpinRegenerationData)
   // @TODO usar sendEventToClient() en spin.regeneration.repo (ver que no mande spinsRegenerated en 0)
   const wsMessage: WebSocketMessage = {
@@ -35,7 +32,7 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
     payload: {
       spins: userSpinRegenerationData.spinsRegenerated,
       spinsInWallet: userSpinRegenerationData.spins,
-      pendingSeconds
+      pendingSeconds:  diff > 0 ?  Math.trunc((lapseForSpinRegeneration - diff) / 1000) : 0
     }
   }
   delete data.command
