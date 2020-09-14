@@ -16,10 +16,14 @@ export type UserSpinRegenerationData = {
 }
 
 const usersSpinRegenerationArray: UserSpinRegenerationData[] = []
+let spinsAmountForSpinRegeneration: number
+export async function spinRegenerationInit(): Promise<void>
+{
+  spinsAmountForSpinRegeneration = Number(await getSetting('spinsAmountForSpinRegeneration', 1))
 
-export async function spinRegenerationInit(): Promise<void>{
   const spinRegenerationRows: UserSpinRegenerationData[] = await query(`
-    select gu.id as userId, sr.id as spinRegenerationTableId, sr.lastRegeneration as last, w.spins
+    select gu.id as userId, sr.id as spinRegenerationTableId,
+           sr.lastRegeneration as last, w.spins, ${spinsAmountForSpinRegeneration} as spinsRegenerated
       from game_user gu
           left join spins_regeneration sr on gu.id = sr.game_user_id
           left join wallet w on w.game_user_id = gu.id
@@ -62,7 +66,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   const nowMoment = utc(new Date())
   const diff = nowMoment.diff(lastMoment.utc())
   if (diff >= lapseForSpinRegeneration && userSpinRegenerationData.spins < maxSpinsForSpinRegeneration) {
-    const spinsAmountForSpinRegeneration = Number(await getSetting('spinsAmountForSpinRegeneration', 1))
+    console.log('updateUserInUsersSpinRegenerationArray', userSpinRegenerationData.userId, diff)
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
     await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ? `, [
@@ -97,6 +101,7 @@ function sendEventToClient(userSpinRegenerationData: UserSpinRegenerationData)
     msgType: "spinTimer",
     payload: {
       spins: userSpinRegenerationData.spinsRegenerated,
+      spinsInWallet: userSpinRegenerationData.spins,
       pendingSeconds: 0
     }
   }
@@ -142,6 +147,7 @@ async function spinRegenerationUsersInArray(): Promise<void>{
 export function userChanged(user: GameUser, spins: number): void{
   const userSpinRegenrationRecord = usersSpinRegenerationArray.find( elem => elem.userId === user.id)
   if(!userSpinRegenrationRecord) throw createHttpError(INTERNAL_SERVER_ERROR, 'User does not exists in usersSpinRegenerationArray')
+  userSpinRegenrationRecord.spinsRegenerated = spinsAmountForSpinRegeneration
   userSpinRegenrationRecord.spins = spins
   userSpinRegenrationRecord.dirty = true
   console.log('spinRegenetarion: userChanged()', user.deviceId)

@@ -21,13 +21,15 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
 
   if (diff > lapseForSpinRegeneration || userSpinRegenerationData.spins >= maxSpinsForSpinRegeneration)
     diff = 0
-  // @TODO usar sendEventToClient() en spin.regeneration.repo
+  console.log('userSpinRegenerationData', userSpinRegenerationData)
+  // @TODO usar sendEventToClient() en spin.regeneration.repo (ver que no mande spinsRegenerated en 0)
   const wsMessage: WebSocketMessage = {
     code: 200,
     message: 'OK',
     msgType: 'spinTimer',
     payload: {
       spins: userSpinRegenerationData.spinsRegenerated,
+      spinsInWallet: userSpinRegenerationData.spins,
       pendingSeconds:  diff > 0 ?  lapseForSpinRegeneration - diff : 0
     }
   }
