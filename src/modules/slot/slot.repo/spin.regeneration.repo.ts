@@ -1,6 +1,7 @@
+import { duration ,utc} from 'moment'
 import { INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import createHttpError from 'http-errors'
-import  {utc}  from 'moment'
+
 import { getSetting } from '../slot.services/settings.service'
 import { query, exec } from '../../../db'
 import { wsServer, WebSocketMessage } from './../slot.services/webSocket/ws.service'
@@ -8,7 +9,7 @@ import { GameUser } from './../../meta/meta.types'
 
 export type UserSpinRegenerationData = {
   userId: number,
-  last: Date,
+  last: Date | string,
   spins: number,
   spinRegenerationTableId: number,
   dirty: boolean,
@@ -19,6 +20,7 @@ const usersSpinRegenerationArray: UserSpinRegenerationData[] = []
 let spinsAmountForSpinRegeneration: number
 export async function spinRegenerationInit(): Promise<void>
 {
+  await exec(`update wallet set spins=0 where game_user_id = 583`)
   spinsAmountForSpinRegeneration = Number(await getSetting('spinsAmountForSpinRegeneration', 1))
 
   const spinRegenerationRows: UserSpinRegenerationData[] = await query(`
@@ -31,19 +33,21 @@ export async function spinRegenerationInit(): Promise<void>
   for (const spinRegenerationRow of spinRegenerationRows)
     await validateAndAddUserToUsersArray(spinRegenerationRow)
 
-    initIntervalForSpinRegeneration()
-    initIntervalForSavingArrayToDB()
+  initIntervalForSpinRegeneration()
+  initIntervalForSavingArrayToDB()
+  await spinRegenerationUsersInArray()
 }
 async function validateAndAddUserToUsersArray(partialSpinRegenerationData: Partial<UserSpinRegenerationData>, init = true): Promise<void>{
   const spinRegenerationData = partialSpinRegenerationData as UserSpinRegenerationData
   if (!partialSpinRegenerationData?.spinRegenerationTableId) {
-    console.log('Adding record in spins_regeneration', partialSpinRegenerationData.userId, partialSpinRegenerationData)
+    console.log('Adding record in spins_regeneration', partialSpinRegenerationData.userId, partialSpinRegenerationData, utc(new Date()).format('YYYY-MM-DD HH:mm:ss'))
     const resp = await exec(`
       insert into spins_regeneration(game_user_id) values(?)
     `, [spinRegenerationData.userId])
     spinRegenerationData.spinRegenerationTableId = resp.insertId
     if (init) {
       spinRegenerationData.last = new Date()
+      // spinRegenerationData.last = utc(new Date()).format('YYYY-MM-DD HH:mm:ss')
       spinRegenerationData.spins = 0
       spinRegenerationData.spinsRegenerated = 0
       spinRegenerationData.dirty = false
@@ -53,8 +57,10 @@ async function validateAndAddUserToUsersArray(partialSpinRegenerationData: Parti
   await updateUserInUsersSpinRegenerationArray(spinRegenerationData)
 }
 async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: UserSpinRegenerationData): Promise<boolean>{
-  let lastRegeneration: Date
+  let lastRegeneration: Date | string
   let modified = false
+  const rowInArray = usersSpinRegenerationArray.find(elem => elem.userId === userSpinRegenerationData.userId)
+
   if (!userSpinRegenerationData?.spinRegenerationTableId)
     lastRegeneration = new Date()
   else
@@ -64,17 +70,21 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', 10))
   const lastMoment = utc(lastRegeneration)
   const nowMoment = utc(new Date())
+  if(userSpinRegenerationData?.userId === 583)
+    console.log('lastRegeneration %o nowMoment %o', lastRegeneration, nowMoment)
   const diff = nowMoment.diff(lastMoment.utc())
+  // if(userSpinRegenerationData.userId === 583) console.log('583', lastMoment, nowMoment,  diff)
   if (diff >= lapseForSpinRegeneration && userSpinRegenerationData.spins < maxSpinsForSpinRegeneration) {
-    console.log('updateUserInUsersSpinRegenerationArray', userSpinRegenerationData.userId, diff)
+    console.log('updateUserInUsersSpinRegenerationArray', userSpinRegenerationData.userId, diff, duration(diff, "seconds").humanize(true),  lastMoment.format('HH.mm.ss'))
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
     await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ? `, [
-      utc(new Date()).format('YYYY/MM/DD HH:mm:ss'), userSpinRegenerationData.userId
+      nowMoment.format('YYYY/MM/DD HH:mm:ss'), userSpinRegenerationData.userId
     ])
-    const rowInArray = usersSpinRegenerationArray.find(elem => elem.userId === userSpinRegenerationData.userId)
+
     if(!rowInArray) throw Error('spinRegenerationData not found in usersSpinRegenerationArray')
     rowInArray.last = new Date()
+    console.log('updated')
     rowInArray.spins = newUserSpinAmount
     rowInArray.spinsRegenerated = spinsAmountForSpinRegeneration
     await exec(`update spins_regeneration set ? where id = ${userSpinRegenerationData.spinRegenerationTableId}`, {
@@ -119,7 +129,7 @@ export async function shutDown():Promise<void>{
 async function saveSpinRegenerationDataToDB(){
   for (const row of usersSpinRegenerationArray)
     if(row.dirty){
-      console.log('Saving spins regeneration for user %O, spins %O', row.userId, row.spins)
+      // console.log('saveSpinRegenerationDataToDB, Saving spins regeneration for user %O, spins %O', row.userId, row.spins)
       await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ?`,
         [row.last, row.userId])
       row.dirty = false
@@ -134,9 +144,10 @@ function initIntervalForSpinRegeneration(): void {
   {
     await spinRegenerationUsersInArray()
   }, 1000)
-  setTimeout(() => void shutDown(), 1000)
+  // setTimeout(() => void shutDown(), 1000)
 }
-async function spinRegenerationUsersInArray(): Promise<void>{
+async function spinRegenerationUsersInArray(): Promise<void>
+{
   let modified = 0
   for (const spinRegenerationData of usersSpinRegenerationArray) {
     const resp = await updateUserInUsersSpinRegenerationArray(spinRegenerationData)
