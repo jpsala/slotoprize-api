@@ -6,7 +6,14 @@ import { query, exec } from '../../../db'
 import { wsServer, WebSocketMessage } from './../slot.services/webSocket/ws.service'
 import { GameUser } from './../../meta/meta.types'
 
-export type UserSpinRegenerationData = {userId: number, last: Date, spins:number, spinRegenerationTableId: number, dirty: boolean}
+export type UserSpinRegenerationData = {
+  userId: number,
+  last: Date,
+  spins: number,
+  spinRegenerationTableId: number,
+  dirty: boolean,
+  spinsRegenerated: number
+}
 
 const usersSpinRegenerationArray: UserSpinRegenerationData[] = []
 
@@ -34,6 +41,7 @@ async function validateAndAddUserToUsersArray(partialSpinRegenerationData: Parti
     if (init) {
       spinRegenerationData.last = new Date()
       spinRegenerationData.spins = 0
+      spinRegenerationData.spinsRegenerated = 0
       spinRegenerationData.dirty = false
     }
   }
@@ -48,7 +56,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   else
     lastRegeneration = userSpinRegenerationData.last ?? new Date()
 
-  const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 5000))
+  const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 10)) * 1000
   const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', 10))
   const lastMoment = utc(lastRegeneration)
   const nowMoment = utc(new Date())
@@ -64,6 +72,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
     if(!rowInArray) throw Error('spinRegenerationData not found in usersSpinRegenerationArray')
     rowInArray.last = new Date()
     rowInArray.spins = newUserSpinAmount
+    rowInArray.c = spinsAmountForSpinRegeneration
     await exec(`update spins_regeneration set ? where id = ${userSpinRegenerationData.spinRegenerationTableId}`, {
       id: String(userSpinRegenerationData.spinRegenerationTableId),
       game_user_id: userSpinRegenerationData.userId,
@@ -87,7 +96,7 @@ function sendEventToClient(userSpinRegenerationData: UserSpinRegenerationData)
     message: 'OK',
     msgType: "spinTimer",
     payload: {
-      spins: userSpinRegenerationData.spins,
+      spins: userSpinRegenerationData.spinsRegenerated,
       pendingMiliseconds: 0
     }
   }
