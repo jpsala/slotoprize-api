@@ -20,7 +20,7 @@ const usersSpinRegenerationArray: UserSpinRegenerationData[] = []
 let spinsAmountForSpinRegeneration: number
 export async function spinRegenerationInit(): Promise<void>
 {
-  await exec(`update wallet set spins=0 where game_user_id = 583`)
+  // await exec(`update wallet set spins=0 where game_user_id = 583`)
   spinsAmountForSpinRegeneration = Number(await getSetting('spinsAmountForSpinRegeneration', 1))
 
   const spinRegenerationRows: UserSpinRegenerationData[] = await query(`
