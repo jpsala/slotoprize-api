@@ -72,7 +72,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
     if(!rowInArray) throw Error('spinRegenerationData not found in usersSpinRegenerationArray')
     rowInArray.last = new Date()
     rowInArray.spins = newUserSpinAmount
-    rowInArray.c = spinsAmountForSpinRegeneration
+    rowInArray.spinsRegenerated = spinsAmountForSpinRegeneration
     await exec(`update spins_regeneration set ? where id = ${userSpinRegenerationData.spinRegenerationTableId}`, {
       id: String(userSpinRegenerationData.spinRegenerationTableId),
       game_user_id: userSpinRegenerationData.userId,
