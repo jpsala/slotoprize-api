@@ -19,10 +19,10 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
   const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 10)) * 1000
   const lastMoment = utc(userSpinRegenerationData.last)
   const nowMoment = utc(new Date())
-  const diff = nowMoment.diff(lastMoment.utc())
+  let diff = nowMoment.diff(lastMoment.utc())
   console.log('dif', diff)
-  // if (diff > lapseForSpinRegeneration || userSpinRegenerationData.spins >= maxSpinsForSpinRegeneration)
-  //   diff = 0
+  if (diff > lapseForSpinRegeneration || userSpinRegenerationData.spins >= maxSpinsForSpinRegeneration)
+    diff = 0
   console.log('userSpinRegenerationData', userSpinRegenerationData)
   // @TODO usar sendEventToClient() en spin.regeneration.repo (ver que no mande spinsRegenerated en 0)
   const wsMessage: WebSocketMessage = {
