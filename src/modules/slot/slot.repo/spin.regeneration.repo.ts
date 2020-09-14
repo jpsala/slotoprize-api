@@ -97,7 +97,7 @@ function sendEventToClient(userSpinRegenerationData: UserSpinRegenerationData)
     msgType: "spinTimer",
     payload: {
       spins: userSpinRegenerationData.spinsRegenerated,
-      pendingMiliseconds: 0
+      pendingSeconds: 0
     }
   }
   wsServer.sendToUser(msg, userSpinRegenerationData.userId)

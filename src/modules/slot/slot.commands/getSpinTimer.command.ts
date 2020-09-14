@@ -28,7 +28,7 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
     msgType: 'spinTimer',
     payload: {
       spins: userSpinRegenerationData.spinsRegenerated,
-      pendingMiliseconds:  diff > 0 ?  lapseForSpinRegeneration - diff : 0
+      pendingSeconds:  diff > 0 ?  lapseForSpinRegeneration - diff : 0
     }
   }
   delete data.command
