@@ -41,8 +41,8 @@ export interface ParticlesData
 export interface EventPayload
 {
   id: number;
-  name: string;
   action: 'start' | 'stop' | 'notification';
+  name: string;
   notificationData: NotificationData;
   popupData: PopupData;
   particlesData: ParticlesData;
@@ -125,6 +125,7 @@ export function createEvent(eventDto: EventDTO): Event
     data: isValidJSON(eventDto.data) ? JSON.parse(eventDto.data) : undefined,
     payload: {
       id: eventDto.id,
+      action: 'stop',
       popupData: {
         title: eventDto.popupMessage,
         textureUrl: eventDto.popupTextureUrl
@@ -138,7 +139,6 @@ export function createEvent(eventDto: EventDTO): Event
       },
       name: eventDto.name,
       skinData: eventDto.skin,
-      action: 'stop',
       devOnly: eventDto.devOnly === 1,
       multiplier: eventDto.multiplier,
       // betPrice: eventDto.betPrice
