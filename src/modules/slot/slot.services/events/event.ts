@@ -141,7 +141,7 @@ export function createEvent(eventDto: EventDTO): Event
       action: 'stop',
       devOnly: eventDto.devOnly === 1,
       multiplier: eventDto.multiplier,
-      betPrice: eventDto.betPrice
+      // betPrice: eventDto.betPrice
     }
   }
   return event
