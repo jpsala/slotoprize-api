@@ -23,18 +23,32 @@ export interface Event
   callBackForBeforeDelete?(event: Event): void;
   data?: any;
 }
+export interface PopupData
+{
+  title: string,
+  textureUrl: string
+
+}
+export interface NotificationData {
+  message: string;
+  textureUrl: string;
+}
+export interface ParticlesData
+{
+    textureUrl: string;
+}
+
 export interface EventPayload
 {
   id: number;
   name: string;
   action: 'start' | 'stop' | 'notification';
-  popupMessage: string;
-  popupTextureUrl: string;
-  notificationMessage: string;
-  notificationTextureUrl: string;
+  notificationData: NotificationData;
+  popupData: PopupData;
+  particlesData: ParticlesData;
   multiplier: number;
-  betPrice: number;
-  skin?: Skin;
+  // betPrice: number;
+  skinData?: Skin;
   devOnly: boolean;
 }
 export interface EventDTO
@@ -49,12 +63,13 @@ export interface EventDTO
   popupTextureUrl: string;
   notificationTextureUrl: string;
   notificationMessage: string;
+  particlesTextureUrl: string;
   skinId: number;
   devOnly: number;
   skin?: Skin;
   data: string;
   multiplier: number;
-  betPrice: number;
+  // betPrice: number;
 }
 //#endregion
 
@@ -67,7 +82,7 @@ const wsMessage: Partial<WebSocketMessage> = {
 const callBackForStart = async (event: Event): Promise<void> =>
 {
   const payload = event.payload as EventPayload
-  console.log('Event start', payload.name, payload.notificationMessage)
+  console.log('Event start', payload.name, payload.notificationData.message)
   if (Array.isArray(event.payload)) throw new Error('Here event.payload can not be an array')
   if (event.eventType === 'generic')
   {
@@ -80,7 +95,7 @@ const callBackForStart = async (event: Event): Promise<void> =>
     console.log('(event.sched?.next', event.sched?.next(1, new Date()))
     // @TODO Que pasa que llama 2 veces si no hago el clear?
     event.laterTimerHandler?.clear()
-    console.log('start raffle event', event.payload.name, event.payload.notificationMessage)
+    console.log('start raffle event', event.payload.name, event.payload.notificationData.message)
     await raffleTime(event.data.id)
   }
 }
@@ -110,12 +125,19 @@ export function createEvent(eventDto: EventDTO): Event
     data: isValidJSON(eventDto.data) ? JSON.parse(eventDto.data) : undefined,
     payload: {
       id: eventDto.id,
-      popupMessage: eventDto.popupMessage,
-      popupTextureUrl: eventDto.popupTextureUrl,
-      notificationMessage: eventDto.notificationMessage,
-      notificationTextureUrl: eventDto.notificationTextureUrl,
+      popupData: {
+        title: eventDto.popupMessage,
+        textureUrl: eventDto.popupTextureUrl
+      },
+      notificationData: {
+        message: eventDto.notificationMessage,
+        textureUrl: eventDto.notificationTextureUrl,
+      },
+      particlesData: {
+        textureUrl: eventDto.particlesTextureUrl,
+      },
       name: eventDto.name,
-      skin: eventDto.skin,
+      skinData: eventDto.skin,
       action: 'stop',
       devOnly: eventDto.devOnly === 1,
       multiplier: eventDto.multiplier,

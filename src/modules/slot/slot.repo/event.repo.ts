@@ -39,7 +39,7 @@ export async function getEventsForCrud(): Promise<any>
     "devOnly": 1,
     "data": "",
     "multiplier": 1,
-    "betPrice": await getSetting('betPrice', 1)
+    // "betPrice": await getSetting('betPrice', 1)
   }
   return { events, newEvent }
 }

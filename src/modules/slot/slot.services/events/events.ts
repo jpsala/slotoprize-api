@@ -140,15 +140,16 @@ export const getActiveEventMultiplier = (): number =>
 }
 export const getActiveBetPrice = async (): Promise<number> =>
 {
-  const defaultbetPrice = Number(await getSetting('betPrice', 1))
-  const eventbetPrice = allEvents.filter(event => event.isActive).reduce((initBetPrice, event) =>
-  {
-    {
-      const betPrice = isArray(event.payload) ? 0 : event.payload.betPrice
-      return betPrice + initBetPrice
-    }
-  }, 0)
-  return eventbetPrice === 0 ? defaultbetPrice : eventbetPrice
+  // const defaultbetPrice = Number(await getSetting('betPrice', 1))
+  // const eventbetPrice = allEvents.filter(event => event.isActive).reduce((initBetPrice, event) =>
+  // {
+  //   {
+  //     const betPrice = isArray(event.payload) ? 0 : event.payload.betPrice
+  //     return betPrice + initBetPrice
+  //   }
+  // }, 0)
+  // return eventbetPrice === 0 ? defaultbetPrice : eventbetPrice
+  return 1
 }
 export const getActiveEvents = (): Event[] =>
 {

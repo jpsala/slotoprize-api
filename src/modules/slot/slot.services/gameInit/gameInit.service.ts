@@ -65,6 +65,8 @@ export async function gameInit(deviceId: string): Promise<any> {
     delete rawUser.languageCode
     const initData = {
       sessionId: token,
+      gameVersion: await getSetting('gameVersion', '0.1'),
+      gameIdentifier: await getSetting('gameIdentifier', 'this is the gameIdentifier'),
       // requireProfileData: requireProfileData ? 1 : 0,
       languageCode,
       defaultSpinData,
@@ -81,7 +83,7 @@ export async function gameInit(deviceId: string): Promise<any> {
       betPrice,
       maxMultiplier,
       reelsData,
-      walletData: wallet,
+      walletData: wallet
     }
     if(!rafflePrizeData) delete initData.rafflePrizeData
     if(!hasPendingPrize) delete initData.pendingPrizeIsJackpot

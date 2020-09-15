@@ -68,7 +68,7 @@ If its a jackpot, hasPendingPrize will be true, pendingPrizeIsJackpot will be tr
 **hasPendingPrize luego de mandarlo por el gameInit vuelve a false**
 
 --------
-- [ ] Slot Machine Spins Economy Changes
+- [x] Slot Machine Spins Economy Changes
 Coins wont be used for the slot machine anymore. Slot machine spins will now only consume spins from the wallet, instead of coins. Each spin will consume the number of spins determined by the multiplier, just as before it affected the bet amount.
 
 Ie:
@@ -87,7 +87,7 @@ payload: <json of raffle prize data>
 
 sin en el momento del sorteo el tipo está conectado se le manda una notificación con los detalles del ticket
 ------------------
-- [ ] Slot Machine Symbol Changes
+- [x] Slot Machine Symbol Changes
 We have a few changes to incorporate to the slot machine mechanics:
 
 The slot machine will be able to pay only with the new "spins" currency. So slot machine wins can pay coins, spins, tickets or jackpot.

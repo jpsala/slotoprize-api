@@ -12,7 +12,6 @@ type Message = { command: 'getSpinTimer', eventType: string, client: WebSocket }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const runCommand = async (cmd: string, data: any): Promise<void> => {
   const userSpinRegenerationData = getUserSpinRegenerationData(data.client.userId)
-  const spinsAmountForSpinRegeneration = Number(await getSetting('spinsAmountForSpinRegeneration', 1))
 
   const client: ExtWebSocket = data.client
   const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', 10))

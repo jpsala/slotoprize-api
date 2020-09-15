@@ -1,0 +1,36 @@
+{
+  id: number;
+  name: string;
+  eventType: string;
+  rule: string;
+  duration: number;
+  active: number;
+  popupTextureUrl: string;
+  notificationTextureUrl: string;
+  notificationMessage: string;
+  notificationData: NotificationData;
+  popupData: PopupData;
+  particlesData: ParticlesData;
+  skinId: number;
+  devOnly: number;
+  skin?: Skin;
+  data: string;
+  multiplier: number;
+  betPrice: number;
+}
+
+
+export interface PopupData
+{
+  title: string,
+  textureUrl: string
+
+}
+export interface NotificationData {
+  message: string;
+  textureUrl: string;
+}
+export interface ParticlesData
+{
+    textureUrl: string;
+}
