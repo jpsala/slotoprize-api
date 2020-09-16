@@ -4,6 +4,7 @@ import createHttpError from 'http-errors'
 
 import { getSetting } from '../slot.services/settings.service'
 import { query, exec } from '../../../db'
+import { UserSpinRegenerationData } from './spin.regeneration.repo'
 import { wsServer, WebSocketMessage } from './../slot.services/webSocket/ws.service'
 import { GameUser } from './../../meta/meta.types'
 
@@ -73,7 +74,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   // if(userSpinRegenerationData?.userId === 583)
   //   console.log('lastRegeneration %o nowMoment %o', lastRegeneration, nowMoment)
   const diff = nowMoment.diff(lastMoment.utc())
-  // if(userSpinRegenerationData.userId === 583) console.log('583', lastMoment, nowMoment,  diff)
+  console.log('Update user %o spins %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment, nowMoment,  diff)
   if (diff >= lapseForSpinRegeneration && userSpinRegenerationData.spins < maxSpinsForSpinRegeneration) {
     // console.log('updateUserInUsersSpinRegenerationArray', userSpinRegenerationData.userId, diff, duration(diff, "seconds").humanize(true),  lastMoment.format('HH.mm.ss'))
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
