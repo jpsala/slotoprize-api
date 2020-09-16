@@ -70,12 +70,12 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', 10))
   const lastMoment = utc(lastRegeneration)
   const nowMoment = utc(new Date())
-  if(userSpinRegenerationData?.userId === 583)
-    console.log('lastRegeneration %o nowMoment %o', lastRegeneration, nowMoment)
+  // if(userSpinRegenerationData?.userId === 583)
+  //   console.log('lastRegeneration %o nowMoment %o', lastRegeneration, nowMoment)
   const diff = nowMoment.diff(lastMoment.utc())
   // if(userSpinRegenerationData.userId === 583) console.log('583', lastMoment, nowMoment,  diff)
   if (diff >= lapseForSpinRegeneration && userSpinRegenerationData.spins < maxSpinsForSpinRegeneration) {
-    console.log('updateUserInUsersSpinRegenerationArray', userSpinRegenerationData.userId, diff, duration(diff, "seconds").humanize(true),  lastMoment.format('HH.mm.ss'))
+    // console.log('updateUserInUsersSpinRegenerationArray', userSpinRegenerationData.userId, diff, duration(diff, "seconds").humanize(true),  lastMoment.format('HH.mm.ss'))
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
     await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ? `, [
@@ -153,7 +153,7 @@ async function spinRegenerationUsersInArray(): Promise<void>
     const resp = await updateUserInUsersSpinRegenerationArray(spinRegenerationData)
     if (resp) modified = modified++
   }
-  if (modified > 0) console.log('intervalForSpinRegeneration', modified )
+  // if (modified > 0) console.log('intervalForSpinRegeneration', modified )
 }
 export function userChanged(user: GameUser, spins: number): void{
   const userSpinRegenrationRecord = usersSpinRegenerationArray.find( elem => elem.userId === user.id)

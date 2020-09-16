@@ -173,13 +173,13 @@ describe(`game-init new user`, () => {
       languagesData: [
         {
           languageCode: 'en-US',
-          textureUrl: 'http://wopidom.homelinux.com/public/assets/localization/english.png',
-          localizationUrl: 'http://wopidom.homelinux.com/public/assets/localization/localization_english.json'
+          textureUrl: 'http://wopi.homelinux.com/public/assets/localization/english.png',
+          localizationUrl: 'http://wopi.homelinux.com/public/assets/localization/localization_english.json'
         },
         {
           languageCode: 'es',
-          textureUrl: 'http://wopidom.homelinux.com/public/assets/localization/spain.png',
-          localizationUrl: 'http://wopidom.homelinux.com/public/assets/localization/localization_spanish.json'
+          textureUrl: 'http://wopi.homelinux.com/public/assets/localization/spain.png',
+          localizationUrl: 'http://wopi.homelinux.com/public/assets/localization/localization_spanish.json'
         }
       ],
       ticketPrice: 2,

@@ -23,13 +23,13 @@
   },
   "languagesData": [{
       "languageCode": "en-US",
-      "textureUrl": "http://wopidom.homelinux.com/public/assets/localization/english.png",
-      "localizationUrl": "http://wopidom.homelinux.com/public/assets/localization/localization_english.json"
+      "textureUrl": "http://wopi.homelinux.com/public/assets/localization/english.png",
+      "localizationUrl": "http://wopi.homelinux.com/public/assets/localization/localization_english.json"
     },
     {
       "languageCode": "es-ES",
-      "textureUrl": "http://wopidom.homelinux.com/public/assets/localization/spain.png",
-      "localizationUrl": "http://wopidom.homelinux.com/public/assets/localization/localization_spanish.json"
+      "textureUrl": "http://wopi.homelinux.com/public/assets/localization/spain.png",
+      "localizationUrl": "http://wopi.homelinux.com/public/assets/localization/localization_spanish.json"
     }
   ],
   "ticketPrice": 1,
@@ -37,7 +37,7 @@
   "maxMultiplier": 3,
   "reelsData": [{
       "symbolsData": [{
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/blueberry.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/blueberry.png",
           "paymentType": "blueberry",
           "pays": [
             0,
@@ -46,7 +46,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/cherry.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/cherry.png",
           "paymentType": "cherry",
           "pays": [
             0,
@@ -55,7 +55,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/coin.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/coin.png",
           "paymentType": "coin",
           "pays": [
             10,
@@ -64,7 +64,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/coinbag.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/coinbag.png",
           "paymentType": "coinbag",
           "pays": [
             30,
@@ -73,7 +73,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/grape.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/grape.png",
           "paymentType": "grape",
           "pays": [
             0,
@@ -82,7 +82,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/jackpot.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/jackpot.png",
           "paymentType": "jackpot",
           "pays": [
             0,
@@ -91,7 +91,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/strawberry.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/strawberry.png",
           "paymentType": "strawberry",
           "pays": [
             0,
@@ -100,7 +100,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/ticket.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/ticket.png",
           "paymentType": "ticket",
           "pays": [
             0,
@@ -112,7 +112,7 @@
     },
     {
       "symbolsData": [{
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/blueberry.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/blueberry.png",
           "paymentType": "blueberry",
           "pays": [
             0,
@@ -121,7 +121,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/cherry.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/cherry.png",
           "paymentType": "cherry",
           "pays": [
             0,
@@ -130,7 +130,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/coin.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/coin.png",
           "paymentType": "coin",
           "pays": [
             10,
@@ -139,7 +139,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/coinbag.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/coinbag.png",
           "paymentType": "coinbag",
           "pays": [
             30,
@@ -148,7 +148,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/grape.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/grape.png",
           "paymentType": "grape",
           "pays": [
             0,
@@ -157,7 +157,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/jackpot.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/jackpot.png",
           "paymentType": "jackpot",
           "pays": [
             0,
@@ -166,7 +166,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/strawberry.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/strawberry.png",
           "paymentType": "strawberry",
           "pays": [
             0,
@@ -175,7 +175,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/ticket.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/ticket.png",
           "paymentType": "ticket",
           "pays": [
             0,
@@ -187,7 +187,7 @@
     },
     {
       "symbolsData": [{
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/blueberry.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/blueberry.png",
           "paymentType": "blueberry",
           "pays": [
             0,
@@ -196,7 +196,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/cherry.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/cherry.png",
           "paymentType": "cherry",
           "pays": [
             0,
@@ -205,7 +205,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/coin.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/coin.png",
           "paymentType": "coin",
           "pays": [
             10,
@@ -214,7 +214,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/coinbag.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/coinbag.png",
           "paymentType": "coinbag",
           "pays": [
             30,
@@ -223,7 +223,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/grape.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/grape.png",
           "paymentType": "grape",
           "pays": [
             0,
@@ -232,7 +232,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/jackpot.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/jackpot.png",
           "paymentType": "jackpot",
           "pays": [
             0,
@@ -241,7 +241,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/strawberry.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/strawberry.png",
           "paymentType": "strawberry",
           "pays": [
             0,
@@ -250,7 +250,7 @@
           ]
         },
         {
-          "textureUrl": "http://wopidom.homelinux.com/public/assets/symbols/live/ticket.png",
+          "textureUrl": "http://wopi.homelinux.com/public/assets/symbols/live/ticket.png",
           "paymentType": "ticket",
           "pays": [
             0,
