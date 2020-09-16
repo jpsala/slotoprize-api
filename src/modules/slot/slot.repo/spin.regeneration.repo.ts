@@ -74,8 +74,8 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   // if(userSpinRegenerationData?.userId === 583)
   //   console.log('lastRegeneration %o nowMoment %o', lastRegeneration, nowMoment)
   const diff = nowMoment.diff(lastMoment.utc())
-  console.log('Update user %o spins %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment, nowMoment,  diff)
   if (diff >= lapseForSpinRegeneration && userSpinRegenerationData.spins < maxSpinsForSpinRegeneration) {
+    console.log('Update user %o spins %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment, nowMoment,  diff)
     // console.log('updateUserInUsersSpinRegenerationArray', userSpinRegenerationData.userId, diff, duration(diff, "seconds").humanize(true),  lastMoment.format('HH.mm.ss'))
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
