@@ -30,6 +30,7 @@ import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.service
 import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
 import { Request, Response } from 'express'
 import { userChanged, testUser39 } from './slot.repo/spin.regeneration.repo'
+import { callback } from './slot.services/ironsource'
 
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
   console.log('req', req)
@@ -261,4 +262,9 @@ export async function countriesForCrudGet(req: Request, res: Response): Promise<
 export async function testRegSpinsUSer39(req: Request, res: Response): Promise<any>{
   await testUser39(Number(req.query.spins))
   res.status(200).json({status: 'ok'})
+}
+export async function ironsource(req: Request, res: Response): Promise<any>{
+  const resp = callback(req.query)
+  res.status(200).send(resp)
+  // res.status(200).json(resp)
 }

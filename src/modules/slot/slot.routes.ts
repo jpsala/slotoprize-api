@@ -60,5 +60,6 @@ router.route('/countries_for_crud').get(checkToken, slot.countriesForCrudGet)
 router.route('/country_for_crud').post(formidableMiddleware(), checkToken, slot.countriesForCrudPost)
 
 router.route('/testRegSpinsUSer39').get(slot.testRegSpinsUSer39)
-
+router.route('/ironsource').get(slot.ironsource)
+//https://slotoprizes.tagadagames.com:8888/api/slot/ironsource?USER_ID=[USER_ID]&EVENT_ID=[EVENT_ID]&rewards=[REWARDS]
 export default router
