@@ -59,4 +59,6 @@ router.route('/skin_for_crud').delete(checkToken, slot.skinForCrudDelete)
 router.route('/countries_for_crud').get(checkToken, slot.countriesForCrudGet)
 router.route('/country_for_crud').post(formidableMiddleware(), checkToken, slot.countriesForCrudPost)
 
+router.route('/testRegSpinsUSer39').get(slot.testRegSpinsUSer39)
+
 export default router

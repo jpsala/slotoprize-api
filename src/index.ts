@@ -46,7 +46,7 @@ void (async function main() {
       cert: fs.readFileSync('/home/jpsala/fullchain.pem'),
       // cert: fs.readFileSync('/home/jpsala/certs/fullchain1.pem'),
     }, app).listen(3000, () => {
-      console.log(`started on ${hostname} on port 3000 - ${process.env.NODE_ENV}`);
+      console.log(`started on ${hostname} on port 3000 - ${process.env.NODE_ENV ?? ''}`);
     });
   }
 })()

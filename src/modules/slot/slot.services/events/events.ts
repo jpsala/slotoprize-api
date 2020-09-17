@@ -77,10 +77,9 @@ export function scheduleEvent(event: Partial<Event>): Event
     const payload = event.payload as EventPayload
     if (event.duration == null || event.duration == undefined) event.duration = 0
     const nexts = event.sched?.next(2, new Date()) as Date
-    console.log('nets', nexts)
     const seconds = differenceInSeconds(new Date(), nexts[0])
     event.next = seconds > 0 ? nexts[0] : nexts[1]
-    console.log('event.next', event.next)
+    // console.log('event.next', event.next)
     try {
       event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next as Date, { unit: 'second' }) : ''
     } catch (error) {

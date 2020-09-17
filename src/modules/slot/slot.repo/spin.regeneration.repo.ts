@@ -1,4 +1,4 @@
-import { duration ,utc} from 'moment'
+import { duration ,utc, isDuration} from 'moment'
 import { INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import createHttpError from 'http-errors'
 
@@ -6,6 +6,7 @@ import { getSetting } from '../slot.services/settings.service'
 import { query, exec } from '../../../db'
 import { wsServer, WebSocketMessage } from './../slot.services/webSocket/ws.service'
 import { GameUser } from './../../meta/meta.types'
+import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 
 export type UserSpinRegenerationData = {
   userId: number,
@@ -18,8 +19,13 @@ export type UserSpinRegenerationData = {
 
 const usersSpinRegenerationArray: UserSpinRegenerationData[] = []
 let spinsAmountForSpinRegeneration: number
+let lapseForSpinRegeneration
+let maxSpinsForSpinRegeneration
 export async function spinRegenerationInit(): Promise<void>
 {
+  lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 10)) * 1000
+  maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', 10))
+
   // await exec(`update wallet set spins=0 where game_user_id = 583`)
   spinsAmountForSpinRegeneration = Number(await getSetting('spinsAmountForSpinRegeneration', 1))
 
@@ -37,15 +43,13 @@ export async function spinRegenerationInit(): Promise<void>
   initIntervalForSavingArrayToDB()
   await spinRegenerationUsersInArray()
 }
-async function validateAndAddUserToUsersArray(partialSpinRegenerationData: Partial<UserSpinRegenerationData>, init = true): Promise<void>{
+async function validateAndAddUserToUsersArray(partialSpinRegenerationData: Partial<UserSpinRegenerationData>, initSpinRegenerationData = true): Promise<void>{
   const spinRegenerationData = partialSpinRegenerationData as UserSpinRegenerationData
   if (!partialSpinRegenerationData?.spinRegenerationTableId) {
     console.log('Adding record in spins_regeneration', partialSpinRegenerationData.userId, partialSpinRegenerationData, utc(new Date()).format('YYYY-MM-DD HH:mm:ss'))
-    const resp = await exec(`
-      insert into spins_regeneration(game_user_id) values(?)
-    `, [spinRegenerationData.userId])
+    const resp = await exec(`insert into spins_regeneration(game_user_id) values(?)`, [spinRegenerationData.userId])
     spinRegenerationData.spinRegenerationTableId = resp.insertId
-    if (init) {
+    if (initSpinRegenerationData) {
       spinRegenerationData.last = new Date()
       // spinRegenerationData.last = utc(new Date()).format('YYYY-MM-DD HH:mm:ss')
       spinRegenerationData.spins = 0
@@ -61,20 +65,18 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   let modified = false
   const rowInArray = usersSpinRegenerationArray.find(elem => elem.userId === userSpinRegenerationData.userId)
 
-  if (!userSpinRegenerationData?.spinRegenerationTableId)
+  if (!userSpinRegenerationData?.spinRegenerationTableId){
     lastRegeneration = new Date()
-  else
+    console.log('updateUserInUsersSpinRegenerationArray !userSpinRegenerationData?.spinRegenerationTableId mal!' )
+  } else
     lastRegeneration = userSpinRegenerationData.last ?? new Date()
 
-  const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 10)) * 1000
-  const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', 10))
-  const lastMoment = utc(lastRegeneration)
-  const nowMoment = utc(new Date())
-  // if(userSpinRegenerationData?.userId === 583)
-  //   console.log('lastRegeneration %o nowMoment %o', lastRegeneration, nowMoment)
-  const diff = nowMoment.diff(lastMoment.utc())
+  const { diff, lastMoment, nowMoment } = getDiff(lastRegeneration)
+
   if (diff >= lapseForSpinRegeneration && userSpinRegenerationData.spins < maxSpinsForSpinRegeneration) {
-    console.log('Update user %o spins %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment, nowMoment,  diff)
+    console.log('Update user %o spins %o last %o now %o diff %o', userSpinRegenerationData.userId,
+                 userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'),
+                 nowMoment.format('YYYY-MM-DD HH:mm:ss'),  duration(diff).seconds())
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
     await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ? `, [
@@ -83,7 +85,6 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
 
     if(!rowInArray) throw Error('spinRegenerationData not found in usersSpinRegenerationArray')
     rowInArray.last = new Date()
-    console.log('updated')
     rowInArray.spins = newUserSpinAmount
     rowInArray.spinsRegenerated = spinsAmountForSpinRegeneration
     await exec(`update spins_regeneration set ? where id = ${userSpinRegenerationData.spinRegenerationTableId}`, {
@@ -102,6 +103,14 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   return modified
 
 }
+function getDiff(lastRegeneration: string | Date)
+{
+  const lastMoment = utc(lastRegeneration)
+  const nowMoment = utc(new Date())
+  const diff = nowMoment.diff(lastMoment.utc())
+  return {diff, lastMoment, nowMoment, humanDiff: `${duration(diff).seconds()} secs`}
+}
+
 function sendEventToClient(userSpinRegenerationData: UserSpinRegenerationData)
 {
   const msg: WebSocketMessage = {
@@ -128,7 +137,6 @@ export async function shutDown():Promise<void>{
 async function saveSpinRegenerationDataToDB(){
   for (const row of usersSpinRegenerationArray)
     if(row.dirty){
-      // console.log('saveSpinRegenerationDataToDB, Saving spins regeneration for user %O, spins %O', row.userId, row.spins)
       await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ?`,
         [row.last, row.userId])
       row.dirty = false
@@ -138,30 +146,44 @@ function initIntervalForSavingArrayToDB(): void{
   setInterval(() => void saveSpinRegenerationDataToDB(), 5000)
 }
 function initIntervalForSpinRegeneration(): void {
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setInterval(async function (): Promise<void>
   {
     await spinRegenerationUsersInArray()
   }, 1000)
-  // setTimeout(() => void shutDown(), 1000)
 }
 async function spinRegenerationUsersInArray(): Promise<void>
 {
-  let modified = 0
+  // let modified = 0
   for (const spinRegenerationData of usersSpinRegenerationArray) {
     const resp = await updateUserInUsersSpinRegenerationArray(spinRegenerationData)
-    if (resp) modified = modified++
+    // if (resp) modified = modified++
   }
   // if (modified > 0) console.log('intervalForSpinRegeneration', modified )
 }
+export async function testUser39(spins: number = 1) {
+  userChanged(await getGameUser(39), spins)
+}
 export function userChanged(user: GameUser, spins: number): void{
+
   const userSpinRegenrationRecord = usersSpinRegenerationArray.find( elem => elem.userId === user.id)
   if(!userSpinRegenrationRecord) throw createHttpError(INTERNAL_SERVER_ERROR, 'User does not exists in usersSpinRegenerationArray')
-  userSpinRegenrationRecord.spinsRegenerated = spinsAmountForSpinRegeneration
+
+  if(userSpinRegenrationRecord.spins >= maxSpinsForSpinRegeneration){
+    console.log('userSpinRegenrationRecord.spins, have spins %o, max %o,  resetting last...', userSpinRegenrationRecord.spins, maxSpinsForSpinRegeneration)
+    userSpinRegenrationRecord.last = new Date()
+
+  }
+
+  const diff = getDiff(userSpinRegenrationRecord.last)
+  console.log(`userChanged() new spins %o old spins %o last %o`,
+               spins, userSpinRegenrationRecord.spins, diff.lastMoment, diff.nowMoment, diff.humanDiff )
+
   userSpinRegenrationRecord.spins = spins
   userSpinRegenrationRecord.dirty = true
-  console.log('spinRegenetarion: userChanged()', user.deviceId)
+
+
 }
+
 export async function userAdded(user: GameUser, spins: number): Promise<void>{
   const userSpinRegenrationRecordInArray = usersSpinRegenerationArray.find( elem => elem.userId === user.id)
   if(userSpinRegenrationRecordInArray) throw createHttpError(INTERNAL_SERVER_ERROR, 'User already  exists in usersSpinRegenerationArray')
