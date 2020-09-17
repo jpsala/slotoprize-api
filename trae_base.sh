@@ -21,9 +21,9 @@ scp -C  jpsala@slotoprizes.tagadagames.com:/prg/api/wopidom.dump.bz2  .
 echo bunzip2
 bunzip2 wopidom.dump.bz2
 echo drop
-#mysqladmin drop wopidom -u root -plani0363 -f
-#echo create
-#mysqladmin create --default-character-set=utf8 wopidom -u root --password=lani0363 -f
-#echo import
-#pv wopidom.dump |mysql wopidom -u root --password=lani0363
+mysqladmin drop wopidom -u jpsala -plani0363 -f
+echo create
+mysqladmin create --default-character-set=utf8 wopidom -u jpsala --password=lani0363 -f
+echo import
+pv wopidom.dump |mysql wopidom -u jpsala --password=lani0363
 
