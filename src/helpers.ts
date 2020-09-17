@@ -126,7 +126,7 @@ export function saveFile(
 
   writeFileSync(newPath, rawData)
   unlinkSync(oldPath)
-  const host: string = isNotebook() ? 'https://localhost' : 'https://wopi.homelinux.com'
+  const host: string = isNotebook() ? 'https://localhost' : 'https://slotoprizes.tagadagames.com'
   return { newPath, fileName, url: `${host}${url}/${fileName}` }
 }
 export const sleep = async ( time: number ): Promise<void> =>

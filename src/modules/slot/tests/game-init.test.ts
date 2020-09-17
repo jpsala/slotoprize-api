@@ -173,13 +173,13 @@ describe(`game-init new user`, () => {
       languagesData: [
         {
           languageCode: 'en-US',
-          textureUrl: 'https://wopi.homelinux.com/public/assets/localization/english.png',
-          localizationUrl: 'https://wopi.homelinux.com/public/assets/localization/localization_english.json'
+          textureUrl: 'https://assets.slotoprizes.tagadagames.com/localization/english.png',
+          localizationUrl: 'https://assets.slotoprizes.tagadagames.com/localization/localization_english.json'
         },
         {
           languageCode: 'es',
-          textureUrl: 'https://wopi.homelinux.com/public/assets/localization/spain.png',
-          localizationUrl: 'https://wopi.homelinux.com/public/assets/localization/localization_spanish.json'
+          textureUrl: 'https://assets.slotoprizes.tagadagames.com/localization/spain.png',
+          localizationUrl: 'https://assets.slotoprizes.tagadagames.com/localization/localization_spanish.json'
         }
       ],
       ticketPrice: 2,

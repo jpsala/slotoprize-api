@@ -161,7 +161,7 @@ if (process.env.NODE_ENV !== 'testing')
 // client test:
 
 // const client = new WebSocket('ws://127.0.0.1:8890/ws/chat')
-// const client = new WebSocket('ws://wopi.homelinux.com:8890/ws/chat')
+// const client = new WebSocket('ws://slotoprizes.tagadagames.com:8890/ws/chat')
 // client.on('open', function () {
 //   console.log(`[CLIENT] open()`)
 //   client.send('{"command":"getEventState","eventType":"happyHour"}')

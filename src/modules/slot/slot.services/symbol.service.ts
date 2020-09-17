@@ -24,7 +24,7 @@ export const getReelsData = async (): Promise<any> =>
 export const symbolsInFS = (): string[] =>
 {
   const rawFiles = readdirSync('/var/www/html/public/assets/symbols/live')
-  const url = isNotebook() ? 'https://localhost/public/assets/symbols/live' : 'https://wopi.homelinux.com/public/assets/symbols/live'
+  const url = isNotebook() ? 'https://localhost/public/assets/symbols/live' : 'https://assets.slotoprizes.tagadagames.com/symbols/live'
   const imgFiles = rawFiles
     .filter(filename => (/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(filename))
     .map(imgFile => `${url}/${imgFile}`)
@@ -92,7 +92,7 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
     console.log('newPath, rawData', newPath, rawData)
     writeFileSync(newPath, rawData)
     unlinkSync(oldPath)
-    const url = isNotebook() ? 'https://localhost' : 'https://wopi.homelinux.com'
+    const url = isNotebook() ? 'https://localhost' : 'https://slotoprizes.tagadagames.com'
     return `${url}/public/assets/symbols/live/${fileName}`
   }
   function removeActualImage(file: any, eventId: number): void
