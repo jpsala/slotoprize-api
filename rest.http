@@ -1,4 +1,4 @@
-@api = http://localhost:8888/api/slot
+@api = https://localhost:8888/api/slot
 @sessionId = {{game_init.response.body.sessionId}}
 ###
 # @name game_init
