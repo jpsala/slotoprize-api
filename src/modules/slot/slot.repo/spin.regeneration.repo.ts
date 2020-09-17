@@ -74,9 +74,10 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   const { diff, lastMoment, nowMoment } = getDiff(lastRegeneration)
 
   if (diff >= lapseForSpinRegeneration && userSpinRegenerationData.spins < maxSpinsForSpinRegeneration) {
-    console.log('Update user %o spins %o last %o now %o diff %o', userSpinRegenerationData.userId,
-                 userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'),
-                 nowMoment.format('YYYY-MM-DD HH:mm:ss'),  duration(diff).seconds())
+    // console.log('Update user %o spins %o last %o now %o diff %o', userSpinRegenerationData.userId,
+    //              userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'),
+    //              nowMoment.format('YYYY-MM-DD HH:mm:ss'),  duration(diff).seconds())
+    console.log('Update user %o spins %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment, nowMoment,  duration(diff).humanize())
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
     await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ? `, [
