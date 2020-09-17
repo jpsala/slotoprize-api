@@ -264,7 +264,7 @@ export async function testRegSpinsUSer39(req: Request, res: Response): Promise<a
   res.status(200).json({status: 'ok'})
 }
 export async function ironsource(req: Request, res: Response): Promise<any>{
-  const resp = callback(req.query)
+  const resp = await callback(req.query)
   res.status(200).send(resp)
   // res.status(200).json(resp)
 }

@@ -22,7 +22,7 @@ export interface WebSocketMessage
 {
   code: 200 | 400 | 500;
   message: 'OK' | string;
-  msgType: 'events' | 'webSocket' | 'eventsState' | 'spinTimer' | 'getSpinTimer';
+  msgType: 'events' | 'webSocket' | 'eventsState' | 'spinTimer' | 'getSpinTimer' | 'adReward';
   payload: EventPayload | any
 }
 type WsServerService = {

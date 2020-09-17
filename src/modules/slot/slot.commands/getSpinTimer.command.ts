@@ -34,23 +34,14 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
       pendingSeconds:  diff > 0 ?  Math.trunc((lapseForSpinRegeneration - diff) / 1000) : -1
     }
   }
-  const wsMessage: WebSocketMessage = {
-    code: 200,
-    message: 'OK',
-    msgType: 'adReward',
-    payload: {
-      type: [currency],
-      amount: [REWARDS]
-    }
-  }
   delete data.command
   delete data.client
-  try {
-    wsServer.sendToUser(wsMessage, client.userId)
-  } catch (error) {
-    wsServer.sendToUser(error, client)
+    try {
+      wsServer.sendToUser(wsMessage, client.userId)
+    } catch (error) {
+      wsServer.sendToUser(error, client)
 
-  }
+    }
 }
 
 PubSub.subscribe('getSpinTimer', runCommand)
