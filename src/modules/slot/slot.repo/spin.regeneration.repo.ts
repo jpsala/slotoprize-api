@@ -74,7 +74,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   //   console.log('lastRegeneration %o nowMoment %o', lastRegeneration, nowMoment)
   const diff = nowMoment.diff(lastMoment.utc())
   if (diff >= lapseForSpinRegeneration && userSpinRegenerationData.spins < maxSpinsForSpinRegeneration) {
-    console.log('Update user %o spins %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment, nowMoment,  diff)
+    console.log('Update user %o spins %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment, nowMoment,  duration(diff).humanize())
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
     await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ? `, [
