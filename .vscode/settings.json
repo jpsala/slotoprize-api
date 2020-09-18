@@ -1,29 +1,29 @@
 {
     "god.tsconfig": "./tsconfig.json",
     "eslint.enable": true,
-    "ego.power-tools": {
-        "commands": {
-            "myCommand": {
-                "script": "my_command.js",
-                "button": {
-                    "color": "#ffffe0",
-                    "text": "H"
-                }
-            }
-        },
-        // "buttons": [
-        //     {
-        //         "text": "$(diff-added)",
-        //         "action": {
-        //             "type": "shell",
-        //             "command": "\"subl3\" \"${activeFile}\"",
-        //             // "command": "/usr/bin/thunar ${activeFile}",
-        //             // "command": "\"/usr/bin/thunar\" \"${activeFile}\"",
-        //             "wait": false
-        //         }
-        //     }
-        // ]
-    },
+    // "ego.power-tools": {
+    //     "commands": {
+    //         "myCommand": {
+    //             "script": "my_command.js",
+    //             "button": {
+    //                 "color": "#ffffe0",
+    //                 "text": "H"
+    //             }
+    //         }
+    //     },
+    //     // "buttons": [
+    //     //     {
+    //     //         "text": "$(diff-added)",
+    //     //         "action": {
+    //     //             "type": "shell",
+    //     //             "command": "\"subl3\" \"${activeFile}\"",
+    //     //             // "command": "/usr/bin/thunar ${activeFile}",
+    //     //             // "command": "\"/usr/bin/thunar\" \"${activeFile}\"",
+    //     //             "wait": false
+    //     //         }
+    //     //     }
+    //     // ]
+    // },
     "files.exclude": {
         "**/.git": true,
         "**/.svn": true,
@@ -37,10 +37,8 @@
         "node_modules/": true,
         "node_modules": true
     },
-    "explorerExclude.backup": null,
     "typescript.tsdk": "node_modules/typescript/lib",
     "workbench.colorCustomizations": {
-<<<<<<< HEAD
       "activityBar.activeBackground": "#fdfae6",
       "activityBar.activeBorder": "#0eb19c",
       "activityBar.background": "#fdfae6",
@@ -57,22 +55,5 @@
       "titleBar.inactiveForeground": "#15202b99"
     },
     "peacock.remoteColor": "#f9f1b7",
-=======
-      "activityBar.activeBackground": "#2f7c47",
-      "activityBar.activeBorder": "#422c74",
-      "activityBar.background": "#2f7c47",
-      "activityBar.foreground": "#e7e7e7",
-      "activityBar.inactiveForeground": "#e7e7e799",
-      "activityBarBadge.background": "#422c74",
-      "activityBarBadge.foreground": "#e7e7e7",
-      "statusBar.background": "#215732",
-      "statusBar.foreground": "#e7e7e7",
-      "statusBarItem.hoverBackground": "#2f7c47",
-      "titleBar.activeBackground": "#215732",
-      "titleBar.activeForeground": "#e7e7e7",
-      "titleBar.inactiveBackground": "#21573299",
-      "titleBar.inactiveForeground": "#e7e7e799"
-    },
-    "peacock.color": "#215732",
->>>>>>> 87a14ce23feaf5931ef86c41126b4a13c008f5b8
+    "peacock.color": "#f9f1b7"
 }
