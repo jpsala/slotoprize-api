@@ -38,7 +38,7 @@ export async function callback(query: {
     message: 'OK',
     msgType: 'adReward',
     payload: {
-      type: currency === 'spins' ? 'spin' : 'coin',
+      type: currency === 'spins' as string ? 'spin' : 'coin',
       amount: rewards
     }
   }
