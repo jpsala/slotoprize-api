@@ -3,7 +3,7 @@ import createHttpError from 'http-errors'
 import { getWallet, updateWallet } from '../wallet.service'
 import { WebSocketMessage, wsServer } from '../webSocket/ws.service'
 import { getGameUser } from '../../../meta/meta.repo/gameUser.repo'
-import { getSetting } from './../settings.service'
+import { getSetting, setSetting } from './../settings.service'
 export async function callback(query: {
     USER_ID: 'string';
     EVENT_ID: 'string';
@@ -22,7 +22,7 @@ export async function callback(query: {
   const eventId = query.EVENT_ID
   const userId = query.USER_ID
   const currency = query.currency
-  if(['coins', 'spins'].includes(currency)) throw createHttpError(BAD_REQUEST, 'currency has to be coins or spins')
+  if(!['coins', 'spins'].includes(currency)) throw createHttpError(BAD_REQUEST, 'currency has to be coins or spins')
   const rewards = Number(query.rewards)
   const user = await getGameUser(Number(userId))
   const wallet = await getWallet(user)
@@ -30,7 +30,7 @@ export async function callback(query: {
 
   // @TODO code for negative callback
   if(isNegativeCallback || ((await getSetting('last_EVENT_ID', '')) === eventId)) return `${eventId}:OK`
-
+  await setSetting('last_EVENT_ID', eventId)
   wallet[currency] += rewards
   await updateWallet(user, wallet)
   const wsMessage: WebSocketMessage = {
@@ -38,7 +38,7 @@ export async function callback(query: {
     message: 'OK',
     msgType: 'adReward',
     payload: {
-      type: currency,
+      type: currency === 'spins' ? 'spin' : 'coin',
       amount: rewards
     }
   }
