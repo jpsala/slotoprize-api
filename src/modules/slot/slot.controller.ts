@@ -2,6 +2,7 @@ import { BAD_REQUEST } from 'http-status-codes'
 import formidable from 'formidable'
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
+import { Request, Response } from 'express'
 import { verifyToken, getNewToken } from '../../services/jwtService'
 import { GameUser, User } from "../meta/meta.types"
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
@@ -28,8 +29,7 @@ import * as walletService from "./slot.services/wallet.service"
 // import {spin} from './slot.services/spin.service'
 import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.services/symbol.service'
 import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
-import { Request, Response } from 'express'
-import { userChanged, testUser39 } from './slot.repo/spin.regeneration.repo'
+import { testUser39 } from './slot.repo/spin.regeneration.repo'
 import { callback } from './slot.services/ironsource'
 
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
@@ -264,7 +264,19 @@ export async function testRegSpinsUSer39(req: Request, res: Response): Promise<a
   res.status(200).json({status: 'ok'})
 }
 export async function ironsource(req: Request, res: Response): Promise<any>{
-  const resp = await callback(req.query)
+  const resp = await callback(req.query as {
+    USER_ID: 'string';
+    EVENT_ID: 'string';
+    rewards: 'string';
+    currency: 'string';
+    DELIVERY_TYPE: 'string';
+    AD_PROVIDER: 'string';
+    publisherSubId: 'string';
+    timestamp: 'string';
+    signature: 'string';
+    country: 'string';
+    negativeCallback: 'string';
+  })
   res.status(200).send(resp)
   // res.status(200).json(resp)
 }

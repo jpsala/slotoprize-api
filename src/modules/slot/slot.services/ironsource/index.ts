@@ -1,28 +1,38 @@
+import { BAD_REQUEST } from 'http-status-codes'
+import createHttpError from 'http-errors'
 import { getWallet, updateWallet } from '../wallet.service'
 import { WebSocketMessage, wsServer } from '../webSocket/ws.service'
 import { getGameUser } from '../../../meta/meta.repo/gameUser.repo'
-
-export async function callback(query) {
-
+import { getSetting } from './../settings.service'
+export async function callback(query: {
+    USER_ID: 'string';
+    EVENT_ID: 'string';
+    rewards: 'string';
+    currency: 'string';
+    DELIVERY_TYPE: 'string';
+    AD_PROVIDER: 'string';
+    publisherSubId: 'string';
+    timestamp: 'string';
+    signature: 'string';
+    country: 'string';
+    negativeCallback: 'string';
+  }  ): Promise<string>
+{
   console.log('ironSource data:', query)
-
+  const eventId = query.EVENT_ID
   const userId = query.USER_ID
   const currency = query.currency
+  if(['coins', 'spins'].includes(currency)) throw createHttpError(BAD_REQUEST, 'currency has to be coins or spins')
   const rewards = Number(query.rewards)
-  const user = await getGameUser(userId)
+  const user = await getGameUser(Number(userId))
   const wallet = await getWallet(user)
-
   const isNegativeCallback = query.negativeCallback
-  // @TODO code for negative callback
-  console.log('negative', isNegativeCallback)
-  if(isNegativeCallback) return `${query.EVENT_ID}:OK`
 
-  // @TODO guardar para no procesar otra vez
+  // @TODO code for negative callback
+  if(isNegativeCallback || ((await getSetting('last_EVENT_ID', '')) === eventId)) return `${eventId}:OK`
 
   wallet[currency] += rewards
   await updateWallet(user, wallet)
-  const walletAfter = await getWallet(user)
-
   const wsMessage: WebSocketMessage = {
     code: 200,
     message: 'OK',
@@ -40,5 +50,5 @@ export async function callback(query) {
     wsServer.sendToUser(error, userId)
   }
 
-  return `${query.EVENT_ID}:OK`
+  return `${eventId}:OK`
 }
