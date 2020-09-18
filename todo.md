@@ -160,5 +160,21 @@ public class EventData
     public int multiplier;
 }
 ------------------
+18/09
+events:
+todos los campos son optativos
+reflejar el event data que está ahora
+players:
+agregar el ID
+Jackpot:
+deadline
+Raffles:
+el backend tiene que devolver los live
+addManagement:
+SlotMachine:
+lose
+ratio win/lose = 100
+--------------------
+
 
 

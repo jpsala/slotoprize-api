@@ -6,6 +6,7 @@ import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { Wallet } from './../../meta/models/wallet'
 import { GameUser } from './../../meta/meta.types'
 import { query, queryOne, exec } from './../../../db'
+import { updateWallet } from './wallet.repo'
 
 export type SpinData = { last: Date, days: number, lastClaim: Date }
 export const getLastSpin = async (user: GameUser): Promise<SpinData | undefined> => {
@@ -46,7 +47,8 @@ export const getUserPrize = async (user: GameUser): Promise<DailyRewardPrize | u
   const lastSpin = await getLastSpin(user)
   if (lastSpin == null) return undefined
   const prizes = await getDailyRewardPrizes()
-  if (lastSpin.days > prizes.length) lastSpin.days = prizes.length - 1
+  if (lastSpin.days >= prizes.length) lastSpin.days = prizes.length - 1
+  console.log('lastSpin.days', lastSpin.days, prizes)
   return prizes[lastSpin.days]
 }
 export const isDailyRewardClaimed = async (deviceId: string): Promise<boolean> => {
@@ -67,9 +69,17 @@ export const dailyRewardClaim = async (deviceId: string): Promise<Partial<Wallet
   const userPrize = await getUserPrize(user)
   if (!userPrize) throw createError(BAD_REQUEST, 'User have no daily reward')
   const wallet = await getWallet(user)
-  // @URGENT call updateUserInUsersSpinRegenerationArray
   wallet[`${userPrize.type}s`] += userPrize.amount
+  await updateWallet(user, wallet)
   await exec(`update last_spin set last_claim = ? where game_user_id = ?`, [new Date(), user.id])
-  await exec(`update wallet set ${userPrize.type}s = ?`, [wallet[`${userPrize.type}s`]])
+  // await exec(`update wallet set ${userPrize.type}s = ?`, [wallet[`${userPrize.type}s`]])
   return { coins: wallet.coins, tickets: wallet.tickets, spins: wallet.spins }
+}
+export const dailyRewardInfo = async (deviceId: string): Promise<void> => {
+  const user = await getGameUserByDeviceId(deviceId)
+  if (user == null) throw createError(BAD_REQUEST, 'there is no user with that deviceID')
+  const isClaimed = await isDailyRewardClaimed(deviceId)
+  if (isClaimed) throw createError(BAD_REQUEST, 'The daily reward was allreaady claimed')
+  const userPrize = await getUserPrize(user)
+  console.log('Claimed %o, prize %o', isClaimed, userPrize)
 }

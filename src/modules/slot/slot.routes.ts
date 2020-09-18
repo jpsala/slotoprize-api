@@ -1,9 +1,9 @@
 import formidableMiddleware from 'express-formidable'
+import { Router } from 'express'
 import { checkToken } from '../meta/authMiddleware'
 import { toggleLog } from './slot.services/events/events'
 
 import * as slot from './slot.controller'
-import { Router } from 'express'
 
 const router = Router()
 router.route('/auth').post(slot.authPost)
@@ -35,6 +35,7 @@ router.route('/skins').get(checkToken, slot.skinsGet)
 router.route('/eventsReload').post(checkToken, slot.eventsReloadPost)
 router.route('/toggleLog').post(checkToken, (req, res) => { res.status(200).json({ logging: toggleLog() }) })
 router.route('/daily_reward_claim').get(checkToken, slot.dailyRewardClaimGet)
+router.route('/daily_reward_info').get(checkToken, slot.dailyRewardInfoGet)
 router.route('/spin_data').get(checkToken, slot.spinDataGet)
 router.route('/spin_data').post(checkToken, slot.spinDataPost)
 

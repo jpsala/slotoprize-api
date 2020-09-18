@@ -23,7 +23,7 @@ import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.s
 
 import { getSkinsForCrud, postSkinForCrud, deleteSkinForCrud } from './slot.repo/skin.repo'
 import { updateRulesFromDb } from './slot.services/events/events'
-import { dailyRewardClaim } from './slot.repo/dailyReward.repo'
+import { dailyRewardClaim, dailyRewardInfo } from './slot.repo/dailyReward.repo'
 import * as slotService from './slot.services'
 import * as walletService from "./slot.services/wallet.service"
 // import {spin} from './slot.services/spin.service'
@@ -199,6 +199,10 @@ export async function spinDataGet(req: Request, res: Response): Promise<any>{
 export async function spinDataPost(req: Request, res: Response): Promise<any>{
   await addJackpotNextRow(req.body)
   res.status(200).json({status: 'ok'})
+}
+export async function dailyRewardInfoGet(req: Request, res: Response): Promise<any>{
+  await dailyRewardInfo(req.query.deviceId as string)
+  res.status(200).json(1)
 }
 export async function dailyRewardClaimGet(req: Request, res: Response): Promise<any>{
   const resp = await dailyRewardClaim(req.query.deviceId as string)
