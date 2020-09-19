@@ -8,7 +8,7 @@ import { spinRegenerationInit, shutDown as spinRegenerationShutDown } from './mo
 import { createWsServerService, wsServer } from './modules/slot/slot.services/webSocket/ws.service'
 
 console.log('prod')
-
+console.log('dev')
 let server
 const hostname = os.hostname()
 
