@@ -1,10 +1,11 @@
 import url from 'url'
+import https from 'https'
 import WebSocket, { Server } from 'ws'
 import PubSub from 'pubsub-js'
 import { isValidJSON } from '../../../../helpers'
 import { EventPayload } from '../events/event'
 //#region types
-type Subscription = { message: string, cb: () => void }
+// type Subscription = { message: string, cb: () => void }
 
 /*
 public class EventData
@@ -18,6 +19,7 @@ public class EventData
     public SkinData skin;
     public bool devOnly;
 } */
+export let wsServer: WsServerService
 export interface WebSocketMessage
 {
   code: 200 | 400 | 500;
@@ -33,9 +35,7 @@ type WsServerService = {
   sendToUser(_msg: WebSocketMessage, userId): void
   shutDown(): void
 }
-type MessageForEmit = {
-  command: string;
-}
+
 //#endregion
 let server: WebSocket.Server
 let ws: WebSocket
@@ -43,11 +43,17 @@ let ws: WebSocket
 export interface ExtWebSocket extends WebSocket {
   userId: number; // your custom property
 }
-const createWsServerService = (): WsServerService =>
+export const createWsServerService = (httpsServer?: https.Server): void =>
 {
-  server = new Server({
-    port: 8890,
-  })
+  if (httpsServer)
+    server = new Server({
+      server: httpsServer
+    })
+   else
+    server = new Server({
+      port: 3000,
+    })
+  console.log(`${httpsServer ? 'Encrypted ' : 'Not encrypted '}WebSocket on port 3000` )
   server.on('connection', function (ws: ExtWebSocket, req)
   {
     if(!req.url) throw Error('Url not in websocket connection')
@@ -142,35 +148,7 @@ const createWsServerService = (): WsServerService =>
     server.close()
     console.log('websocket shutdown')
   }
-  return { server, ws, send, sendRaw, sendToUser, shutDown }
+  wsServer = { server, ws, send, sendRaw, sendToUser, shutDown }
 }
-console.log('ws.ts')
-export let wsServer: WsServerService
-if (process.env.NODE_ENV !== 'testing')
-{
-  console.log('ws server started at port 8890...')
-  wsServer = createWsServerService()
-} else
-{
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  wsServer = { send: (_msg: WebSocketMessage, client?: WebSocket | undefined) => { console.log('ws mock send') } } as WsServerService
-}
+console.log('loaded ws.service.ts')
 
-
-
-// client test:
-
-// const client = new WebSocket('ws://127.0.0.1:8890/ws/chat')
-// const client = new WebSocket('ws://slotoprizes.tagadagames.com:8890/ws/chat')
-// client.on('open', function () {
-//   console.log(`[CLIENT] open()`)
-//   client.send('{"command":"getEventState","eventType":"happyHour"}')
-// })
-// client.on('message', function (a, b) {
-//   console.log('msg from server!', a, b)
-// })
-// client.on('message', function (message) {
-//   console.log(`[CLIENT] Received: ${message}`)
-//   // client.send({ hola: "holaaaaasdfasdfasdf" })
-//   // client.close()
-// })

@@ -1,14 +1,15 @@
-import { wsServer } from './modules/slot/slot.services/webSocket/ws.service'
+import { Server } from 'http'
+import https from 'https'
+import fs from 'fs'
+import os from 'os'
 import createApp from './app'
 import './modules/slot/slot.commands'
 import { spinRegenerationInit, shutDown as spinRegenerationShutDown } from './modules/slot/slot.repo/spin.regeneration.repo'
-import { Server } from 'http'
+import { createWsServerService, wsServer } from './modules/slot/slot.services/webSocket/ws.service'
 
-const https = require('https');
-const fs = require('fs');
-const os = require('os');
+
 let server: Server
-const hostname = os.hostname();
+const hostname = os.hostname()
 
 void (async function main() {
   await spinRegenerationInit()
@@ -40,13 +41,15 @@ void (async function main() {
   })
   console.log('hostname', os.hostname())
   if (os.hostname() === 'slotoprizes') {
-    https.createServer({
+    const httpsServer = https.createServer({
       key: fs.readFileSync('/home/jpsala/privkey.pem'),
       // key: fs.readFileSync('/home/jpsala/certs/privkey1.pem'),
       cert: fs.readFileSync('/home/jpsala/fullchain.pem'),
       // cert: fs.readFileSync('/home/jpsala/certs/fullchain1.pem'),
-    }, app).listen(3000, () => {
-      console.log(`started on ${hostname} on port 3000 - ${process.env.NODE_ENV ?? ''}`);
-    });
-  }
+    }, app).listen(3000, () =>
+    {
+      console.log(`started on ${hostname} on port 3000 - ${process.env.NODE_ENV ?? ''}`)
+    })
+    createWsServerService(httpsServer)
+  } else {createWsServerService()}
 })()
