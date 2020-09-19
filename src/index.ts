@@ -8,15 +8,11 @@ import { spinRegenerationInit, shutDown as spinRegenerationShutDown } from './mo
 import { createWsServerService, wsServer } from './modules/slot/slot.services/webSocket/ws.service'
 
 
-let server: Server
+let server
 const hostname = os.hostname()
 
 void (async function main() {
   await spinRegenerationInit()
-  process.on('SIGINT', () =>
-  {
-    void sendShutDownMessageToHooksAndShutdown()
-  })
   process.on('SIGINT', () =>
   {
     void sendShutDownMessageToHooksAndShutdown()
@@ -36,20 +32,24 @@ void (async function main() {
   const app = createApp()
   const port = 8888
   const name = 'wopidom api'
-  server = app.listen(port, () => {
-    console.info(`${name} started at port ${port}`)
-  })
   console.log('hostname', os.hostname())
   if (os.hostname() === 'slotoprizes') {
-    const httpsServer = https.createServer({
+    server = https.createServer({
       key: fs.readFileSync('/home/jpsala/privkey.pem'),
       // key: fs.readFileSync('/home/jpsala/certs/privkey1.pem'),
       cert: fs.readFileSync('/home/jpsala/fullchain.pem'),
       // cert: fs.readFileSync('/home/jpsala/certs/fullchain1.pem'),
     }, app).listen(3000, () =>
     {
-      console.log(`started on ${hostname} on port 3000 - ${process.env.NODE_ENV ?? ''}`)
+      console.log(`started on ${hostname} on port 3000`)
     })
-    createWsServerService(httpsServer)
-  } else {createWsServerService()}
+    createWsServerService(server)
+  } else {
+    server = app.listen(port, () =>
+    {
+      console.info(`${name} started at port ${port}`)
+    })
+
+    createWsServerService()
+  }
 })()
