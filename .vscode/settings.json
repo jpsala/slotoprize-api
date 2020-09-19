@@ -37,7 +37,7 @@
         "node_modules/": true,
         "node_modules": true
     },
-    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.tsdk": "/mnt/1t/prg/api/node_modules/typescript/lib",
     "workbench.colorCustomizations": {
       "activityBar.activeBackground": "#fdfae6",
       "activityBar.activeBorder": "#0eb19c",

@@ -139,9 +139,11 @@ type WalletDTO = {coins: number, tickets: number, game_user_id: number}
 
 // @TODO ver de user class-transmormer abajo
 export async function addGameUser(user: GameUser): Promise<GameUser> {
-  delete user.isNew
-  if(user.id === -1) delete user.id
-  const snakeCasedUser = snakeCaseKeys(user)
+  const gameUserDto: Omit<GameUser, "isNew">  & {isNew?: boolean} = Object.assign({}, user)
+
+  delete gameUserDto.isNew
+  if(gameUserDto.id === -1) delete (gameUserDto as any).id
+  const snakeCasedUser = snakeCaseKeys(gameUserDto)
   const wallet = snakeCasedUser.wallet
   delete snakeCasedUser.wallet
   const conn = await getConnection()
@@ -150,21 +152,21 @@ export async function addGameUser(user: GameUser): Promise<GameUser> {
   try {
       const [result] = await conn.query('insert into game_user set ?', snakeCasedUser) as RowDataPacket[]
       gameUserId = result.insertId
-      user.id = gameUserId
+      gameUserDto.id = gameUserId
       let walletDTO: WalletDTO
-      if (user.wallet) {
+      if (gameUserDto.wallet) {
         walletDTO = <WalletDTO>classToPlain(wallet)
         walletDTO.game_user_id = gameUserId
-        await insertWallet(user, wallet?.coins, wallet?.spins, wallet?.tickets)
+        await insertWallet(gameUserDto as GameUser, wallet?.coins, wallet?.spins, wallet?.tickets)
       } else {
-        await insertWallet(user)
+        await insertWallet(gameUserDto as GameUser)
       }
     await conn.commit()
     } finally {
       await conn.rollback()
       conn.destroy()
     }
-    return user
+    return gameUserDto as GameUser
   }
 export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Promise<GameUser>{
   const fakedUser = fakeUser(override)

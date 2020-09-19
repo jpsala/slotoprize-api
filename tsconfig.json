@@ -11,7 +11,7 @@
         /* Redirect output structure to the directory. */
         "rootDir": "./src",
         /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
-        "types": ["reflect-metadata", "jest"],
+        "types": ["reflect-metadata", "jest", "node"],
         "removeComments": true,
         "preserveConstEnums": true,
         "sourceMap": true,
@@ -19,8 +19,8 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "moduleResolution": "node",
-        "allowSyntheticDefaultImports":true,
-        "lib": ["es6"],
+        // "allowSyntheticDefaultImports":true,
+        "lib": ["es6", "DOM"],
         "typeRoots": [
             "src/@types",
             "./node_modules/@types"

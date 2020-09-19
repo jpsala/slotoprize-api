@@ -4,7 +4,6 @@ import fs, { unlinkSync } from 'fs'
 import os from 'os'
 import { updateRulesFromDb } from './../slot.services/events/events'
 import { getRandomNumber } from './../../../helpers'
-import { getSetting } from './../slot.services/settings.service'
 import { exec, query } from './../../../db'
 import { EventDTO, Event } from './../slot.services/events/event'
 
@@ -55,14 +54,14 @@ type EventDto = Event &
 }
 export async function setEvent(eventDto: EventDto, files: { notificationFile?: any, popupFile?: any }): Promise<any>
 {
-  delete eventDto.skin
-  delete eventDto.notificationFile
-  delete eventDto.popupFile
+  delete (eventDto as any).skin
+  delete (eventDto as any).notificationFile
+  delete (eventDto as any).popupFile
   let isNew = false
   if (String(eventDto.id) === '-1')
   {
     isNew = true
-    delete eventDto.id
+    delete (eventDto as any).id
   }
 
   const resp = await exec(`REPLACE into event set ?`, <any>eventDto)

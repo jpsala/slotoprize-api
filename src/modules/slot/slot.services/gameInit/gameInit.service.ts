@@ -86,7 +86,7 @@ export async function gameInit(deviceId: string): Promise<any> {
       walletData: wallet
     }
     if(!rafflePrizeData) delete initData.rafflePrizeData
-    if(!hasPendingPrize) delete initData.pendingPrizeIsJackpot
+    if(!hasPendingPrize) delete (initData as any).pendingPrizeIsJackpot
     return initData
   } catch (error) {
     throw createError(createError.InternalServerError, error)

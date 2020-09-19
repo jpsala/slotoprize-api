@@ -51,7 +51,7 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
   let isNew = false
   if (String(symbolDto.id) === '-1') {
     isNew = true
-    delete symbolDto.id
+    delete (symbolDto as any).id
   }
   let resp
   let symbolId
