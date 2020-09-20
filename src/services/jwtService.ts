@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
+// eslint-disable-next-line import/default
 import jwt from 'jsonwebtoken'
 
 const tokenKey = 'Que Secreto!!!'

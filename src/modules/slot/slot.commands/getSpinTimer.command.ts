@@ -7,22 +7,19 @@ import { getSetting } from './../slot.services/settings.service'
 
 
 
-type Message = { command: 'getSpinTimer', eventType: string, client: WebSocket }
+// type Message = { command: 'getSpinTimer', eventType: string, client: WebSocket }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const runCommand = async (cmd: string, data: any): Promise<void> => {
   const userSpinRegenerationData = getUserSpinRegenerationData(data.client.userId)
-
   const client: ExtWebSocket = data.client
   const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', 10))
   const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 10)) * 1000
   const lastMoment = utc(userSpinRegenerationData.last)
   const nowMoment = utc(new Date())
   let diff = nowMoment.diff(lastMoment.utc())
-  console.log('dif', diff)
   if (diff > lapseForSpinRegeneration || userSpinRegenerationData.spins >= maxSpinsForSpinRegeneration)
     diff = 0
-  console.log('userSpinRegenerationData', userSpinRegenerationData)
   // @TODO usar sendEventToClient() en spin.regeneration.repo (ver que no mande spinsRegenerated en 0)
   const wsMessage: WebSocketMessage = {
     code: 200,
