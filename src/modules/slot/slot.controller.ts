@@ -8,7 +8,7 @@ import { GameUser, User } from "../meta/meta.types"
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
 import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
-import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront, getGameUser , purchaseTickets } from '../meta/meta.repo/gameUser.repo'
+import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront, getGameUser } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte, getSupportRequestForCrud, supportAdminForCrud, postSupportAdminForCrud } from '../meta/meta.repo/support.repo'
 import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
 
@@ -19,7 +19,7 @@ import { gameUserRepo } from '../meta/meta.repo'
 import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
 import { setProfile } from './slot.services/profile.service'
 import { getJackpotData, addJackpotNextRow } from './slot.services/jackpot.service'
-import { getTombolaForCrud, postTombolaForCrud } from './slot.services/tombola.service'
+import { getTombolaForCrud, postTombolaForCrud, postWinLoseForTombolaCrudPost } from './slot.services/tombola.service'
 
 import { getSkinsForCrud, postSkinForCrud, deleteSkinForCrud } from './slot.repo/skin.repo'
 import { updateRulesFromDb } from './slot.services/events/events'
@@ -222,6 +222,10 @@ export async function tombolaForCrudGet(req: Request, res: Response): Promise<an
 export async function tombolaForCrudPost(req: Request, res: Response): Promise<any>{
   const data = await postTombolaForCrud(req.body)
   res.status(200).json(data)
+}
+export async function winLoseForTombolaCrudPost(req: Request, res: Response): Promise<any>{
+  await postWinLoseForTombolaCrudPost(req.body.lose)
+  res.status(200).json({status: 'ok'})
 }
 export async function skinsForCrudGet(req: Request, res: Response): Promise<any>{
   const data = await getSkinsForCrud()

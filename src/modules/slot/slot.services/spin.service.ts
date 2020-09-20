@@ -1,16 +1,17 @@
+import { BAD_REQUEST } from 'http-status-codes'
+import { duration, utc } from 'moment'
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
 import createError from 'http-errors'
+import { second } from 'later'
 import getSlotConnection from '../../../db'
 import { SpinData , WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
-import { setGameUserSpinData } from '../../meta/meta.repo/gameUser.repo'
+import { setGameUserSpinData , getGameUserLastSpinDate } from '../../meta/meta.repo/gameUser.repo'
+import { GameUser } from './../../meta/meta.types'
 
+import { getLastSpin } from './gameInit/dailyReward.spin'
 import * as jackpotService from './jackpot.service'
-
-
-
-
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
@@ -23,6 +24,9 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
   const user = await getGameUserByDeviceId(deviceId)
+
+  if(await spinWasToQuickly(user)) throw createError(BAD_REQUEST, 'Spin was to quickly')
+
   const wallet = await getWallet(user)
   if (!wallet) throw createError(createError.BadRequest, 'Something went wrong, Wallet not found for this user, someting went wrong')
   const { spins: spinsInWallet } = wallet
@@ -54,6 +58,16 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
 
   return returnData
 }
+const spinWasToQuickly = async (user: GameUser): Promise<boolean> =>
+  {
+    const { last: lastUserSpinawait } = await getGameUserLastSpinDate(user)
+    const lastMoment = utc(lastUserSpinawait)
+    const nowMoment = utc(new Date())
+    const diff = nowMoment.diff(lastMoment.utc())
+    const diffInSeconds = duration(diff).seconds()
+    console.log('spinWasToQuickly', lastMoment.format('YYYY-MM-DD HH:mm:ss'), nowMoment.format('YYYY-MM-DD HH:mm:ss'), diffInSeconds )
+    return diffInSeconds <= 5
+  }
 export const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   // console.log("getWinRowWithEmptyFilled -> winRow", winRow)
   const winSymbolAmount = winRow.symbol_amount || 0
@@ -117,7 +131,7 @@ export const getFillTable = (payTable) => {
     return !isInOtherRow
   })
 }
-const checkWithRandomIfWins = () => getRandomNumber() > 20
+const checkWithRandomIfWins = async () => getRandomNumber() > Number(await getSetting('spinLosePercent', 20))
 const getWinRow = (table) => {
   const randomNumber = getRandomNumber(1, 100)
   if (!randomNumbers[randomNumber]) randomNumbers[randomNumber] = 0
@@ -145,8 +159,10 @@ export async function getBetAndCheckFunds(multiplier: number, spins: number): Pr
   const enoughSpins = ((spins - bet) >= 0)
   return { bet, enoughSpins }
 }
-async function getWinData(jackpot) {
-  const isWin = checkWithRandomIfWins()
+async function getWinData(jackpot)
+{
+  console.log(Number(await getSetting('spinLosePercent', 20)))
+  const isWin = await checkWithRandomIfWins()
   // @TODO Quitar
   // const isWin = false
   const payTable = await getPayTable()

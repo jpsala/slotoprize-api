@@ -108,7 +108,7 @@ para preguntar si solo puede haber una linea en el paytable de ticket
 
 ------------------
 
-- [ ] Iron Source callback endpoints and mechanics
+- [x] Iron Source callback endpoints and mechanics
 IronSource (the ads provider) requires a few endpoints to report stuff, and in time we need to do our things with the info received from them.
 
 Client request and watches an Ad -> IronSource sends success or error data to our backend -> the backend credits (or not) the player, and comunicates to the client.
@@ -123,7 +123,7 @@ el tipo de reward lo manejamos nosotros, rewarded videos spins y offerwall coins
 
 
 ------------------
-- [ ] EventData changes
+- [x] EventData changes
 Event data will have some changes on data and structure.
 
 The field "skin", should be renamed to "skinData".

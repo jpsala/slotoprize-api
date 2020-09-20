@@ -1,4 +1,7 @@
+import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
+import createHttpError from 'http-errors'
+import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
 import { getSymbols } from './symbol.service'
 
@@ -13,6 +16,12 @@ export const getPayTableForCrud = async (): Promise<any> => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return camelcaseKeys(payTable)
 }
+export const postWinLoseForTombolaCrudPost = async (lose: number): Promise<any> =>
+{
+  if(!lose || lose < 1 || lose > 100) throw createHttpError(BAD_REQUEST, `Lose has an invalid value ${lose}`)
+  await setSetting('spinLosePercent', lose)
+}
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const postTombolaForCrud = async (body: any): Promise<any> =>
 {
   const conn = await getConnection()
@@ -44,5 +53,6 @@ export const getTombolaForCrud = async (): Promise<any> =>
 {
   const symbols = camelcaseKeys(await getSymbols())
   const paytable = await getPayTableForCrud()
-  return {paytable, symbols}
+  const spinLosePercent = Number(await getSetting('spinLosePercent', 20))
+  return {paytable, symbols, spinLosePercent}
 }

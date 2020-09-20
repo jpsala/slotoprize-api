@@ -12,7 +12,10 @@ import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
 
 
-
+export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: Date }> => {
+  const resp = await queryOne(`select last from game_user_spin where game_user_id = ${user.id}`)
+  return {last: resp.last}
+}
 export const purchaseTickets = async (deviceId: string,ticketAmount: number): Promise<Wallet> => {
   if (!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
 

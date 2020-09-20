@@ -1,12 +1,12 @@
-import { duration ,utc, isDuration} from 'moment'
+import { duration ,utc, } from 'moment'
 import { INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import createHttpError from 'http-errors'
 
 import { getSetting } from '../slot.services/settings.service'
 import { query, exec } from '../../../db'
+import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 import { wsServer, WebSocketMessage } from './../slot.services/webSocket/ws.service'
 import { GameUser } from './../../meta/meta.types'
-import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 
 export type UserSpinRegenerationData = {
   userId: number,
@@ -69,7 +69,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
     lastRegeneration = new Date()
     console.log('updateUserInUsersSpinRegenerationArray !userSpinRegenerationData?.spinRegenerationTableId mal!' )
   } else
-    lastRegeneration = userSpinRegenerationData.last ?? new Date()
+    {lastRegeneration = userSpinRegenerationData.last ?? new Date()}
 
   const { diff, lastMoment, nowMoment } = getDiff(lastRegeneration)
 
@@ -77,7 +77,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
     // console.log('Update user %o spins %o last %o now %o diff %o', userSpinRegenerationData.userId,
     //              userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'),
     //              nowMoment.format('YYYY-MM-DD HH:mm:ss'),  duration(diff).seconds())
-    console.log('Update user %o spins %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment, nowMoment,  duration(diff).humanize())
+    console.log('Update user %o spins %o last spin %o now %o rest %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'), nowMoment.format('YYYY-MM-DD HH:mm:ss'),  `${duration(diff).seconds()} Secs`)
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
     await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ? `, [
@@ -147,21 +147,18 @@ function initIntervalForSavingArrayToDB(): void{
   setInterval(() => void saveSpinRegenerationDataToDB(), 5000)
 }
 function initIntervalForSpinRegeneration(): void {
-  setInterval(async function (): Promise<void>
+  setInterval(function (): void
   {
-    await spinRegenerationUsersInArray()
+    void spinRegenerationUsersInArray()
   }, 1000)
 }
 async function spinRegenerationUsersInArray(): Promise<void>
 {
   // let modified = 0
-  for (const spinRegenerationData of usersSpinRegenerationArray) {
-    const resp = await updateUserInUsersSpinRegenerationArray(spinRegenerationData)
-    // if (resp) modified = modified++
-  }
-  // if (modified > 0) console.log('intervalForSpinRegeneration', modified )
+  for (const spinRegenerationData of usersSpinRegenerationArray)
+    await updateUserInUsersSpinRegenerationArray(spinRegenerationData)
 }
-export async function testUser39(spins: number = 1) {
+export async function testUser39(spins = 1):Promise<void> {
   userChanged(await getGameUser(39), spins)
 }
 export function userChanged(user: GameUser, spins: number): void{
@@ -169,15 +166,13 @@ export function userChanged(user: GameUser, spins: number): void{
   const userSpinRegenrationRecord = usersSpinRegenerationArray.find( elem => elem.userId === user.id)
   if(!userSpinRegenrationRecord) throw createHttpError(INTERNAL_SERVER_ERROR, 'User does not exists in usersSpinRegenerationArray')
 
-  if(userSpinRegenrationRecord.spins >= maxSpinsForSpinRegeneration){
-    console.log('userSpinRegenrationRecord.spins, have spins %o, max %o,  resetting last...', userSpinRegenrationRecord.spins, maxSpinsForSpinRegeneration)
+  if(userSpinRegenrationRecord.spins >= maxSpinsForSpinRegeneration)
     userSpinRegenrationRecord.last = new Date()
 
-  }
-
   const diff = getDiff(userSpinRegenrationRecord.last)
-  console.log(`userChanged() new spins %o old spins %o last %o`,
-               spins, userSpinRegenrationRecord.spins, diff.lastMoment, diff.nowMoment, diff.humanDiff )
+  console.log(`userChanged() new spins %o old spins %o last %o, now %o, diff %o`,
+    spins, userSpinRegenrationRecord.spins, diff.lastMoment.format('YYYY-MM-DD HH:mm:ss'),
+    diff.nowMoment.format('YYYY-MM-DD HH:mm:ss'), diff.humanDiff)
 
   userSpinRegenrationRecord.spins = spins
   userSpinRegenrationRecord.dirty = true

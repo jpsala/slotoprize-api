@@ -13,7 +13,6 @@ import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData } from '.
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
 import { getRandomNumber, saveFile } from "../../../helpers"
 import { updateWallet, getWallet } from '../../slot/slot.services/wallet.service'
-import { getReqUser } from "../authMiddleware"
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
 
@@ -92,7 +91,7 @@ export async function getRafflesForCrud(id?: number)
              r.texture_url textureUrl, r.item_highlight itemHighlight, r.raffle_number_price price,
              IF(CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date, true, false) as isLive,
              concat(gu.last_name,', ',gu.first_name) as winner, gu.id as gameUserId,
-             (select count(*) as sold from raffle_history where raffle_id = r.id) as sold
+             (select sum(raffle_numbers) as sold from raffle_history where raffle_id = r.id) as sold
       from raffle r
           inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
           left join game_user gu on r.winner = gu.id
@@ -176,6 +175,7 @@ export async function deleteRaffle(id: string): Promise<any>
   console.log('resp', )
   return resp.affectedRows === 1
 }
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postRaffle(raffle: any, files: any): Promise<any>
 {
   const image = files.image
