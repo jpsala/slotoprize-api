@@ -3,6 +3,7 @@ import formidable from 'formidable'
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import { Request, Response } from 'express'
+import createHttpError from 'http-errors'
 import { verifyToken, getNewToken } from '../../services/jwtService'
 import { GameUser, User } from "../meta/meta.types"
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
@@ -272,6 +273,10 @@ export async function testRegSpinsUSer39(req: Request, res: Response): Promise<a
   res.status(200).json({status: 'ok'})
 }
 export async function ironsource(req: Request, res: Response): Promise<any>{
+  const addressParts = (req.connection.remoteAddress as string).split(':')
+  if(addressParts.length < 4) throw createHttpError(BAD_REQUEST, 'Can\'t obtain IP ADDRESS')
+  const ipAddr = addressParts[3]
+  console.log('ipAddr', ipAddr)
   const resp = await callback(req.query as {
     USER_ID: 'string';
     EVENT_ID: 'string';
@@ -284,7 +289,7 @@ export async function ironsource(req: Request, res: Response): Promise<any>{
     signature: 'string';
     country: 'string';
     negativeCallback: 'string';
-  })
+  }, ipAddr)
   res.status(200).send(resp)
   // res.status(200).json(resp)
 }

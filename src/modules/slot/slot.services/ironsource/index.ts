@@ -18,7 +18,7 @@ export async function callback(query: {
     signature: string;
     country: string;
     negativeCallback: string;
-  }  ): Promise<string>
+  }, ipAddr: string  ): Promise<string>
 {
   const eventId = query.EVENT_ID
   const privateKey = 'tagadaGames2235357865'
@@ -33,7 +33,10 @@ export async function callback(query: {
   const ironSrcMD5 = crypto.createHash('md5').update(stringToHash).digest("hex")
 
   if(ironSrcMD5 !== query.signature) throw createHttpError(BAD_REQUEST, 'IronSource callback: MD5 does not match')
-
+  if(!['79.125.5.179','79.125.26.193','79.125.117.130','176.34.224.39','176.34.224.41','176.34.224.49','34.194.180.125','34.196.56.165','34.196.251.81','34.196.253.23','54.88.253.218','54.209.185.78'].includes(ipAddr)) {
+    console.log('IP', ipAddr)
+    throw createHttpError(BAD_REQUEST, 'IP Address is not associated with Iron Source')
+  }
   if (isNegativeCallback) {
     console.log('Returning on negative callback' )
     return `${eventId}:OK`
@@ -66,7 +69,7 @@ export async function callback(query: {
     wsServer.sendToUser(error, userId)
   }
 
-  return `${eventId}:OK`
+  return `${eventId}:xOK`
 }
 
 

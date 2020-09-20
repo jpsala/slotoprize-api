@@ -66,7 +66,7 @@ const spinWasToQuickly = async (user: GameUser): Promise<boolean> =>
     const diff = nowMoment.diff(lastMoment.utc())
     const diffInSeconds = duration(diff).seconds()
     console.log('spinWasToQuickly', lastMoment.format('YYYY-MM-DD HH:mm:ss'), nowMoment.format('YYYY-MM-DD HH:mm:ss'), diffInSeconds )
-    return diffInSeconds <= 5
+    return diffInSeconds <= Number(await getSetting('spinRatioTimer', 10))
   }
 export const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   // console.log("getWinRowWithEmptyFilled -> winRow", winRow)

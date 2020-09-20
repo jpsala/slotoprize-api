@@ -1,9 +1,13 @@
 import url from 'url'
 import https from 'https'
+import { BAD_REQUEST } from 'http-status-codes'
 import WebSocket, { Server } from 'ws'
 import PubSub from 'pubsub-js'
+import createHttpError from 'http-errors'
 import { isValidJSON } from '../../../../helpers'
 import { EventPayload } from '../events/event'
+import { getGameUser } from '../../../meta/meta.repo/gameUser.repo'
+import { verifyToken } from '../../../../services/jwtService'
 //#region types
 // type Subscription = { message: string, cb: () => void }
 
@@ -54,14 +58,37 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       port: 3000,
     })
   console.log(`${httpsServer ? 'Encrypted ' : 'Not encrypted '}WebSocket on port 3000` )
-  server.on('connection', function (ws: ExtWebSocket, req)
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  server.on('connection', async function (ws: ExtWebSocket, req): Promise<void>
   {
+    // wss://slotoprizes.tagadagames.com:3000/?userId=593&sessionToken=blah
+
+
     if(!req.url) throw Error('Url not in websocket connection')
+    console.log('req', req)
     const _url = url.parse(req.url)
+    const query = parseUrl(_url)
+    if(!query.userId) throw createHttpError(BAD_REQUEST, 'userId is missing in the ws connection')
+    if(!query.sessionToken) throw createHttpError(BAD_REQUEST, 'sessionToken is missing in the ws connection')
+    const resp = verifyToken(query.sessionToken)
+    if (!resp?.decodedToken || !resp?.decodedToken.id)
+      throw createHttpError(BAD_REQUEST, 'Invalid token in ws connection')
+    if(resp?.userId !== query.userId) throw createHttpError(BAD_REQUEST, 'userId in token is different from userId in the ws connection parameters')
+    console.log('token', resp.decodedToken)
+    console.log('query', query)
+    return
     const userId = Number(_url.query)
-    console.log(`[SERVER] connection()`, 'userId:', userId)
-    if(isNaN(userId)) throw Error('Url not in websocket connection')
     ws.userId = userId
+    console.log(`[SERVER] connection()`, 'userId:', userId)
+    if (isNaN(userId)) {
+      ws.close()
+      throw Error('Missing userId in the url of the websocket connection')
+    }
+    const user = await getGameUser(userId)
+    if(!user) {
+      ws.close()
+      throw createHttpError(BAD_REQUEST, 'User does not exists')
+    }
     ws.on('message', (msg) => onMessage(msg, ws))
   })
   const sendToUser = (_msg: WebSocketMessage, userId): void =>
@@ -74,6 +101,21 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
         send(_msg, client as WebSocket)
       }
     })
+  }
+  const parseUrl = (url): any =>
+  {
+    const queryParts = url.query?.split('&')
+    const query = queryParts?.reduce((part1, part2) =>
+    {
+      console.log(part1, part2)
+      const parts = part2.split('=')
+      if (parts.length === 2)
+        part1[parts[0]] = parts[1]
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return part1
+    }, {})
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return query
   }
   const send = (_msg: WebSocketMessage, client: WebSocket | undefined = undefined): void =>
   {

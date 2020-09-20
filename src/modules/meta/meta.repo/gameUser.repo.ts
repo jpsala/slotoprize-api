@@ -58,7 +58,8 @@ export async function getGameUser(userId: number): Promise<GameUser> {
     from game_user
     where id =${userId}`
   const user = camelcaseKeys(await queryOne(userSelect)) as GameUser
-  user.wallet = await getWallet(user)
+  if(user)
+    user.wallet = await getWallet(user)
   return user
 }
 export async function setGameUserSpinData(userId: number): Promise<void>

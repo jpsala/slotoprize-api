@@ -1,3 +1,10 @@
+20-09-2020
+saltear si devRequest
+* ips de ironsource
+* hash
+* spin,
+
+
 - [x] Load countries data to db
 
 borrar los datos existentes y los vuelvo a ingresar
