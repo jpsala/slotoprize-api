@@ -161,7 +161,6 @@ export async function getBetAndCheckFunds(multiplier: number, spins: number): Pr
 }
 async function getWinData(jackpot)
 {
-  console.log(Number(await getSetting('spinLosePercent', 20)))
   const isWin = await checkWithRandomIfWins()
   // @TODO Quitar
   // const isWin = false
