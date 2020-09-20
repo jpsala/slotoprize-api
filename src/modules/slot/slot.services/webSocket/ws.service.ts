@@ -78,6 +78,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       throw createHttpError(BAD_REQUEST, 'User does not exists')
     }
     const isDev = user.isDev
+    console.log('user isDev', user.isDev, isDev)
     console.log(`[SERVER] connection()`, 'userId:', query.userId)
     if(!isDev){
       if(!query.sessionToken){
