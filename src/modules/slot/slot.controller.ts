@@ -291,6 +291,6 @@ export async function ironsource(req: Request, res: Response): Promise<any>
     signature: 'string';
     country: 'string';
     negativeCallback: 'string';
-  }, ipAddr, dev)
+  }, ipAddr, dev === 'true')
   res.status(200).send(resp)
 }
