@@ -272,10 +272,12 @@ export async function testRegSpinsUSer39(req: Request, res: Response): Promise<a
   await testUser39(Number(req.query.spins))
   res.status(200).json({status: 'ok'})
 }
-export async function ironsource(req: Request, res: Response): Promise<any>{
+export async function ironsource(req: Request, res: Response): Promise<any>
+{
+  const { 'dev-request': dev } = req.headers
   const addressParts = (req.connection.remoteAddress as string).split(':')
   let ipAddr
-  if(addressParts.length >= 4)/*  throw createHttpError(BAD_REQUEST, 'Can\'t obtain IP ADDRESS') */
+  if(addressParts.length >= 4)
     ipAddr = addressParts[3]
   const resp = await callback(req.query as {
     USER_ID: 'string';
@@ -289,7 +291,6 @@ export async function ironsource(req: Request, res: Response): Promise<any>{
     signature: 'string';
     country: 'string';
     negativeCallback: 'string';
-  }, ipAddr)
+  }, ipAddr, dev)
   res.status(200).send(resp)
-  // res.status(200).json(resp)
 }

@@ -18,7 +18,7 @@ export async function callback(query: {
     signature: string;
     country: string;
     negativeCallback: string;
-  }, ipAddr: string  ): Promise<string>
+  }, ipAddr: string, userIsDev = false  ): Promise<string>
 {
   const eventId = query.EVENT_ID
   const privateKey = 'tagadaGames2235357865'
@@ -27,7 +27,7 @@ export async function callback(query: {
   if(!['coins', 'spins'].includes(currency)) throw createHttpError(BAD_REQUEST, 'currency has to be coins or spins')
   const rewards = Number(query.rewards)
   const user = await getGameUser(Number(userId))
-  const userIsDev = user.isDev
+  // const userIsDev = user.isDev
   const wallet = await getWallet(user)
   const isNegativeCallback = query.negativeCallback === 'true'
   const stringToHash = `${query.timestamp}${query.EVENT_ID}${query.USER_ID}${query.rewards}${privateKey}`
