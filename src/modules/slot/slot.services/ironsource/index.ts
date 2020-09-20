@@ -36,7 +36,10 @@ export async function callback(query: {
   // @TODO code for negative callback
   const savedEventId = await setAndGetIronSourceEvent(eventId, Number(userId), currency, rewards)
   console.log('savedEventId, isNegative', savedEventId, isNegativeCallback)
-  if(isNegativeCallback || savedEventId) return `${eventId}:OK`
+  if (isNegativeCallback || savedEventId) {
+    console.log('Returning on negative callback' )
+    return `${eventId}:OK`
+  }
   wallet[currency] += rewards
   await updateWallet(user, wallet)
   const wsMessage: WebSocketMessage = {
