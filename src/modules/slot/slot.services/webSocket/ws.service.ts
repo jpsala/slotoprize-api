@@ -72,30 +72,33 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       ws.close()
       throw createHttpError(BAD_REQUEST, 'userId is missing in the ws connection')
     }
-    console.log(`[SERVER] connection()`, 'userId:', query.userId)
-    if(!query.sessionToken){
-      ws.send('sessionToken is missing in the ws connection')
-      ws.close()
-      throw createHttpError(BAD_REQUEST, 'sessionToken is missing in the ws connection')
-    }
-    const resp = verifyToken(query.sessionToken)
-    if (!resp?.decodedToken || !resp?.decodedToken.id){
-      ws.send('Invalid token in ws connection')
-      ws.close()
-      throw createHttpError(BAD_REQUEST, 'Invalid token in ws connection')
-    }
-    if(Number(resp?.decodedToken.id) !== Number(query.userId)){
-      ws.send('userId in token is different from userId in the ws connection')
-      ws.close()
-      throw createHttpError(BAD_REQUEST, 'userId in token is different from userId in the ws connection parameters')
-    }
-    const userId = Number(query.userId)
-    ws.userId = userId
-    const user = await getGameUser(userId)
+    const user = await getGameUser(query.userId)
     if(!user) {
       ws.close()
       throw createHttpError(BAD_REQUEST, 'User does not exists')
     }
+    const isDev = user.isDev
+    console.log(`[SERVER] connection()`, 'userId:', query.userId)
+    if(!isDev){
+      if(!query.sessionToken){
+        ws.send('sessionToken is missing in the ws connection')
+        ws.close()
+        throw createHttpError(BAD_REQUEST, 'sessionToken is missing in the ws connection')
+      }
+      const resp = verifyToken(query.sessionToken)
+      if (!resp?.decodedToken || !resp?.decodedToken.id){
+        ws.send('Invalid token in ws connection')
+        ws.close()
+        throw createHttpError(BAD_REQUEST, 'Invalid token in ws connection')
+      }
+      if(Number(resp?.decodedToken.id) !== Number(query.userId)){
+        ws.send('userId in token is different from userId in the ws connection')
+        ws.close()
+        throw createHttpError(BAD_REQUEST, 'userId in token is different from userId in the ws connection parameters')
+      }
+    }
+    ws.userId = Number(query.userId)
+
     ws.on('message', (msg) => onMessage(msg, ws))
   })
   const sendToUser = (_msg: WebSocketMessage, userId): void =>
