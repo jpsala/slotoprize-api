@@ -20,7 +20,6 @@ export async function callback(query: {
     negativeCallback: string;
   }  ): Promise<string>
 {
-  console.log('ironSource data:', query)
   const eventId = query.EVENT_ID
   const privateKey = 'tagadaGames2235357865'
   const userId = query.USER_ID
@@ -45,6 +44,8 @@ export async function callback(query: {
     console.log('Event already saved, returning')
     return `${eventId}:OK`
   }
+
+  console.log('ironSource data saved:', query)
 
   wallet[currency] += rewards
   await updateWallet(user, wallet)
@@ -71,7 +72,6 @@ export async function callback(query: {
 
 const setAndGetIronSourceEvent = async (eventId: string, userId: number, currency: string, rewards: number): Promise<boolean> => {
   const resp = await queryOne(`select * from iron_source where eventId = '${eventId}'`)
-  console.log('resp', resp)
   if (!resp) {
     console.log('saving event in iron_source', eventId, userId, currency, rewards)
     await exec(`insert into iron_source(eventId, userID, currency, rewards)
