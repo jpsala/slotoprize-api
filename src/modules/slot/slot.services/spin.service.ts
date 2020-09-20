@@ -25,7 +25,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
 
   const user = await getGameUserByDeviceId(deviceId)
 
-  if(await spinWasToQuickly(user)) throw createError(BAD_REQUEST, 'Spin was to quickly')
+  if(!user.isDev && await spinWasToQuickly(user)) throw createError(BAD_REQUEST, 'Spin was to quickly')
 
   const wallet = await getWallet(user)
   if (!wallet) throw createError(createError.BadRequest, 'Something went wrong, Wallet not found for this user, someting went wrong')
