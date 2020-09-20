@@ -27,13 +27,14 @@ export async function callback(query: {
   if(!['coins', 'spins'].includes(currency)) throw createHttpError(BAD_REQUEST, 'currency has to be coins or spins')
   const rewards = Number(query.rewards)
   const user = await getGameUser(Number(userId))
+  const userIsDev = user.isDev
   const wallet = await getWallet(user)
   const isNegativeCallback = query.negativeCallback === 'true'
   const stringToHash = `${query.timestamp}${query.EVENT_ID}${query.USER_ID}${query.rewards}${privateKey}`
   const ironSrcMD5 = crypto.createHash('md5').update(stringToHash).digest("hex")
-
-  if(ironSrcMD5 !== query.signature) throw createHttpError(BAD_REQUEST, 'IronSource callback: MD5 does not match')
-  if(!['79.125.5.179','79.125.26.193','79.125.117.130','176.34.224.39','176.34.224.41','176.34.224.49','34.194.180.125','34.196.56.165','34.196.251.81','34.196.253.23','54.88.253.218','54.209.185.78'].includes(ipAddr)) {
+  if(!userIsDev && !ipAddr) throw createHttpError(BAD_REQUEST, 'Can\'t obtain IP ADDRESS')
+  if(!userIsDev && ironSrcMD5 !== query.signature) throw createHttpError(BAD_REQUEST, 'IronSource callback: MD5 does not match')
+  if(!userIsDev && !['79.125.5.179','79.125.26.193','79.125.117.130','176.34.224.39','176.34.224.41','176.34.224.49','34.194.180.125','34.196.56.165','34.196.251.81','34.196.253.23','54.88.253.218','54.209.185.78'].includes(ipAddr)) {
     console.log('IP', ipAddr)
     throw createHttpError(BAD_REQUEST, 'IP Address is not associated with Iron Source')
   }

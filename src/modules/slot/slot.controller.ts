@@ -274,9 +274,9 @@ export async function testRegSpinsUSer39(req: Request, res: Response): Promise<a
 }
 export async function ironsource(req: Request, res: Response): Promise<any>{
   const addressParts = (req.connection.remoteAddress as string).split(':')
-  if(addressParts.length < 4) throw createHttpError(BAD_REQUEST, 'Can\'t obtain IP ADDRESS')
-  const ipAddr = addressParts[3]
-  console.log('ipAddr', ipAddr)
+  let ipAddr
+  if(addressParts.length >= 4)/*  throw createHttpError(BAD_REQUEST, 'Can\'t obtain IP ADDRESS') */
+    ipAddr = addressParts[3]
   const resp = await callback(req.query as {
     USER_ID: 'string';
     EVENT_ID: 'string';
