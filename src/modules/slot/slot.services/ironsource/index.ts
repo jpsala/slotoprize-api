@@ -32,14 +32,20 @@ export async function callback(query: {
   const isNegativeCallback = query.negativeCallback === 'true'
   const stringToHash = `${query.timestamp}${query.EVENT_ID}${query.USER_ID}${query.rewards}${privateKey}`
   const ironSrcMD5 = crypto.createHash('md5').update(stringToHash).digest("hex")
+
   if(ironSrcMD5 !== query.signature) throw createHttpError(BAD_REQUEST, 'IronSource callback: MD5 does not match')
-  // @TODO code for negative callback
-  const savedEventId = await setAndGetIronSourceEvent(eventId, Number(userId), currency, rewards)
-  console.log('savedEventId, isNegative', savedEventId, isNegativeCallback)
-  if (isNegativeCallback || savedEventId) {
+
+  if (isNegativeCallback) {
     console.log('Returning on negative callback' )
     return `${eventId}:OK`
   }
+
+  const savedEventId = await setAndGetIronSourceEvent(eventId, Number(userId), currency, rewards)
+  if (savedEventId) {
+    console.log('Event already saved, returning')
+    return `${eventId}:OK`
+  }
+
   wallet[currency] += rewards
   await updateWallet(user, wallet)
   const wsMessage: WebSocketMessage = {
