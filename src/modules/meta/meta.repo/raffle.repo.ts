@@ -336,7 +336,7 @@ export const getWinners = async (): Promise<any[]> => {
   select concat(gu.first_name, ', ', gu.last_name) as winnerName,
     rh.closing_date as date , r.texture_url as textureUrl,
       (
-        select IF(count(*) = 0, '', rl.description) from raffle_localization rl
+        select IF(count(*) = 0, 'No localization Data', rl.description) from raffle_localization rl
           where rl.raffle_id = r.id and rl.language_code = gu.language_code limit 1
       ) as prizeName
     from raffle_wins rw
