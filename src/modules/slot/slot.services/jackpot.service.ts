@@ -1,6 +1,6 @@
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import createHttpError from 'http-errors'
-import { JackpotData  , JackpotWinners } from '../slot.repo/jackpot.repo'
+import { JackpotData  , PrizeWinners } from '../slot.repo/jackpot.repo'
 import * as jackpotRepo from '../slot.repo/jackpot.repo'
 
 import { query } from './../../../db'
@@ -68,7 +68,7 @@ export const getNewLiveRow = async (): Promise<JackpotData | undefined> =>
   return undefined
 }
 
-export const getJackpotWinners = async (): Promise<JackpotWinners[]> =>
+export const getJackpotWinners = async (): Promise<PrizeWinners[]> =>
 {
   const winners = await jackpotRepo.getJackpotWinners()
   return winners

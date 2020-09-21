@@ -1,12 +1,12 @@
-import { JackpotWinners } from './../slot.repo/jackpot.repo'
 import { getJackpotWinners } from './jackpot.service'
 import { getWinners } from './../../meta/meta.repo/raffle.repo'
-export const getPrizes = async (): Promise<any> =>
+export type PrizeWinners = { date: string, winnerName: string, textureUrl: string }
+export const getPrizes = async (): Promise<PrizeWinners> =>
 {
   const raffleWinners = await getWinners()
   const jackpotWinners = await getJackpotWinners()
-  const retData = [raffleWinners, jackpotWinners]
-  // retData.push(raffleWinners, jackpotWinners)
+  const retData: Array<PrizeWinners> = []
+  retData.push(...raffleWinners, ...jackpotWinners)
   return retData
 }
 

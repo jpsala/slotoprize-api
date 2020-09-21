@@ -334,7 +334,7 @@ async function saveWinner(raffleHistoryId: number): Promise<void> {
 export const getWinners = async (): Promise<any[]> => {
   const winners = await query(`
   select concat(gu.first_name, ', ', gu.last_name) as winnerName,
-    rh.closing_date as dat3 , r.texture_url as textureUrl,
+    rh.closing_date as date , r.texture_url as textureUrl,
       (
         select IF(count(*) = 0, '', rl.description) from raffle_localization rl
           where rl.raffle_id = r.id and rl.language_code = gu.language_code limit 1
