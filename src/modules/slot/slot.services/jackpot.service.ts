@@ -1,6 +1,6 @@
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import createHttpError from 'http-errors'
-import { JackpotData  , PrizeWinners } from '../slot.repo/jackpot.repo'
+import { JackpotData} from '../slot.repo/jackpot.repo'
 import * as jackpotRepo from '../slot.repo/jackpot.repo'
 
 import { query } from './../../../db'
