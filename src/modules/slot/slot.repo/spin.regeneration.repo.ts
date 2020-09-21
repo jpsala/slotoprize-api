@@ -76,8 +76,8 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
   if (diff >= lapseForSpinRegeneration && userSpinRegenerationData.spins < maxSpinsForSpinRegeneration) {
     // console.log('Update user %o spins %o last %o now %o diff %o', userSpinRegenerationData.userId,
     //              userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'),
-    //              nowMoment.format('YYYY-MM-DD HH:mm:ss'),  duration(diff).seconds())
-    console.log('Update user %o spins %o last spin %o now %o rest %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'), nowMoment.format('YYYY-MM-DD HH:mm:ss'),  `${duration(diff).seconds()} Secs`)
+    //              nowMoment.format('YYYY-MM-DD HH:mm:ss'),  diff / 1000)
+    console.log('Update user %o spins %o last spin %o now %o rest %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'), nowMoment.format('YYYY-MM-DD HH:mm:ss'),  `${diff / 1000} Secs`)
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
     await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ? `, [
@@ -109,7 +109,7 @@ function getDiff(lastRegeneration: string | Date)
   const lastMoment = utc(lastRegeneration)
   const nowMoment = utc(new Date())
   const diff = nowMoment.diff(lastMoment.utc())
-  return {diff, lastMoment, nowMoment, humanDiff: `${duration(diff).seconds()} secs`}
+  return {diff, lastMoment, nowMoment, humanDiff: `${diff / 1000} secs`}
 }
 
 function sendEventToClient(userSpinRegenerationData: UserSpinRegenerationData)
@@ -170,7 +170,7 @@ export function userChanged(user: GameUser, spins: number): void{
     userSpinRegenrationRecord.last = new Date()
 
   const diff = getDiff(userSpinRegenrationRecord.last)
-  console.log(`userChanged() new spins %o old spins %o last %o, now %o, diff %o`,
+  console.log(`spin.regeneration.repo - userChanged() new spins %o old spins %o last %o, now %o, diff %o`,
     spins, userSpinRegenrationRecord.spins, diff.lastMoment.format('YYYY-MM-DD HH:mm:ss'),
     diff.nowMoment.format('YYYY-MM-DD HH:mm:ss'), diff.humanDiff)
 

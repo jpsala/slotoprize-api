@@ -1,3 +1,5 @@
+import moment, { utc } from 'moment'
+
 import createError from 'http-errors'
 import * as httpStatusCodes from 'http-status-codes'
 import snakeCaseKeys from 'snakecase-keys'
@@ -12,8 +14,25 @@ import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
 
 
-export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: Date }> => {
-  const resp = await queryOne(`select last from game_user_spin where game_user_id = ${user.id}`)
+export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: Date }> =>
+{
+  let resp = await queryOne(`select last from game_user_spin where game_user_id = ${user.id}`)
+  if (!resp) {
+    const spinRatioTimerPlus1 = Number(await getSetting('spinRatioTimer', 8)) + 1
+    const date = new Date()
+    console.log('date utc', date, new Date())
+    date.setSeconds(date.getSeconds() - spinRatioTimerPlus1)
+    await exec(`insert into game_user_spin set ?`,
+      {
+        "game_user_id": user.id,
+        "spinCount": 0,
+        'last': date
+      }
+    )
+    resp = { last: date }
+  }
+
+  console.log('getGameUserLastSpinDate', resp)
   return {last: resp.last}
 }
 export const purchaseTickets = async (deviceId: string,ticketAmount: number): Promise<Wallet> => {
@@ -64,14 +83,19 @@ export async function getGameUser(userId: number): Promise<GameUser> {
 }
 export async function setGameUserSpinData(userId: number): Promise<void>
 {
-  const spinCountResp = await queryOne(`select id, spinCount from game_user_spin where game_user_id = ${userId}`)
-  await exec(`
-    replace into game_user_spin set ?
-  `, {
-      "id": spinCountResp?.id,
+  let spinCountResp = await queryOne(`select id, spinCount from game_user_spin where game_user_id = ${userId}`)
+  console.log('changing game_user_spin')
+  if(!spinCountResp) spinCountResp = {
       "game_user_id": userId,
-      "spinCount": spinCountResp?.spinCount >= 0 ? (Number(spinCountResp.spinCount )+1) : 0
-  })
+      "spinCount": 0
+    }
+    await exec(`
+      replace into game_user_spin set ?`, {
+        "id": spinCountResp ? spinCountResp.id : null,
+        "game_user_id": userId,
+        "spinCount": spinCountResp?.spinCount >= 0 ? (Number(spinCountResp.spinCount )+1) : 0
+      }
+    )
 }
 export async function getLoginData(userId: number): Promise<{count: number, lastLogin: Date}> {
   const response = await queryOne(`

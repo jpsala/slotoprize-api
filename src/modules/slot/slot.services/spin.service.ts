@@ -3,16 +3,14 @@ import { duration, utc } from 'moment'
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
 import createError from 'http-errors'
-import { second } from 'later'
 import getSlotConnection from '../../../db'
 import { SpinData , WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
 import { setGameUserSpinData , getGameUserLastSpinDate } from '../../meta/meta.repo/gameUser.repo'
 import { GameUser } from './../../meta/meta.types'
 
-import { getLastSpin } from './gameInit/dailyReward.spin'
 import * as jackpotService from './jackpot.service'
-import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
+import { getOrSetGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import { getSetting } from './settings.service'
@@ -23,7 +21,7 @@ const randomNumbers: number[] = []
 export async function spin(deviceId: string, multiplier: number, userIsDev: boolean): Promise<SpinData> {
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
-  const user = await getGameUserByDeviceId(deviceId)
+  const user = await getOrSetGameUserByDeviceId(deviceId)
 
   if(!userIsDev && await spinWasToQuickly(user)) throw createError(BAD_REQUEST, 'Spin was to quickly')
 
@@ -59,15 +57,16 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   return returnData
 }
 const spinWasToQuickly = async (user: GameUser): Promise<boolean> =>
-  {
-    const { last: lastUserSpinawait } = await getGameUserLastSpinDate(user)
-    const lastMoment = utc(lastUserSpinawait)
-    const nowMoment = utc(new Date())
-    const diff = nowMoment.diff(lastMoment.utc())
-    const diffInSeconds = duration(diff).seconds()
-    console.log('spinWasToQuickly', lastMoment.format('YYYY-MM-DD HH:mm:ss'), nowMoment.format('YYYY-MM-DD HH:mm:ss'), diffInSeconds )
-    return diffInSeconds <= Number(await getSetting('spinRatioTimer', 10))
-  }
+{
+  const { last: lastUserSpinawait } = await getGameUserLastSpinDate(user)
+  const lastMoment = utc(lastUserSpinawait)
+  const nowMoment = utc(new Date())
+  const diff = nowMoment.diff(lastMoment)
+  const diffInSeconds = diff / 1000
+  //spinWasToQuickly 2020-09-21 15:44:55 2020-09-21 15:45:55 0
+  console.log('spinWasToQuickly?', lastMoment.format('YYYY-MM-DD HH:mm:ss'), nowMoment.format('YYYY-MM-DD HH:mm:ss'), diffInSeconds, diff )
+  return diff <= Number(await getSetting('spinRatioTimer', 10)) * 1000
+}
 export const getWinRowWithEmptyFilled = (winRow, fillTable) => {
   // console.log("getWinRowWithEmptyFilled -> winRow", winRow)
   const winSymbolAmount = winRow.symbol_amount || 0
