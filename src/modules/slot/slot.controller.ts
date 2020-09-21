@@ -67,7 +67,8 @@ export async function profilePost(req: Request, res: Response): Promise<any>{
   res.status(200).json(toCamelCase(resp))
 }
 export async function spinGet(req: Request, res: Response): Promise<any>{
-  const resp = await slotService.spin.spin(req.query.deviceId as string, Number(req.query.multiplier))
+  const { 'dev-request': dev } = req.headers
+  const resp = await slotService.spin.spin(req.query.deviceId as string, Number(req.query.multiplier), dev === 'true')
   res.status(200).json(resp)
 }
 export async function countriesGet(req: Request, res: Response): Promise<void>{

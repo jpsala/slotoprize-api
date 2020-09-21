@@ -20,12 +20,12 @@ import { getWallet, updateWallet } from './wallet.service'
 
 
 const randomNumbers: number[] = []
-export async function spin(deviceId: string, multiplier: number): Promise<SpinData> {
+export async function spin(deviceId: string, multiplier: number, userIsDev: boolean): Promise<SpinData> {
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
   const user = await getGameUserByDeviceId(deviceId)
 
-  if(!user.isDev && await spinWasToQuickly(user)) throw createError(BAD_REQUEST, 'Spin was to quickly')
+  if(!userIsDev && await spinWasToQuickly(user)) throw createError(BAD_REQUEST, 'Spin was to quickly')
 
   const wallet = await getWallet(user)
   if (!wallet) throw createError(createError.BadRequest, 'Something went wrong, Wallet not found for this user, someting went wrong')
