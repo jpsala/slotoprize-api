@@ -23,7 +23,7 @@ router.route('/raffle').post(formidableMiddleware(), checkToken, slot.rafflePost
 router.route('/raffle').delete(checkToken, slot.raffleDelete)
 router.route('/raffle_purchase').get(checkToken, slot.rafflePurchaseGet)
 router.route('/raffle_purchase_history').get(checkToken, slot.rafflePurchaseHistoryGet)
-router.route('/raffle_winners').get(checkToken, slot.raffleWinnersGet)
+router.route('/prizes_winners').get(checkToken, slot.prizesWinnersGet)
 router.route('/prize_notified').post(checkToken, slot.prizeNotifiedPost)
 router.route('/postman').get(slot.postmanGet)
 router.route('/language_code').get(checkToken, slot.languageCodeGet)

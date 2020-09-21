@@ -17,6 +17,7 @@ import { getLanguagesForCrud, postLanguageForCrud, deleteLanguageForCrud } from 
 import { getCountriesForCrud, postCountryForCrud, getCountries } from '../meta/meta.repo/country.repo'
 
 import { gameUserRepo } from '../meta/meta.repo'
+import { getPrizes } from './slot.services/prizes.service'
 import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
 import { setProfile } from './slot.services/profile.service'
 import { getJackpotData, addJackpotNextRow } from './slot.services/jackpot.service'
@@ -130,8 +131,8 @@ export async function prizeNotifiedPost(req: Request, res: Response): Promise<an
   res.status(200).json({ status: 'ok' })
 
 }
-export async function raffleWinnersGet(req: Request, res: Response): Promise<any>{
-  const resp: string[] = await raffleRepo.getWinners()
+export async function prizesWinnersGet(req: Request, res: Response): Promise<any>{
+  const resp: string[] = await getPrizes()
   res.status(200).json(resp)
 }
 export async function withTokenGet(req: Request, res: Response): Promise<any>{

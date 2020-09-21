@@ -1,11 +1,12 @@
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import createHttpError from 'http-errors'
-import { JackpotData  } from '../slot.repo/jackpot.repo'
+import { JackpotData  , JackpotWinners } from '../slot.repo/jackpot.repo'
 import * as jackpotRepo from '../slot.repo/jackpot.repo'
+
+import { query } from './../../../db'
 import { sleep } from './../../../helpers'
 import { GameUser } from './../../meta/meta.types'
 import * as thisModule from './jackpot.service'
-
 let spinBlocked = false
 
 export async function jackpotWin(user: GameUser): Promise<void>
@@ -65,4 +66,10 @@ export const getNewLiveRow = async (): Promise<JackpotData | undefined> =>
   const nextRow = await jackpotRepo.getJackpotNextRow()
   if (nextRow?.confirmed) return nextRow
   return undefined
+}
+
+export const getJackpotWinners = async (): Promise<JackpotWinners[]> =>
+{
+  const winners = await jackpotRepo.getJackpotWinners()
+  return winners
 }

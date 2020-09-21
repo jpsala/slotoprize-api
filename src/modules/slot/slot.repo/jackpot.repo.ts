@@ -10,6 +10,19 @@ export type JackpotData = {
   spinCount: number;
   confirmed: boolean;
 }
+export type JackpotWinners = { date: string, winnerName: string, textureUrl: string }
+export const getJackpotWinners = async (): Promise<JackpotWinners[]> =>
+{
+  const data = await query(`
+    select jw.createdAt as date, concat(gu.first_name, ', ', gu.last_name) as winnerName,
+           'https://assets.slotoprizes.tagadagames.com/img/jackpotPrize.png' as textureUrl,
+           'jackpot' as prizeName
+    from jackpot_win jw
+      inner join game_user gu on jw.game_user_id = gu.id
+      inner join jackpot j on jw.jackpot_id = j.id
+  `)
+  return data as JackpotWinners[]
+}
 export async function getJackpotData(): Promise<JackpotData[] | undefined>
 {
   const data = <JackpotData[]> (await query(`select * from jackpot`))
