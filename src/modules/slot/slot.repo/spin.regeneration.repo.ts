@@ -1,4 +1,4 @@
-import { duration ,utc, } from 'moment'
+import { utc, } from 'moment'
 import { INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import createHttpError from 'http-errors'
 
@@ -16,18 +16,17 @@ export type UserSpinRegenerationData = {
   dirty: boolean,
   spinsRegenerated: number
 }
-
 const usersSpinRegenerationArray: UserSpinRegenerationData[] = []
 let spinsAmountForSpinRegeneration: number
 let lapseForSpinRegeneration
 let maxSpinsForSpinRegeneration
 export async function spinRegenerationInit(): Promise<void>
 {
-  lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 10)) * 1000
-  maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', 10))
+  lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10')) * 1000
+  maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10'))
 
   // await exec(`update wallet set spins=0 where game_user_id = 583`)
-  spinsAmountForSpinRegeneration = Number(await getSetting('spinsAmountForSpinRegeneration', 1))
+  spinsAmountForSpinRegeneration = Number(await getSetting('spinsAmountForSpinRegeneration', '1'))
 
   const spinRegenerationRows: UserSpinRegenerationData[] = await query(`
     select gu.id as userId, sr.id as spinRegenerationTableId,
@@ -111,7 +110,6 @@ function getDiff(lastRegeneration: string | Date)
   const diff = nowMoment.diff(lastMoment.utc())
   return {diff, lastMoment, nowMoment, humanDiff: `${diff / 1000} secs`}
 }
-
 function sendEventToClient(userSpinRegenerationData: UserSpinRegenerationData)
 {
   const msg: WebSocketMessage = {

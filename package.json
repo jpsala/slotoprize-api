@@ -9,6 +9,7 @@
     "test:debug": "node --inspect=9230 -r ts-node/register node_modules/.bin/jest --runInBand --watchAll",
     "build": "tsc",
     "start": "node build/index.js",
+    "restart": "tsc && node build/index.js",
     "deploy": "npm run build && ./deploy.sh",
     "debug": "concurrently \"tsc -w\" \"nodemon  --config nodemon.debug.json build/index.js\"",
     "dev": "concurrently \"tsc -w\" \"nodemon  --config nodemon.json build/index.js\"",
@@ -56,9 +57,9 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.7",
+    "@types/mysql2": "types/mysql2",
     "@types/express": "^4.17.8",
     "@types/jest": "^26.0.14",
-    "@types/mysql": "types/mysql",
     "@types/node": "^14.11.1",
     "@types/source-map-support": "^0.5.3",
     "@typescript-eslint/eslint-plugin": "^4.1.1",

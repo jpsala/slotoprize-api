@@ -27,6 +27,7 @@ export const queryOne = async (query: string, params: any = [], camelCase = fals
   try {
     const [result] = await conn.query(query, params)
     const response = camelCase ? camelcaseKeys(result[0]) : result[0]
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return response
   } catch (err) {
     console.error(err.message)
@@ -41,6 +42,7 @@ export const query = async (select: string, params: string[] = [], camelCase = f
   try {
     const [results] = (await conn.query(select, params)) as any[]
     const response = camelCase ? camelcaseKeys(results) : results
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return response
   } finally {
     conn.destroy()
@@ -50,8 +52,8 @@ export const exec = async (select: string, params: any = []): Promise<ResultSetH
   const conn = await getConnection()
   try
   {
-    const [respExec] = await conn.query(select, params)
-    return respExec as ResultSetHeader
+    const [respExec] = await conn.query(select, params) as ResultSetHeader[]
+    return respExec
   }catch (err)
     {
     console.dir(err)

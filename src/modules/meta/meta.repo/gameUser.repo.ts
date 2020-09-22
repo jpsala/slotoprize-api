@@ -1,5 +1,3 @@
-import moment, { utc } from 'moment'
-
 import createError from 'http-errors'
 import * as httpStatusCodes from 'http-status-codes'
 import snakeCaseKeys from 'snakecase-keys'
@@ -18,7 +16,7 @@ export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: D
 {
   let resp = await queryOne(`select last from game_user_spin where game_user_id = ${user.id}`)
   if (!resp) {
-    const spinRatioTimerPlus1 = Number(await getSetting('spinRatioTimer', 8)) + 1
+    const spinRatioTimerPlus1 = Number(await getSetting('spinRatioTimer', '8')) + 1
     const date = new Date()
     console.log('date utc', date, new Date())
     date.setSeconds(date.getSeconds() - spinRatioTimerPlus1)
@@ -40,7 +38,7 @@ export const purchaseTickets = async (deviceId: string,ticketAmount: number): Pr
 
   const user = await metaService.getGameUserByDeviceId(deviceId)
   const wallet = await getWallet(user)
-  const ticketValue = Number(await getSetting('ticketPrice', 1))
+  const ticketValue = Number(await getSetting('ticketPrice', '1'))
   const coinsRequired = ticketAmount * ticketValue
   if (wallet.coins < coinsRequired)
     throw createError(400, 'There are no sufficient funds')

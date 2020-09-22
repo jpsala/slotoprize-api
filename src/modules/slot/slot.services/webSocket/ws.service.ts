@@ -9,20 +9,6 @@ import { EventPayload } from '../events/event'
 import { getGameUser } from '../../../meta/meta.repo/gameUser.repo'
 import { verifyToken } from '../../../../services/jwtService'
 //#region types
-// type Subscription = { message: string, cb: () => void }
-
-/*
-public class EventData
-{
-    public string action;
-    public strin name;
-    public string popupMessage;
-    public string popupTextureUrl;
-    public string notificationMessage;
-    public string notificationTextureUrl;
-    public SkinData skin;
-    public bool devOnly;
-} */
 export let wsServer: WsServerService
 export interface WebSocketMessage
 {
@@ -39,14 +25,15 @@ type WsServerService = {
   sendToUser(_msg: WebSocketMessage, userId): void
   shutDown(): void
 }
-
-//#endregion
-let server: WebSocket.Server
-let ws: WebSocket
-
 export interface ExtWebSocket extends WebSocket {
   userId: number; // your custom property
 }
+//#endregion
+
+let server: WebSocket.Server
+let ws: WebSocket
+
+
 export const createWsServerService = (httpsServer?: https.Server): void =>
 {
   if (httpsServer)
@@ -57,13 +44,12 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     server = new Server({
       port: 3000,
     })
-  console.log(`${httpsServer ? 'Encrypted ' : 'Not encrypted '}WebSocket on port 3000` )
+
+  console.log(`${httpsServer ? 'Encrypted ' : 'Not encrypted '}WebSocket on port 3000`)
+
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   server.on('connection', async function (ws: ExtWebSocket, req): Promise<void>
   {
-    // wss://slotoprizes.tagadagames.com:3000/?userId=593&sessionToken=blah
-
-
     if(!req.url) throw Error('Url not in websocket connection')
     const _url = url.parse(req.url)
     const query = parseUrl(_url)

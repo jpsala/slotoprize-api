@@ -3,7 +3,7 @@ import {urlencoded} from "body-parser"
 import cors from 'cors'
 import 'express-async-errors'
 import { HttpError } from 'http-errors'
-import express, { Express, Request, Response, NextFunction } from 'express'
+import express, { json, Express, Request, Response, NextFunction } from 'express'
 import routes from './routes'
 import './modules/slot/slot.services/events/events'
 
@@ -11,7 +11,7 @@ const createApp = (): Express => {
 
   const app = express()
 
-  app.use(express.json())
+  app.use(json())
   app.use(cors())
   app.use('*', (req, res, next) => {
     res.setHeader('Access-Control-Expose-Headers', '*')

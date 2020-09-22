@@ -53,6 +53,6 @@ export const getTombolaForCrud = async (): Promise<any> =>
 {
   const symbols = camelcaseKeys(await getSymbols())
   const paytable = await getPayTableForCrud()
-  const spinLosePercent = Number(await getSetting('spinLosePercent', 20))
+  const spinLosePercent = Number(await getSetting('spinLosePercent', '20'))
   return {paytable, symbols, spinLosePercent}
 }

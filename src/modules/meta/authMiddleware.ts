@@ -1,8 +1,8 @@
 import createError from 'http-errors'
 
+import { NextFunction, Request, Response } from 'express'
 import { verifyToken } from '../../services/jwtService'
 import { getGameUserByDeviceId } from "./meta-services/meta.service"
-import { NextFunction, Request, Response } from 'express'
 
 const reqUser: { deviceId?: string, user?: number } = {}
 

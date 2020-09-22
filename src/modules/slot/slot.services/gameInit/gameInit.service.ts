@@ -27,7 +27,6 @@ export async function gameInit(deviceId: string): Promise<any> {
     // const requireProfileData = Number(await settingGet('requireProfileData', 0))
     // const languageData = (await metaRepo.getLanguageData(rawUser.id + 3)) as Partial<LanguageData>
     // @URGENT crear savelogin
-    // await metaService.saveLogin(rawUser.id, 'SlotoPrizes', deviceId)
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
     const hasPendingRaffle = await getHaveWinRaffle(rawUser.id as number)
     const hasPendingJackpot = await getHaveWinJackpot(rawUser.id as number)
@@ -70,7 +69,7 @@ export async function gameInit(deviceId: string): Promise<any> {
       // requireProfileData: requireProfileData ? 1 : 0,
       languageCode,
       defaultSpinData,
-      interstitialsRatio: await getSetting('interstitialsRatio', 5),
+      interstitialsRatio: await getSetting('interstitialsRatio', '5'),
       hasPendingPrize: hasPendingPrize,
       rafflePrizeData,
       pendingPrizeIsJackpot,

@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import https from 'https'
 import fs from 'fs'
 import os from 'os'
+import { init as configInit } from './modules/slot/slot.services/settings.service'
 import createApp from './app'
 import './modules/slot/slot.commands'
 import { spinRegenerationInit, shutDown as spinRegenerationShutDown } from './modules/slot/slot.repo/spin.regeneration.repo'
@@ -9,8 +11,7 @@ import { createWsServerService, wsServer } from './modules/slot/slot.services/we
 let server
 const hostname = os.hostname()
 
-void (async function main() {
-  await spinRegenerationInit()
+void (function main() {
   process.on('SIGINT', () =>
   {
     void sendShutDownMessageToHooksAndShutdown()
@@ -19,7 +20,7 @@ void (async function main() {
     console.log('shutting down...')
     console.log('shutting down api, waiting processes to end')
     await spinRegenerationShutDown()
-    console.log('shutting down express')
+    console.log('shutting down express, wait for "server closed" message')
     wsServer.shutDown()
     server.close(() =>
     {
@@ -37,17 +38,20 @@ void (async function main() {
       // key: fs.readFileSync('/home/jpsala/certs/privkey1.pem'),
       cert: fs.readFileSync('/home/jpsala/fullchain.pem'),
       // cert: fs.readFileSync('/home/jpsala/certs/fullchain1.pem'),
-    }, app).listen(3000, () =>
+    }, app).listen(3000, async () =>
     {
       console.log(`started on ${hostname} on port 3000`)
+      await configInit()
+      await spinRegenerationInit()
     })
     createWsServerService(server)
   } else {
-    server = app.listen(port, () =>
+    createWsServerService()
+    server = app.listen(port, async () =>
     {
       console.info(`${name} started at port ${port}`)
+      await configInit()
+      await spinRegenerationInit()
     })
-
-    createWsServerService()
   }
 })()

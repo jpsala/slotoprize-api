@@ -1,6 +1,5 @@
 import { utc } from 'moment'
 import PubSub from 'pubsub-js'
-import WebSocket from 'ws'
 import { wsServer , ExtWebSocket , WebSocketMessage } from '../slot.services/webSocket/ws.service'
 import { getUserSpinRegenerationData } from '../slot.repo/spin.regeneration.repo'
 import { getSetting } from './../slot.services/settings.service'
@@ -13,8 +12,8 @@ import { getSetting } from './../slot.services/settings.service'
 export const runCommand = async (cmd: string, data: any): Promise<void> => {
   const userSpinRegenerationData = getUserSpinRegenerationData(data.client.userId)
   const client: ExtWebSocket = data.client
-  const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', 10))
-  const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', 10)) * 1000
+  const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10'))
+  const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10')) * 1000
   const lastMoment = utc(userSpinRegenerationData.last)
   const nowMoment = utc(new Date())
   let diff = nowMoment.diff(lastMoment.utc())
