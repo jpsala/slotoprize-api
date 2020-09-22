@@ -19,7 +19,7 @@ export const getPayTableForCrud = async (): Promise<any> => {
 export const postWinLoseForTombolaCrudPost = async (lose: number): Promise<any> =>
 {
   if(!lose || lose < 1 || lose > 100) throw createHttpError(BAD_REQUEST, `Lose has an invalid value ${lose}`)
-  await setSetting('spinLosePercent', lose)
+  await setSetting('spinLosePercent', String(lose))
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const postTombolaForCrud = async (body: any): Promise<any> =>
