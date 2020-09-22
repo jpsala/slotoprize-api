@@ -55,11 +55,14 @@ async function getRaffleLocalizationData(user: GameUser,raffleId: number): Promi
 
   return camelcaseKeys(localizationData) as LocalizationData
 }
-export async function getRaffles(user: GameUser): Promise<RafflePrizeData[]> {
+export async function getRaffles(user: GameUser, onlyLive = false): Promise<RafflePrizeData[]> {
+  const where = onlyLive ? ' CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date ' : ' true '
   const raffles = await query(`
     SELECT r.id, r.closing_date,
-      r.raffle_number_price, r.texture_url, r.item_highlight
+      r.raffle_number_price, r.texture_url, r.item_highlight,
+      IF(CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date, true, false) as isLive
     FROM raffle r
+    where ${where}
   `) as RafflePrizeData[]
   for (const raffle of raffles) {
     const { name, description } = await getRaffleLocalizationData(user, raffle.id)

@@ -111,7 +111,7 @@ export async function raffleDelete(req: Request, res: Response): Promise<void>{
 export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any>
 {
   const user = await getGameUser(req.user.id)
-  const resp = await raffleRepo.getRaffles(user)
+  const resp = await raffleRepo.getRaffles(user, true)
   res.status(200).json(resp)
 }
 export async function rafflePurchaseHistoryGet(req: Request, res: Response): Promise<any>{
