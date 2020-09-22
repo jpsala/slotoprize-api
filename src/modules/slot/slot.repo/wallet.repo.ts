@@ -26,9 +26,9 @@ export const getWallet = async (user: GameUser): Promise<Wallet> =>
 export async function insertWallet(user: GameUser, coins?: number, spins?: number, tickets?: number):
 Promise<Wallet>
 {
-  coins = coins ?? Number(await getSetting('initialWalletCoins', 10))
-  spins = spins ?? Number(await getSetting('initialWalletSpins', 10))
-  tickets = tickets ?? Number(await getSetting('initialWallettickets', 10))
+  coins = coins ?? Number(await getSetting('initialWalletCoins', '10'))
+  spins = spins ?? Number(await getSetting('initialWalletSpins', '10'))
+  tickets = tickets ?? Number(await getSetting('initialWallettickets', '10'))
   type WalletDto = Omit<Wallet, 'id'> & { game_user_id: number, id?: number }
     // type WalletDto = {game_user_id: number, coins: number, spins: nu, tickets, id?: number}
   const walletDto: WalletDto = {game_user_id: user.id, coins, spins, tickets}

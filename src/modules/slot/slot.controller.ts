@@ -3,7 +3,6 @@ import formidable from 'formidable'
 import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import { Request, Response } from 'express'
-import createHttpError from 'http-errors'
 import { verifyToken, getNewToken } from '../../services/jwtService'
 import { GameUser, User } from "../meta/meta.types"
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'

@@ -1,5 +1,5 @@
 import { BAD_REQUEST } from 'http-status-codes'
-import { duration, utc } from 'moment'
+import { utc } from 'moment'
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
 import createError from 'http-errors'
@@ -28,7 +28,7 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   const wallet = await getWallet(user)
   if (!wallet) throw createError(createError.BadRequest, 'Something went wrong, Wallet not found for this user, someting went wrong')
   const { spins: spinsInWallet } = wallet
-  const { bet, enoughSpins } = await getBetAndCheckFunds(multiplier, spinsInWallet)
+  const { bet, enoughSpins } = getBetAndCheckFunds(multiplier, spinsInWallet)
   if (!enoughSpins) throw createError(400, 'Insufficient funds')
 
   const jackpot = await jackpotService.addSpinsToJackpotLiveRow(multiplier, user)
@@ -65,9 +65,10 @@ const spinWasToQuickly = async (user: GameUser): Promise<boolean> =>
   const diffInSeconds = diff / 1000
   //spinWasToQuickly 2020-09-21 15:44:55 2020-09-21 15:45:55 0
   console.log('spinWasToQuickly?', lastMoment.format('YYYY-MM-DD HH:mm:ss'), nowMoment.format('YYYY-MM-DD HH:mm:ss'), diffInSeconds, diff )
-  return diff <= Number(await getSetting('spinRatioTimer', 10)) * 1000
+  return diff <= Number(await getSetting('spinRatioTimer', '10')) * 1000
 }
-export const getWinRowWithEmptyFilled = (winRow, fillTable) => {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const getWinRowWithEmptyFilled = (winRow: any, fillTable: any): any[] => {
   // console.log("getWinRowWithEmptyFilled -> winRow", winRow)
   const winSymbolAmount = winRow.symbol_amount || 0
   const winSymbolSymbolName = winRow.symbol_name || ""
@@ -119,7 +120,8 @@ export const getPayTable = async (): Promise<any> => {
     conn.destroy()
   }
 }
-export const getFillTable = (payTable) => {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const getFillTable = (payTable):any[] =>  {
   const rowsWith3 = payTable.filter((payTableRow) => payTableRow.symbol_amount === 3)
   const rowsWithLessThan3 = payTable.filter((payTableRow) => payTableRow.symbol_amount < 3)
   return rowsWith3.filter((rowWith3) => {
@@ -130,7 +132,7 @@ export const getFillTable = (payTable) => {
     return !isInOtherRow
   })
 }
-const checkWithRandomIfWins = async () => getRandomNumber() > Number(await getSetting('spinLosePercent', 20))
+const checkWithRandomIfWins = async () => getRandomNumber() > Number(await getSetting('spinLosePercent', '20'))
 const getWinRow = (table) => {
   const randomNumber = getRandomNumber(1, 100)
   if (!randomNumbers[randomNumber]) randomNumbers[randomNumber] = 0
@@ -152,8 +154,8 @@ async function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: numb
   if (multiplier > maxMultiplier) throw createError(createError[502], `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`)
 
 }
-export async function getBetAndCheckFunds(multiplier: number, spins: number): Promise<{ bet: number, enoughSpins: boolean }> {
-  const betPrice = Number(await getActiveBetPrice() )
+export function getBetAndCheckFunds(multiplier: number, spins: number): { bet: number, enoughSpins: boolean } {
+  const betPrice = Number(getActiveBetPrice() )
   const bet = betPrice * multiplier
   const enoughSpins = ((spins - bet) >= 0)
   return { bet, enoughSpins }
@@ -173,7 +175,7 @@ async function getWinData(jackpot)
     winRow = isWin ? await getWinRow(payTable) : []
     winType = winRow.payment_type
   }
-  const filltable = await getFillTable(payTable)
+  const filltable = getFillTable(payTable)
 
   const symbolsData = getWinRowWithEmptyFilled(winRow, filltable)
   return { winPoints: winRow.points, winType, symbolsData, isWin }

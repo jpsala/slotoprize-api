@@ -1,7 +1,6 @@
 import { isArray } from 'util'
 import later from 'later'
 import { formatDistanceStrict, differenceInSeconds } from 'date-fns'
-import { getSetting } from './../settings.service'
 import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
 import { createEvent, Event, EventDTO, EventPayload} from './event'
@@ -137,7 +136,7 @@ export const getActiveEventMultiplier = (): number =>
     }
   }, 1)
 }
-export const getActiveBetPrice = async (): Promise<number> =>
+export const getActiveBetPrice = (): number =>
 {
   // const defaultbetPrice = Number(await getSetting('betPrice', 1))
   // const eventbetPrice = allEvents.filter(event => event.isActive).reduce((initBetPrice, event) =>

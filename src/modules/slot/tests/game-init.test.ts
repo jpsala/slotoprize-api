@@ -1,11 +1,11 @@
 /* eslint-disable no-undef */
 // import encodings from '../../../../node_modules/iconv-lite/encodings/';
+import {Request, Response} from 'express'
 import {gameInitGet} from '../slot.controller'
 import {delUser} from '../../meta/meta.repo/gameUser.repo'
 import {verifyToken} from '../../../services/jwtService'
 import {Fakexpress} from "../../../helpers"
 import {getSetting} from "../slot.services/settings.service"
-import {Request, Response} from 'express'
 
 
 let fakeExpres
@@ -32,7 +32,7 @@ describe(`game-init new user`, () => {
     expect(fakeExpres.responseData.requireProfileData).toBe(0)
   })
   it('interstitialsRatio is equal to interstitialsRatio setting', async () => {
-    const interstitialsRatio = await getSetting('interstitialsRatio', 5)
+    const interstitialsRatio = await getSetting('interstitialsRatio', '5')
     expect(fakeExpres.responseData.interstitialsRatio).toBeNumber()
     expect(fakeExpres.responseData.interstitialsRatio).toEqual(interstitialsRatio)
   })
@@ -119,8 +119,8 @@ describe(`game-init new user`, () => {
   it(
         'walletData to have coins and tickets equal to initialWalletTickets and initialWalletCoins',
         async () => {
-          const coins = Number(await getSetting('initialWalletTickets', 1))
-          const tickets = Number(await getSetting('initialWalletCoins', 1))
+          const coins = Number(await getSetting('initialWalletTickets', '1'))
+          const tickets = Number(await getSetting('initialWalletCoins', '1'))
           // '.to.be.eq(coins)'
           expect(fakeExpres.responseData.walletData.coins).toBe(coins)
           // '.to.be.eq(tickets)'
