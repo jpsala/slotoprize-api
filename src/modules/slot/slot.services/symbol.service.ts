@@ -4,16 +4,17 @@ import path from 'path'
 import toCamelCase from 'camelcase-keys'
 
 import createError from 'http-errors'
-import { query as slotQuery, exec } from '../../../db'
-import { urlBase , isNotebook, getRandomNumber } from './../../../helpers'
+import { query, exec } from '../../../db'
+import { urlBase , getRandomNumber } from './../../../helpers'
 
+export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
 
 
 export const getReelsData = async (): Promise<any> =>
 {
   try {
     const url = urlBase()
-    const symbolsData = await slotQuery(`SELECT concat(${url},s.texture_url), s.payment_type, s.symbol_name FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)`)
+    const symbolsData = await query(`SELECT concat('${url}',s.texture_url) as texture_url, s.payment_type, s.symbol_name FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)`)
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++)
       reels.push({ symbolsData: toCamelCase(symbolsData) })
@@ -35,7 +36,7 @@ export const symbolsInFS = (): string[] =>
 export const symbolsInDB = async (): Promise<any> =>
 {
   try {
-    const SymbolsRows = await slotQuery(
+    const SymbolsRows = await query(
       'SELECT * FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)'
     )
     const reels: any[] = []
@@ -113,7 +114,7 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
 }
 export const deleteSymbol = async (id: string): Promise<any> =>
 {
-  const symbols = await slotQuery(
+  const symbols = await query(
     `delete from symbol where id = ${id}`
   )
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -121,8 +122,9 @@ export const deleteSymbol = async (id: string): Promise<any> =>
 }
 export const getSymbols = async (): Promise<any> =>
 {
-  const symbols = await slotQuery(
-    'SELECT * FROM symbol'
+  const url = urlBase()
+  const symbols = await query(
+    `SELECT id, concat('${url}', texture_url) as texture_url, payment_type, symbol_name from symbol`
   )
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return symbols

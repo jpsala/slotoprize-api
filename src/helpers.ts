@@ -5,7 +5,6 @@ import { join } from 'path'
 
 
 import { hostname } from 'os'
-import createError from 'http-errors'
 import * as statusCodes from 'http-status-codes'
 /* eslint-disable no-undef */
 /* eslint-disable no-sequences */
@@ -20,7 +19,7 @@ export const toBoolean = (value: string | number | boolean): boolean =>
     return ((value.toUpperCase() === 'TRUE') || value.toUpperCase() === '1')
   if (typeof (value) === 'number') return (value === 1)
   if (typeof (value) === 'boolean') return value
-  throw createError(statusCodes.BAD_REQUEST, 'Value type not supported')
+  throw createHttpError(statusCodes.BAD_REQUEST, 'Value type not supported')
 }
 export function pickProps<T>(obj: T, props: string[]): Partial<T>
 {
