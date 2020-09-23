@@ -4,16 +4,15 @@ import path from 'path'
 import toCamelCase from 'camelcase-keys'
 
 import createError from 'http-errors'
-import { query as slotQuery, exec } from '../../../db'
-import { urlBase , isNotebook, getRandomNumber } from './../../../helpers'
-
+import { query, exec } from '../../../db'
+import { urlBase , getRandomNumber } from './../../../helpers'
 
 
 export const getReelsData = async (): Promise<any> =>
 {
   try {
     const url = urlBase()
-    const symbolsData = await slotQuery(`SELECT concat(${url},s.texture_url), s.payment_type, s.symbol_name FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)`)
+    const symbolsData =(`SELECT concat('${url}',s.texture_url), s.payment_type, s.symbol_name FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)`)
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++)
       reels.push({ symbolsData: toCamelCase(symbolsData) })
@@ -28,14 +27,13 @@ export const symbolsInFS = (): string[] =>
   const rawFiles = readdirSync('/var/www/html/public/assets/symbols/live')
   const url = urlBase()
   const imgFiles = rawFiles
-    .filter(filename => (/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(filename))
     .map(imgFile => `${url}/${imgFile}`)
   return imgFiles
 }
 export const symbolsInDB = async (): Promise<any> =>
 {
   try {
-    const SymbolsRows = await slotQuery(
+    const SymbolsRows =(
       'SELECT * FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)'
     )
     const reels: any[] = []
@@ -106,22 +104,20 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
       files.forEach(file =>
       {
         if (file.startsWith(`${fileNameStartWith}`))
-          unlinkSync(path.join(eventImgPath, file))
       })
     })
   }
 }
 export const deleteSymbol = async (id: string): Promise<any> =>
 {
-  const symbols = await slotQuery(
-    `delete from symbol where id = ${id}`
+  const symbols =(
   )
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return symbols
 }
 export const getSymbols = async (): Promise<any> =>
 {
-  const symbols = await slotQuery(
+  const symbols =(
     'SELECT * FROM symbol'
   )
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return

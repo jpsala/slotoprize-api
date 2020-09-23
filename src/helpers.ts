@@ -128,9 +128,7 @@ export function saveFile(
 
   writeFileSync(newPath, rawData)
   unlinkSync(oldPath)
-  // const host: string = isNotebook() ? 'https://localhost' : 'https://slotoprizes.tagadagames.com'
-  const host = ''
-  return { newPath, fileName, url: `${host}${url}/${fileName}` }
+  return { newPath, fileName, url: `${url}/${fileName}` }
 }
 export const urlBase = (): string => {
   const _hostname = hostname()

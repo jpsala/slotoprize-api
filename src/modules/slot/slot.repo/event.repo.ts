@@ -100,7 +100,6 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
     const rawData = fs.readFileSync(oldPath)
     fs.writeFileSync(newPath, rawData)
     unlinkSync(oldPath)
-    console.log('os.hostname()', os.hostname())
     return `/img/events/${fileName}`
   }
   return { notificationFile, popupFile, id: isNew ? resp.insertId : -1, isNew }

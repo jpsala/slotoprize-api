@@ -11,10 +11,11 @@ import moment from "moment"
 import { query, queryOne, exec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
-import { getRandomNumber, saveFile } from "../../../helpers"
+import { getRandomNumber, saveFile , urlBase } from "../../../helpers"
 import { updateWallet, getWallet } from '../../slot/slot.services/wallet.service'
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
+
 
 import { dateToRule, updateRulesFromDb } from './../../slot/slot.services/events/events'
 import { getHaveWinRaffle, getHaveProfile } from './gameUser.repo'
@@ -334,10 +335,12 @@ async function saveWinner(raffleHistoryId: number): Promise<void> {
     }
 
 */
-export const getWinners = async (): Promise<any[]> => {
+export const getWinners = async (): Promise<any[]> =>
+{
+  const url = urlBase()
   const winners = await query(`
   select concat(gu.first_name, ', ', gu.last_name) as winnerName,
-    rh.closing_date as date , r.texture_url as textureUrl,
+    rh.closing_date as date , concat('${url}', r.texture_url) as textureUrl,
       (
         select IF(count(*) = 0, 'No localization Data', rl.description) from raffle_localization rl
           where rl.raffle_id = r.id and rl.language_code = gu.language_code limit 1
