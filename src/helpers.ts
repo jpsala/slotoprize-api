@@ -131,9 +131,11 @@ export function saveFile(
 }
 export const urlBase = (): string => {
   const _hostname = hostname()
+
+  console.log('hostname', _hostname)
   if(isNotebook()) return 'http://localhost'
-  else if(_hostname === 'sloto-dev') return 'http://wopi.homelinux.com'
-  else if(_hostname === 'slotoprizes') return 'https://slotoprizes.tagadagames.com'
+  else if(_hostname === 'sloto-dev') return 'https://assets.dev.slotoprizes.tagadagames.com'
+  else if(_hostname === 'slotoprizes') return 'https://assets.slotoprizes.tagadagames.com'
   else throw createHttpError(INTERNAL_SERVER_ERROR, 'hostname unrecognized')
 }
 export const sleep = async ( time: number ): Promise<void> =>
