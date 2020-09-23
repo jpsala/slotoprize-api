@@ -11,20 +11,13 @@ export type JackpotData = {
   spinCount: number;
   confirmed: boolean;
 }
-/*
- {
-        "winnerName": "Marcos, Novacovsky",
-        "date": "2020-07-22T23:52:57.000Z",
-        "textureUrl": "https://assets.slotoprizes.tagadagames.com/raffleItems/scooter.png",
-        "prizeName": "Quisque nec vestibulum leo, nec dictum nulla."
-    },
-*/
+
 export const getJackpotWinners = async (): Promise<PrizeWinners[]> =>
 {
   const data = await query(`
         (select jw.id, concat(gu.first_name, ', ', gu.last_name)                         as winnerName,
         jw.createdAt                                                      as date,
-        'https://assets.slotoprizes.tagadagames.com/img/jackpotPrize.png' as textureUrl,
+        '/img/jackpotPrize.png' as textureUrl,
         'Jackpot'                                                         as prizeName
       from jackpot_win jw
           inner join game_user gu on jw.game_user_id = gu.id
