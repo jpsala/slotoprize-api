@@ -1,3 +1,4 @@
+import { urlBase } from './../../../helpers'
 import { PrizeWinners } from './../slot.services/prizes.service'
 import { GameUser } from './../../meta/meta.types'
 import { query, queryOne, exec } from './../../../db'
@@ -14,10 +15,11 @@ export type JackpotData = {
 
 export const getJackpotWinners = async (): Promise<PrizeWinners[]> =>
 {
+  const url = urlBase()
   const data = await query(`
         (select jw.id, concat(gu.first_name, ', ', gu.last_name)                         as winnerName,
         jw.createdAt                                                      as date,
-        '/img/jackpotPrize.png' as textureUrl,
+        '${url}/img/jackpotPrize.png' as textureUrl,
         'Jackpot'                                                         as prizeName
       from jackpot_win jw
           inner join game_user gu on jw.game_user_id = gu.id
