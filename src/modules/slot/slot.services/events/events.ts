@@ -17,8 +17,10 @@ export const init = async (): Promise<void> =>
   let idx = 0
   for (const ruleFromDb of rulesFromDB) {
     ruleFromDb.skin = await getSkin(ruleFromDb.skinId)
+    // console.log('rulesFromDB[idx].popupTextureUrl', rulesFromDB[idx])
     // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     rulesFromDB[idx].popupTextureUrl = url + rulesFromDB[idx].popupTextureUrl
+    // console.log('rulesFromDB[idx].popupTextureUrl', rulesFromDB[idx].popupTextureUrl)
     idx++
   }
   processEvents(rulesFromDB)
