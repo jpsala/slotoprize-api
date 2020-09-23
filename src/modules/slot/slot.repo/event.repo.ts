@@ -101,8 +101,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
     fs.writeFileSync(newPath, rawData)
     unlinkSync(oldPath)
     console.log('os.hostname()', os.hostname())
-    const url = os.hostname() === 'jpnote' ? 'https://localhost' : 'https://slotoprizes.tagadagames.com'
-    return `${url}/public/assets/img/events/${fileName}`
+    return `/img/events/${fileName}`
   }
   return { notificationFile, popupFile, id: isNew ? resp.insertId : -1, isNew }
 }

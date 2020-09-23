@@ -1,4 +1,4 @@
-import { readdirSync, readdir, unlinkSync, writeFileSync, readFileSync } from 'fs'
+import { readdirSync, unlinkSync, writeFileSync, readFileSync } from 'fs'
 
 
 import { join } from 'path'
@@ -12,6 +12,8 @@ import * as statusCodes from 'http-status-codes'
 /* eslint-disable no-return-assign */
 /* eslint-disable id-length */
 import { Request, Response, NextFunction } from 'express'
+import createHttpError from 'http-errors'
+import { INTERNAL_SERVER_ERROR } from 'http-status-codes'
 export const toBoolean = (value: string | number | boolean): boolean =>
 {
   if (typeof (value) === 'string')
@@ -73,7 +75,6 @@ export function isValidJSON(text: string): boolean
 }
 export const isNotebook = (): boolean =>
 {
-  console.log('hostName', hostname())
   return hostname() === 'jpnote'
 }
 
@@ -127,8 +128,16 @@ export function saveFile(
 
   writeFileSync(newPath, rawData)
   unlinkSync(oldPath)
-  const host: string = isNotebook() ? 'https://localhost' : 'https://slotoprizes.tagadagames.com'
+  // const host: string = isNotebook() ? 'https://localhost' : 'https://slotoprizes.tagadagames.com'
+  const host = ''
   return { newPath, fileName, url: `${host}${url}/${fileName}` }
+}
+export const urlBase = (): string => {
+  const _hostname = hostname()
+  if(isNotebook()) return 'http://localhost'
+  else if(_hostname === 'sloto-dev') return 'http://wopi.homelinux.com'
+  else if(_hostname === 'slotoprizes') return 'https://slotoprizes.tagadagames.com'
+  else throw createHttpError(INTERNAL_SERVER_ERROR, 'hostname unrecognized')
 }
 export const sleep = async ( time: number ): Promise<void> =>
 {

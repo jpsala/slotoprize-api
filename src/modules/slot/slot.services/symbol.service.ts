@@ -5,13 +5,15 @@ import toCamelCase from 'camelcase-keys'
 
 import createError from 'http-errors'
 import { query as slotQuery, exec } from '../../../db'
+import { urlBase , isNotebook, getRandomNumber } from './../../../helpers'
 
-import { isNotebook, getRandomNumber } from './../../../helpers'
+
 
 export const getReelsData = async (): Promise<any> =>
 {
   try {
-    const symbolsData = await slotQuery('SELECT s.texture_url, s.payment_type, s.symbol_name FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)')
+    const url = urlBase()
+    const symbolsData = await slotQuery(`SELECT concat(${url},s.texture_url), s.payment_type, s.symbol_name FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)`)
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++)
       reels.push({ symbolsData: toCamelCase(symbolsData) })
@@ -24,7 +26,7 @@ export const getReelsData = async (): Promise<any> =>
 export const symbolsInFS = (): string[] =>
 {
   const rawFiles = readdirSync('/var/www/html/public/assets/symbols/live')
-  const url = isNotebook() ? 'https://localhost/public/assets/symbols/live' : 'https://assets.slotoprizes.tagadagames.com/symbols/live'
+  const url = urlBase()
   const imgFiles = rawFiles
     .filter(filename => (/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(filename))
     .map(imgFile => `${url}/${imgFile}`)
@@ -67,7 +69,7 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
 
   }
 
-  const file = saveFileAndGetFilePath(files.image, symbolId)
+  const file = saveFileAndGetFileUrl(files.image, symbolId)
 
   symbolDto.texture_url = file ?? symbolDto.texture_url
   console.log('symbolDto.texture_url', symbolDto.texture_url)
@@ -80,7 +82,7 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
   return toCamelCase(symbolDto)
 
 
-  function saveFileAndGetFilePath(file: any, id: number): string | undefined
+  function saveFileAndGetFileUrl(file: any, id: number): string | undefined
   {
     if (!file) return undefined
     const rand = getRandomNumber(111, 10000)
@@ -92,8 +94,7 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
     console.log('newPath, rawData', newPath, rawData)
     writeFileSync(newPath, rawData)
     unlinkSync(oldPath)
-    const url = isNotebook() ? 'https://localhost' : 'https://slotoprizes.tagadagames.com'
-    return `${url}/public/assets/symbols/live/${fileName}`
+    return `/public/assets/symbols/live/${fileName}`
   }
   function removeActualImage(file: any, eventId: number): void
   {
