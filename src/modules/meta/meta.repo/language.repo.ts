@@ -9,11 +9,17 @@ import camelcaseKeys from 'camelcase-keys'
 import createHttpError from 'http-errors'
 import {query, queryOne, exec} from '../../../db'
 import {LanguageData} from '../meta.types'
-import { saveFile } from '../../../helpers'
+import { saveFile , urlBase } from '../../../helpers'
+
 
 export async function getLanguages(): Promise<LanguageData[]> {
+ const url = urlBase()
+
   const localizationData = await query(`
-    select * from  language
+    select id, language_code,
+      concat('${url}', texture_url) as texture_url,
+      concat('${url}', localization_url) as localization_url
+    from  language
   `, undefined, true)
   return localizationData
 }
@@ -22,9 +28,15 @@ export async function deleteLanguageForCrud(languageId: string): Promise<any> {
   const data = await exec(`delete from language where id = ${languageId}`)
   return data.affectedRows
 }
-export async function getLanguagesForCrud(): Promise<any> {
+export async function getLanguagesForCrud(): Promise<any>
+{
+ const url = urlBase()
+
   const data = await query(`
-    select * from  language
+    select id, language_code,
+    concat('${url}', texture_url) as texture_url,
+    concat('${url}', localization_url) as localization_url
+     from  language
   `, undefined, true)
   return data
 }

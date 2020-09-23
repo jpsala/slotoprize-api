@@ -2,7 +2,8 @@ import createError from 'http-errors'
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
-import { saveFile } from '../../../helpers'
+import { saveFile , urlBase } from '../../../helpers'
+
 import { query, queryOne, exec } from './../../../db'
 export interface Skin
 {
@@ -11,8 +12,9 @@ export interface Skin
 }
 export const getSkins = async (id?: number): Promise<Skin[]> =>
 {
+  const url = urlBase()
   const where = id ? ` id = ${id} ` : ' true '
-  const rows = await query('select * from skin where ' + where)
+  const rows = await query(`select id, concat(${url}, machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name from skin where ` + where)
   const skins: Skin[] = []
   for (const row of rows)
   {
@@ -26,8 +28,9 @@ export const getSkins = async (id?: number): Promise<Skin[]> =>
 }
 export const getSkinsForCrud = async (): Promise<any> =>
 {
+  const url = urlBase()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return await query('select * from skin')
+  return await query(`select id, concat(${url}, machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name`)
 }
 export const getSkin = async (id: number): Promise<Skin | undefined> =>
 {
@@ -60,8 +63,11 @@ export async function postSkinForCrud(fields, files): Promise<any>
       saveResp.url, skinId
     ])
   }
+  const url = urlBase()
+
   const respSkin = await queryOne(`
-    select * from skin where id = ${skinId}
+    select id, concat(${url}, machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name
+    from skin where id = ${skinId}
   `)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return camelcaseKeys(respSkin)

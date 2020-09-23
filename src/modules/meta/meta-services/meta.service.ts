@@ -21,18 +21,6 @@ export async function getAll(): Promise<User> {
   const [users]: Array<User> = await query('select * from user limit 2')
   return users
 }
-// const getGame = async (name: string): Promise<{id: number, name: string}> => {
-//   const game = await queryOne(`SELECT * FROM game WHERE UPPER(name) = '${name.toUpperCase()}'`)
-//   return game as {id: number, name: string}
-// }
-// export const saveLogin = async (userId: string, gameName: string, deviceId: string): Promise<void> => {
-//   const game = await getGame(gameName)
-//   if (!game) throw createError(400, `Game ${gameName} not found in db`)
-//   await query(`
-//           insert into game_user_login(game_user_id,game_id,device_id)
-//           values(${userId}, ${game.id}, '${deviceId}')
-//       `)
-// }
 export const getUserById = async (id: number): Promise<User> => {
   const userSelect = `
         select *

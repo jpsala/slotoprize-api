@@ -4,7 +4,8 @@ import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
 // import createError from 'http-errors'
 import {Country, State} from '../meta.types'
-import { saveFile } from '../../../helpers'
+import { saveFile , urlBase } from '../../../helpers'
+
 import { queryOne, query } from './../../../db'
 
 export async function getCountries(fields: string[] | undefined = undefined): Promise<Country[] | Partial<Country>> {
@@ -23,13 +24,20 @@ export async function getCountries(fields: string[] | undefined = undefined): Pr
   }
   return countries
 }
-export async function getCountriesForCrud(): Promise<any> {
+export async function getCountriesForCrud(): Promise<any>
+{
+  const url = urlBase()
   const countries = await query(`
-    select c.*, l.language_code from country c
+    select id, name, phone_prefix, language_id, currency,
+      concat('${url}', texture_url) as texture_url,
+      l.language_code from country c
       left join language l on c.language_id = l.id
   `)
   const languages = await query(`
-    select * from language
+  select id, language_code,
+  concat('${url}', texture_url) as texture_url,
+  concat('${url}', localization_url) as localization_url
+from  language
   `)
   const data = {countries: camelcaseKeys(countries), languages:camelcaseKeys(languages)}
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return

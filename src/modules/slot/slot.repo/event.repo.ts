@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import path from 'path'
 import fs, { unlinkSync } from 'fs'
-import os from 'os'
+import { urlBase , getRandomNumber } from './../../../helpers'
 import { updateRulesFromDb } from './../slot.services/events/events'
-import { getRandomNumber } from './../../../helpers'
+
 import { exec, query } from './../../../db'
 import { EventDTO, Event } from './../slot.services/events/event'
 
@@ -15,9 +15,13 @@ export async function addEvent(eventRule: EventDTO): Promise<void>
 }
 export async function getEvents(eventId?: number, onlyGeneric = false): Promise<Event[]>
 {
+  const url = urlBase()
   let where = eventId ? ` where id = ${eventId} ` : ' where true '
   where += onlyGeneric ? ` and eventType = 'generic' ` : ''
-  return (await query(`select * from event ${where}`)) as Event[]
+  const events = (await query(`select * from event ${where}`))
+  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+  events.forEach((event) => { event.popupTextureUrl = url + event.popupTextureUrl})
+  return events as Event[]
 }
 export async function getEventsForCrud(): Promise<any>
 {
