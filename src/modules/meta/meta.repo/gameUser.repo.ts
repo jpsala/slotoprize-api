@@ -108,12 +108,12 @@ export async function getWinRaffle(userId: number): Promise<any>
   const url = urlBase()
 
   const winData = await queryOne(`
-  select r.id, r.closing_date,
-  r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight
-  from raffle_history rh
-  inner join raffle r on rh.raffle_id = r.id
-  where win = 1 and rh.game_user_id = ${userId} and notified = 0
-  order by rh.id desc limit 1
+    select r.id, r.closing_date,
+      r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight
+      from raffle_history rh
+      inner join raffle r on rh.raffle_id = r.id
+      where win = 1 and rh.game_user_id = ${userId} and notified = 0
+      order by rh.id desc limit 1
   `)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return winData
