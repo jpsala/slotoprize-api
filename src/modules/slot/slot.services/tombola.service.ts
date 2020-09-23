@@ -1,17 +1,22 @@
 import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
 import createHttpError from 'http-errors'
+import { urlBase } from './../../../helpers'
 import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
-import { getSymbols } from './symbol.service'
+import { getSymbols, SymbolDTO } from './symbol.service'
 
+type PayTableDTO = {id: number, symbol_id: number, symbol_amount: number, probability: number, points: number, symbol: SymbolDTO}
 export const getPayTableForCrud = async (): Promise<any> => {
-  const payTable = await query(`
+  const url = urlBase()
+  const payTable: PayTableDTO[] = await query(`
   select * from pay_table
     order by probability asc`)
   for (const row of payTable)
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    row.symbol = camelcaseKeys(await queryOne(`select * from symbol where id = ${row.symbol_id}`))
+    row.symbol = camelcaseKeys(await queryOne(`
+      select id, concat('${url}', texture_url) as texture_url, payment_type, symbol_name from symbol where id = ${row.symbol_id}
+    `))
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return camelcaseKeys(payTable)
