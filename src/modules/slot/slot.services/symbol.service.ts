@@ -6,14 +6,9 @@ import toCamelCase from 'camelcase-keys'
 import createError from 'http-errors'
 import { query, exec } from '../../../db'
 import { urlBase , getRandomNumber } from './../../../helpers'
-<<<<<<< HEAD
 
 export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
 
-=======
-
-export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
->>>>>>> fe4d9d55148190a39d9ded08e185b2b6704c827d
 
 export const getReelsData = async (): Promise<any> =>
 {
