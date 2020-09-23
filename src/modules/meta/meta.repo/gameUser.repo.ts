@@ -8,6 +8,7 @@ import * as metaService from '../../meta/meta-services/meta.service'
 import getConnection, {queryOne, exec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
+import { urlBase } from './../../../helpers'
 import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
 
@@ -102,10 +103,13 @@ export async function getLoginData(userId: number): Promise<{count: number, last
       (select max(u.date) from game_user_login u where u.game_user_id = ${userId}) as lastLogin`)
   return response as {count: number, lastLogin: Date}
 }
-export async function getWinRaffle(userId: number): Promise<any> {
+export async function getWinRaffle(userId: number): Promise<any>
+{
+  const url = urlBase()
+
   const winData = await queryOne(`
   select r.id, r.closing_date,
-  r.raffle_number_price, r.texture_url, r.item_highlight
+  r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight
   from raffle_history rh
   inner join raffle r on rh.raffle_id = r.id
   where win = 1 and rh.game_user_id = ${userId} and notified = 0

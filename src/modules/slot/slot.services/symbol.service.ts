@@ -34,18 +34,17 @@ export const symbolsInFS = (): string[] =>
 export const symbolsInDB = async (): Promise<any> =>
 {
   try {
-<<<<<<< HEAD
-    const SymbolsRows =(
-=======
-    const SymbolsRows = await query(
->>>>>>> 95573a489a1c08561b99c5fe6702a8eeb005eff4
+    const url = urlBase()
+    const symbolsRows = await query(
       'SELECT * FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)'
     )
+    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+    symbolsRows.forEach((symbol) => { symbol.texture_url = url + symbol.texture_url})
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++)
-      reels[reel] = SymbolsRows
+      reels[reel] = symbolsRows
 
-    return { reels, symbols: SymbolsRows }
+    return { reels, symbols: symbolsRows }
   } catch (error) {
     return { status: 'error' }
   }
@@ -104,37 +103,27 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
     if (!file) return undefined
     const eventImgPath = `/var/www/html/public/assets/symbols/live`
     const fileNameStartWith = `${eventId}_`
-    readdir(eventImgPath, (err, files) =>
-    {
-      files.forEach(file =>
-      {
+    readdir(eventImgPath, (err, files) => {
+      files.forEach(file => {
         if (file.startsWith(`${fileNameStartWith}`))
+          unlinkSync(path.join(eventImgPath, file))
       })
     })
   }
 }
 export const deleteSymbol = async (id: string): Promise<any> =>
 {
-<<<<<<< HEAD
-  const symbols =(
-=======
   const symbols = await query(
     `delete from symbol where id = ${id}`
->>>>>>> 95573a489a1c08561b99c5fe6702a8eeb005eff4
   )
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return symbols
 }
 export const getSymbols = async (): Promise<any> =>
 {
-<<<<<<< HEAD
-  const symbols =(
-    'SELECT * FROM symbol'
-=======
   const url = urlBase()
   const symbols = await query(
     `SELECT id, concat('${url}', texture_url) as texture_url, payment_type, symbol_name from symbol`
->>>>>>> 95573a489a1c08561b99c5fe6702a8eeb005eff4
   )
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return symbols

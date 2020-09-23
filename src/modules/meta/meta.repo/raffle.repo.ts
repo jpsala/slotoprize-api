@@ -57,10 +57,12 @@ async function getRaffleLocalizationData(user: GameUser,raffleId: number): Promi
   return camelcaseKeys(localizationData) as LocalizationData
 }
 export async function getRaffles(user: GameUser, onlyLive = false): Promise<RafflePrizeData[]> {
+  const url = urlBase()
+
   const where = onlyLive ? ' CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date ' : ' true '
   const raffles = await query(`
     SELECT r.id, r.closing_date,
-      r.raffle_number_price, r.texture_url, r.item_highlight,
+      r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight,
       IF(CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date, true, false) as isLive
     FROM raffle r
     where ${where}
@@ -87,21 +89,23 @@ export async function prizeNotified(raffleId: number): Promise<string> {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function getRafflesForCrud(id?: number)
 {
-    const where = id ? ` where r.id = ${id} ` : ''
-    const raffles = await query(`
-      select r.id, r.state, rl.name, rl.description, gu.email, gu.device_id deviceID,
-             date_format(r.closing_date, '%Y-%m-%d %H:%i:%s') as closingDate,
-             date_format(r.live_date, '%Y-%m-%d %H:%i:%s') as liveDate,
-             r.texture_url textureUrl, r.item_highlight itemHighlight, r.raffle_number_price price,
-             IF(CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date, true, false) as isLive,
-             concat(gu.last_name,', ',gu.first_name) as winner, gu.id as gameUserId,
-             (select sum(raffle_numbers) as sold from raffle_history where raffle_id = r.id) as sold
-      from raffle r
-          inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
-          left join game_user gu on r.winner = gu.id
-          left join state s on rl.name = s.name
-      ${where}
-      order by r.closing_date asc
+  const url = urlBase()
+
+  const where = id ? ` where r.id = ${id} ` : ''
+  const raffles = await query(`
+    select r.id, r.state, rl.name, rl.description, gu.email, gu.device_id deviceID,
+            date_format(r.closing_date, '%Y-%m-%d %H:%i:%s') as closingDate,
+            date_format(r.live_date, '%Y-%m-%d %H:%i:%s') as liveDate,
+            concat('${url}', r.texture_url) as textureUrl, r.item_highlight itemHighlight, r.raffle_number_price price,
+            IF(CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date, true, false) as isLive,
+            concat(gu.last_name,', ',gu.first_name) as winner, gu.id as gameUserId,
+            (select sum(raffle_numbers) as sold from raffle_history where raffle_id = r.id) as sold
+    from raffle r
+        inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
+        left join game_user gu on r.winner = gu.id
+        left join state s on rl.name = s.name
+    ${where}
+    order by r.closing_date asc
   `)
   for (const raffle of raffles) {
     const closingDate = moment.utc(raffle.closingDate)
@@ -132,7 +136,11 @@ export async function getRafflesForCrud(id?: number)
       "isNew": true,
       "localization": await query(`select l.language_code, '' name, '' description from language l`)
     }
-    const languages = await query('select * from language')
+
+    const url = urlBase()
+    const languages = await query(`select id, language_code,
+        concat('${url}',texture_url) as texture_url,concat('${url}',localization_url) as localization_url
+         from language`)
     return { raffles, languages, newRaffle }
   }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -140,12 +148,14 @@ export async function getRafflesForCrud(id?: number)
 }
 export async function getRaffle(id: number,
   fieldsToExclude: string[] | undefined = undefined, camelCased = true, rawAllFields = false): Promise<RafflePrizeData> {
+  const url = urlBase()
+
   const select = rawAllFields
     ? `SELECT r.*, rl.name, rl.description FROM raffle r
       inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
     where r.id = ${id}`
     : `SELECT r.id, closing_date, rl.name, rl.description,
-      r.raffle_number_price, r.texture_url, r.item_highlight
+      r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight
       FROM raffle r
       left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
       where r.id = ${id}`

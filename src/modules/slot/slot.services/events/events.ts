@@ -1,6 +1,7 @@
 import { isArray } from 'util'
 import later from 'later'
 import { formatDistanceStrict, differenceInSeconds } from 'date-fns'
+import { urlBase } from './../../../../helpers'
 import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
 import { createEvent, Event, EventDTO, EventPayload} from './event'
@@ -12,8 +13,14 @@ export const toggleLog = (): boolean => { return log = !log }
 export const init = async (): Promise<void> =>
 {
   const rulesFromDB = await query('select * from event where active = 1')
-  for (const ruleFromDb of rulesFromDB)
+  const url = urlBase()
+  let idx = 0
+  for (const ruleFromDb of rulesFromDB) {
     ruleFromDb.skin = await getSkin(ruleFromDb.skinId)
+    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+    rulesFromDB[idx].popupTextureUrl = url + rulesFromDB[idx].popupTextureUrl
+    idx++
+  }
   processEvents(rulesFromDB)
 }
 export function processEvents(eventsFromDB: EventDTO[]): void
