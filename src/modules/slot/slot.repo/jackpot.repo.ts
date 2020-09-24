@@ -17,7 +17,11 @@ export const getJackpotWinners = async (): Promise<PrizeWinners[]> =>
 {
   const url = urlBase()
   const data = await query(`
+<<<<<<< HEAD
       (select jw.id, concat(gu.first_name, ', ', gu.last_name) as winnerName,
+=======
+      (select concat(gu.first_name, ', ', gu.last_name) as winnerName,
+>>>>>>> df89809ec7b00ac78b23f811932847a752025af5
       jw.createdAt as date, '${url}/img/jackpotPrize.png' as textureUrl, 'Jackpot' as prizeName
     from jackpot_win jw
         inner join game_user gu on jw.game_user_id = gu.id
