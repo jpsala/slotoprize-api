@@ -186,7 +186,6 @@ export async function skinsGet(req: Request, res: Response): Promise<any>{
   res.status(200).json(resp)
 }
 export async function eventPost(req: Request, res: Response): Promise<void>{
-    console.log('req.fields, req.files', req.fields, req.files)
     const resp = await setEvent(req.fields, req.files)
     res.status(200).json(resp)
 }

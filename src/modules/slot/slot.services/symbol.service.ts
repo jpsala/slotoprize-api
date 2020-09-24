@@ -5,7 +5,7 @@ import toCamelCase from 'camelcase-keys'
 
 import createError from 'http-errors'
 import { query, exec } from '../../../db'
-import { urlBase , getRandomNumber } from './../../../helpers'
+import { urlBase , getRandomNumber, addHostToPath, getUrlWithoutHost } from './../../../helpers'
 
 export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
 
@@ -67,20 +67,20 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
     removeActualImage(files?.image, symbolId)
   }
   else {
+    console.log('symbolDto', symbolDto)
     resp = await exec(`update symbol set ? where id = ${symbolDto.id}`, <any>symbolDto)
     symbolId = symbolDto.id
 
   }
-
   const file = saveFileAndGetFileUrl(files.image, symbolId)
 
-  symbolDto.texture_url = file ?? symbolDto.texture_url
+  symbolDto.texture_url = file ?? getUrlWithoutHost(symbolDto.texture_url)
   console.log('symbolDto.texture_url', symbolDto.texture_url)
 
   if (isNew)
     symbolDto.id = symbolId
-
-  await exec(`update symbol set ?  where id = ${symbolDto.id}`, <any>symbolDto)
+    await exec(`update symbol set ?  where id = ${symbolDto.id}`, <any>symbolDto)
+    symbolDto.texture_url = addHostToPath(symbolDto.texture_url)
 
   return toCamelCase(symbolDto)
 
@@ -97,7 +97,7 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
     console.log('newPath, rawData', newPath, rawData)
     writeFileSync(newPath, rawData)
     unlinkSync(oldPath)
-    return `/public/assets/symbols/live/${fileName}`
+    return `/symbols/live/${fileName}`
   }
   function removeActualImage(file: any, eventId: number): void
   {
