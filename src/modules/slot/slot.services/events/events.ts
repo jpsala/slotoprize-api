@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { isArray } from 'util'
 import later from 'later'
 import { formatDistanceStrict, differenceInSeconds } from 'date-fns'
@@ -17,10 +18,8 @@ export const init = async (): Promise<void> =>
   let idx = 0
   for (const ruleFromDb of rulesFromDB) {
     ruleFromDb.skin = await getSkin(ruleFromDb.skinId)
-    // console.log('rulesFromDB[idx].popupTextureUrl', rulesFromDB[idx])
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     rulesFromDB[idx].popupTextureUrl = url + rulesFromDB[idx].popupTextureUrl
-    // console.log('rulesFromDB[idx].popupTextureUrl', rulesFromDB[idx].popupTextureUrl)
+    rulesFromDB[idx].notificationTextureUrl = url + rulesFromDB[idx].notificationTextureUrl
     idx++
   }
   processEvents(rulesFromDB)

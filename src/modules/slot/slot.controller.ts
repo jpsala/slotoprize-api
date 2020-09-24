@@ -32,6 +32,7 @@ import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.service
 import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
 import { testUser39 } from './slot.repo/spin.regeneration.repo'
 import { callback } from './slot.services/ironsource'
+import { getAdsSettingsForCrud } from './slot.services/addSettings.service'
 
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
   console.log('req', req)
@@ -175,6 +176,10 @@ export async function soportePost(req: Request, res: Response): Promise<any>{
 }
 export async function eventsForCrudGet(req: Request, res: Response): Promise<any>{
   const resp = await getEventsForCrud()
+  res.status(200).json(resp)
+}
+export async function adsSettingsForCrudGet(req: Request, res: Response): Promise<any>{
+  const resp = await getAdsSettingsForCrud()
   res.status(200).json(resp)
 }
 export async function supportRequestForCrudGet(req: Request, res: Response): Promise<any>{
