@@ -40,6 +40,7 @@ export const getSkin = async (id: number): Promise<Skin | undefined> => {
     if (skins == null || skins.length < 1) return undefined
     return skins[0]
 }
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postSkinForCrud(fields, files): Promise<any> {
     const isNew = fields.isNew
     const file = files.file ?? files.file

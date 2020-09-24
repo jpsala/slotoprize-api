@@ -46,6 +46,7 @@ export async function getLanguagesForCrud(): Promise<any> {
     )
     return data
 }
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postLanguageForCrud(fields, files): Promise<any> {
     const isNew = fields.isNew
     const localizationFile = files.localizationFile
