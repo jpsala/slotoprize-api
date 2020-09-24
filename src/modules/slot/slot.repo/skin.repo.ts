@@ -14,7 +14,11 @@ export const getSkins = async (id?: number): Promise<Skin[]> =>
 {
   const url = urlBase()
   const where = id ? ` id = ${id} ` : ' true '
+<<<<<<< HEAD
   const rows = await query(`select id, concat('${url}', machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name from skin where ` + where)
+=======
+  const rows = await query(`select id, concat(${url}, machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name from skin where ` + where)
+>>>>>>> a93dbb3... changing for dev, dynamic urls
   const skins: Skin[] = []
   for (const row of rows)
   {
@@ -30,7 +34,11 @@ export const getSkinsForCrud = async (): Promise<any> =>
 {
   const url = urlBase()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+<<<<<<< HEAD
   return await query(`select id, concat('${url}', machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name`)
+=======
+  return await query(`select id, concat(${url}, machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name`)
+>>>>>>> a93dbb3... changing for dev, dynamic urls
 }
 export const getSkin = async (id: number): Promise<Skin | undefined> =>
 {
