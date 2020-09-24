@@ -74,6 +74,7 @@ export function isValidJSON(text: string): boolean
 }
 export const isNotebook = (): boolean =>
 {
+  console.log('hostName', hostname())
   return hostname() === 'jpnote'
 }
 
