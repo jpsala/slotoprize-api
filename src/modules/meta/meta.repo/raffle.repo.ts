@@ -175,7 +175,7 @@ export async function saveRaffle(raffle: RafflePrizeData, user: GameUser, ticket
     const resp = await exec(`
       insert into raffle_history(raffle_id, game_user_id, tickets, raffle_numbers) VALUES (?,?,?,?)
     `, [raffle.id, user.id, tickets, amount])
-    return resp.insertId as number
+    return resp.insertId
   } catch (error) {
     throw createError(createError.InternalServerError, error)
   }
