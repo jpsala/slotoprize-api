@@ -77,14 +77,11 @@ export async function postSkinForCrud(fields, files): Promise<any> {
     select id, concat('${url}', machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name
     from skin where id = ${skinId}
   `)
-<<<<<<< HEAD
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-=======
-    // e slint-disable-next-line @typescript-eslint/no-unsafe-return
->>>>>>> df89809ec7b00ac78b23f811932847a752025af5
     return camelcaseKeys(respSkin)
 }
 export async function deleteSkinForCrud(skinId: string): Promise<any> {
     const data = await exec(`delete from skin where id = ${skinId}`)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return data.affectedRows
 }
