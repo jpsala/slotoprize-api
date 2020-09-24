@@ -1,13 +1,7 @@
 import { readdirSync, unlinkSync, writeFileSync, readFileSync } from 'fs'
-// helper
 import { join } from 'path'
-
 import { hostname } from 'os'
 import * as statusCodes from 'http-status-codes'
-/* eslint-disable no-undef */
-/* eslint-disable no-sequences */
-/* eslint-disable no-return-assign */
-/* eslint-disable id-length */
 import { Request, Response, NextFunction } from 'express'
 import createHttpError from 'http-errors'
 import { INTERNAL_SERVER_ERROR } from 'http-status-codes'

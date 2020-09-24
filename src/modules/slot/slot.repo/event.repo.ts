@@ -3,7 +3,7 @@
 // #region imports
 import path from 'path'
 import fs, { unlinkSync } from 'fs'
-import { urlBase, getRandomNumber, getUrlWithoutHost, addHostToPath } from './../../../helpers'
+import { getRandomNumber, getUrlWithoutHost, addHostToPath } from './../../../helpers'
 import { updateRulesFromDb } from './../slot.services/events/events'
 import { exec, query } from './../../../db'
 import { EventDTO, Event } from './../slot.services/events/event'
