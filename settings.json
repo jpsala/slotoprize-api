@@ -1,0 +1,261 @@
+{
+  "todo-tree.general.tags": ["@TODO", "@URGENT", "@TMP", "@FIXME", "@BUG"],
+  "sqltools.connections": [
+    {
+      "database": "iae-nuevo",
+      "driver": "MariaDB",
+      "name": "iae-nuevo",
+      "password": "lani0363",
+      "port": 3306,
+      "server": "localhost",
+      "username": "root"
+    }
+  ],
+  "sqltools.autoConnectTo": "iae-nuevo",
+  "editor.scrollBeyondLastLine": false,
+  "rest-client.previewResponsePanelTakeFocus": false,
+  "rest-client.showResponseInDifferentTab": false,
+  "rest-client.previewResponseInUntitledDocument": false,
+  "rest-client.previewColumn": "beside",
+  "rest-client.previewOption": "body",
+  "rest-client.fontSize": 11,
+  "rest-client.environmentVariables": {
+    "$shared": {
+      "version": "v1",
+      "prodToken": "foo",
+      "nonProdToken": "/"
+    },
+    "local": {
+      "version": "v2",
+      "endpoint": "http://localhost:8888/api",
+      "token": "{{$shared nonProdToken}}",
+      "secretKey": "devSecret"
+    },
+    "production": {
+      "host": "example.com",
+      "token": "{{$shared prodToken}}",
+      "secretKey": "prodSecret"
+    }
+  },
+  "typescript.tsserver.maxTsServerMemory": 3072,
+  "css.remoteStyleSheets": [
+    "https://cdn.jsdelivr.net/npm/quasar@1.12.4/dist/quasar.min.css"
+    // "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.8.2/css/bulma.min.css",
+    // "https://cdnjs.cloudflare.com/ajax/libs/tent-css/1.4.3/tent.min.css"
+  ],
+  "editor.fontSize": 17,
+  "files.trimTrailingWhitespace": true,
+  "editor.renderWhitespace": "none",
+  //"memo-life-for-you.listMarkdownPreview": true,
+  "workbench.colorCustomizations": {
+    "titleBar.activeForeground": "#222",
+    "titleBar.activeBackground": "#dadada",
+    "titleBar.inactiveForeground": "#b2b2b3",
+    "titleBar.inactiveBackground": "#f6f6f6",
+    "sideBar.border": "#1b2b34",
+    "activityBar.border": "#1b2b34"
+  },
+  "php.validate.executablePath": "/usr/bin/php",
+  "workbench.activityBar.visible": false,
+  "eslint.enable": true,
+  "files.autoSave": "off",
+  "typescript.validate.enable": false,
+  "editor.mouseWheelZoom": true,
+  "editor.multiCursorModifier": "alt",
+  "explorer.autoReveal": true,
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false, // setting to true will allow for creating multiple files such as `new-folder/{file1,file2}.js`
+  "editor.minimap.enabled": false,
+  "editor.cursorBlinking": "expand",
+  "editor.cursorSmoothCaretAnimation": false,
+  "workbench.startupEditor": "none",
+  "editor.smoothScrolling": true,
+  "editor.mouseWheelScrollSensitivity": 0,
+  "editor.fontLigatures": true,
+  "window.menuBarVisibility": "hidden",
+    "editor.snippetSuggestions": "top",
+  "git.autofetch": true,
+  "eslint.packageManager": "yarn",
+  "eslint.nodePath": "/usr/bin/node",
+  "eslint.workingDirectories": [
+    { "directory": "./src", "changeProcessCWD": true }
+  ],
+  "eslint.options": {
+    // "extensions": [".html", ".js", ".vue", ".jsx", ".json", ".ts"]
+  },
+  "eslint.validate": ["javascript", "html", "vue"],
+  "editor.formatOnSave": false,
+  // "vetur.format.defaultFormatter.html": "js-beautify-html",
+  //   "vetur.format.defaultFormatterOptions": {
+  //     "js-beautify-html": {
+  //       "wrap_line_length": 97,
+  //       "wrap_attributes": "auto"
+  //     }
+  //   },
+  "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
+  "workbench.editor.enablePreview": false,
+  "workbench.list.openMode": "doubleClick",
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "gitlens.advanced.messages": {
+    "suppressCommitHasNoPreviousCommitWarning": true,
+    "suppressLineUncommittedWarning": true,
+    "suppressSupportGitLensNotification": true,
+    "suppressShowKeyBindingsNotice": true
+  },
+  "breadcrumbs.enabled": true,
+  "javascript.updateImportsOnFileMove.enabled": "never",
+  "workbench.editor.highlightModifiedTabs": true,
+  "local-history.saveDelay": 300,
+  "editor.fontFamily": "'Hack Regular Nerd Font Complete Mono','Droid Sans Mono', 'monospace', monospace, 'Droid Sans Fallback'",
+  "zenMode.centerLayout": false,
+  "zenMode.hideStatusBar": false,
+  "zenMode.fullScreen": false,
+  "workbench.statusBar.visible": true,
+  "gitlens.views.fileHistory.enabled": true,
+  "gitlens.views.lineHistory.enabled": false,
+  "editor.largeFileOptimizations": false,
+  "editor.foldingStrategy": "indentation",
+  "scm.diffDecorationsGutterWidth": 1,
+  "editor.showFoldingControls": "always",
+  "editor.renderLineHighlight": "gutter",
+  "editor.suggestSelection": "first",
+  "vsintellicode.modify.editor.suggestSelection": "choseToUpdateConfiguration",
+  "editor.rulers": [90, 120],
+  "css.fileExtensions": ["css", "scss", "vue"],
+  "files.associations": {
+    "**/.i3/config": "i3",
+    "**/i3/config": "i3",
+    "*.php": "php",
+    "*.html": "html",
+    "sxhkdrc": "sxhkdrc"
+  },
+  "window.zoomLevel": 0,
+  "workbench.sideBar.location": "left",
+  "sync.gist": "1fd238fa0ce095e450236d4ecb1a18c2",
+  "advancedNewFile.convenienceOptions": ["last", "current", "root"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "vsnotes.defaultNotePath": "/home/jpsala/Documents/vsnotes",
+  "git.path": "/usr/bin/git",
+  "debug.javascript.usePreview": true,
+  "debug.node.useV3": true,
+  "easysass.targetDir": "src",
+  // "[vue]": {
+  //   "editor.defaultFormatter": "octref.vetur"
+  // },
+  "importCost.typescriptExtensions": ["\\.tsx?$", "\\.vue$"],
+  "checkpoints.autoSelectFile": true,
+  "checkpoints.autoOpenFile": true,
+  "editor.detectIndentation": false,
+  // "[javascript]": {
+  //   "editor.defaultFormatter": "esbenp.prettier-vscode"
+  // },
+  "gitlens.views.fileHistory.location": "explorer",
+  "gitlens.views.lineHistory.location": "explorer",
+  "gitlens.views.compare.location": "explorer",
+  "gitlens.views.search.location": "explorer",
+  "gitlens.views.repositories.location": "explorer",
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "typescript.tsserver.log": "verbose",
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": false,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "gitlens.views.repositories.files.layout": "tree",
+  "[scss]": {
+    "editor.defaultFormatter": "HookyQR.beautify"
+  },
+  "tab-groups.groups": "W3sibmFtZSI6IkJyYW5jaDogdHlwZXNjcmlwdCIsImxpc3QiOltdfSx7Im5hbWUiOiJzbG90IiwibGlzdCI6W3siZG9jdW1lbnQiOnsidXJpIjp7IiRtaWQiOjEsImZzUGF0aCI6Ii9ob21lL2pwc2FsYS9Eb2N1bWVudHMvdnNub3Rlcy8yMDIwLTA3LTAxXzE4LTQ4X3Nsb3QtcmFmZmxlLm1kIiwiZXh0ZXJuYWwiOiJmaWxlOi8vL2hvbWUvanBzYWxhL0RvY3VtZW50cy92c25vdGVzLzIwMjAtMDctMDFfMTgtNDhfc2xvdC1yYWZmbGUubWQiLCJwYXRoIjoiL2hvbWUvanBzYWxhL0RvY3VtZW50cy92c25vdGVzLzIwMjAtMDctMDFfMTgtNDhfc2xvdC1yYWZmbGUubWQiLCJzY2hlbWUiOiJmaWxlIn0sImZpbGVOYW1lIjoiL2hvbWUvanBzYWxhL0RvY3VtZW50cy92c25vdGVzLzIwMjAtMDctMDFfMTgtNDhfc2xvdC1yYWZmbGUubWQiLCJpc1VudGl0bGVkIjpmYWxzZSwibGFuZ3VhZ2VJZCI6Im1hcmtkb3duIiwidmVyc2lvbiI6NDUyLCJpc0Nsb3NlZCI6ZmFsc2UsImlzRGlydHkiOmZhbHNlLCJlb2wiOjEsImxpbmVDb3VudCI6NDh9LCJ2aWV3Q29sdW1uIjoxLCJmb2N1c3NlZCI6dHJ1ZX0seyJkb2N1bWVudCI6eyJ1cmkiOnsiJG1pZCI6MSwiZnNQYXRoIjoiL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC50eXBlcy50cyIsImV4dGVybmFsIjoiZmlsZTovLy9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3QudHlwZXMudHMiLCJwYXRoIjoiL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC50eXBlcy50cyIsInNjaGVtZSI6ImZpbGUifSwiZmlsZU5hbWUiOiIvbW50LzF0L3ByZy9hcGkvc3JjL21vZHVsZXMvc2xvdC9zbG90LnR5cGVzLnRzIiwiaXNVbnRpdGxlZCI6ZmFsc2UsImxhbmd1YWdlSWQiOiJ0eXBlc2NyaXB0IiwidmVyc2lvbiI6MSwiaXNDbG9zZWQiOmZhbHNlLCJpc0RpcnR5IjpmYWxzZSwiZW9sIjoxLCJsaW5lQ291bnQiOjh9LCJ2aWV3Q29sdW1uIjoxLCJmb2N1c3NlZCI6ZmFsc2V9LHsiZG9jdW1lbnQiOnsidXJpIjp7IiRtaWQiOjEsImZzUGF0aCI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3Qucm91dGVzLnRzIiwiZXh0ZXJuYWwiOiJmaWxlOi8vL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5yb3V0ZXMudHMiLCJwYXRoIjoiL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5yb3V0ZXMudHMiLCJzY2hlbWUiOiJmaWxlIn0sImZpbGVOYW1lIjoiL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5yb3V0ZXMudHMiLCJpc1VudGl0bGVkIjpmYWxzZSwibGFuZ3VhZ2VJZCI6InR5cGVzY3JpcHQiLCJ2ZXJzaW9uIjoxLCJpc0Nsb3NlZCI6ZmFsc2UsImlzRGlydHkiOmZhbHNlLCJlb2wiOjEsImxpbmVDb3VudCI6MTl9LCJ2aWV3Q29sdW1uIjoxLCJmb2N1c3NlZCI6ZmFsc2V9LHsiZG9jdW1lbnQiOnsidXJpIjp7IiRtaWQiOjEsImZzUGF0aCI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3QuY29udHJvbGxlci50cyIsImV4dGVybmFsIjoiZmlsZTovLy9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3QuY29udHJvbGxlci50cyIsInBhdGgiOiIvbW50LzF0L3ByZy9hcGkvc3JjL21vZHVsZXMvc2xvdC9zbG90LmNvbnRyb2xsZXIudHMiLCJzY2hlbWUiOiJmaWxlIn0sImZpbGVOYW1lIjoiL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5jb250cm9sbGVyLnRzIiwiaXNVbnRpdGxlZCI6ZmFsc2UsImxhbmd1YWdlSWQiOiJ0eXBlc2NyaXB0IiwidmVyc2lvbiI6Mjk0LCJpc0Nsb3NlZCI6ZmFsc2UsImlzRGlydHkiOmZhbHNlLCJlb2wiOjEsImxpbmVDb3VudCI6MTQzfSwidmlld0NvbHVtbiI6MSwiZm9jdXNzZWQiOmZhbHNlfSx7ImRvY3VtZW50Ijp7InVyaSI6eyIkbWlkIjoxLCJmc1BhdGgiOiIvbW50LzF0L3ByZy9hcGkvc3JjL21vZHVsZXMvc2xvdC9zbG90LnNlcnZpY2UudHMiLCJleHRlcm5hbCI6ImZpbGU6Ly8vbW50LzF0L3ByZy9hcGkvc3JjL21vZHVsZXMvc2xvdC9zbG90LnNlcnZpY2UudHMiLCJwYXRoIjoiL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5zZXJ2aWNlLnRzIiwic2NoZW1lIjoiZmlsZSJ9LCJmaWxlTmFtZSI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3Quc2VydmljZS50cyIsImlzVW50aXRsZWQiOmZhbHNlLCJsYW5ndWFnZUlkIjoidHlwZXNjcmlwdCIsInZlcnNpb24iOjUyLCJpc0Nsb3NlZCI6ZmFsc2UsImlzRGlydHkiOmZhbHNlLCJlb2wiOjEsImxpbmVDb3VudCI6ODl9LCJ2aWV3Q29sdW1uIjoxLCJmb2N1c3NlZCI6ZmFsc2V9XX0seyJuYW1lIjoiQnJhbmNoOiBkZXYiLCJsaXN0IjpbeyJkb2N1bWVudCI6eyJ1cmkiOnsiJG1pZCI6MSwiZnNQYXRoIjoiL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5zZXJ2aWNlcy9zZXR0aW5ncy5zZXJ2aWNlLnRzIiwiZXh0ZXJuYWwiOiJmaWxlOi8vL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5zZXJ2aWNlcy9zZXR0aW5ncy5zZXJ2aWNlLnRzIiwicGF0aCI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3Quc2VydmljZXMvc2V0dGluZ3Muc2VydmljZS50cyIsInNjaGVtZSI6ImZpbGUifSwiZmlsZU5hbWUiOiIvbW50LzF0L3ByZy9hcGkvc3JjL21vZHVsZXMvc2xvdC9zbG90LnNlcnZpY2VzL3NldHRpbmdzLnNlcnZpY2UudHMiLCJpc1VudGl0bGVkIjpmYWxzZSwibGFuZ3VhZ2VJZCI6InR5cGVzY3JpcHQiLCJ2ZXJzaW9uIjoxLCJpc0Nsb3NlZCI6dHJ1ZSwiaXNEaXJ0eSI6ZmFsc2UsImVvbCI6MSwibGluZUNvdW50IjoyM30sInZpZXdDb2x1bW4iOjEsImZvY3Vzc2VkIjpmYWxzZX1dfSx7Im5hbWUiOiJCcmFuY2g6IGRldiIsImxpc3QiOlt7ImRvY3VtZW50Ijp7InVyaSI6eyIkbWlkIjoxLCJmc1BhdGgiOiIvbW50LzF0L3ByZy9hcGkvc3JjL21vZHVsZXMvc2xvdC9zbG90LnNlcnZpY2VzL3Byb2ZpbGUuc2VydmljZS50cyIsImV4dGVybmFsIjoiZmlsZTovLy9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3Quc2VydmljZXMvcHJvZmlsZS5zZXJ2aWNlLnRzIiwicGF0aCI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3Quc2VydmljZXMvcHJvZmlsZS5zZXJ2aWNlLnRzIiwic2NoZW1lIjoiZmlsZSJ9LCJmaWxlTmFtZSI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3Quc2VydmljZXMvcHJvZmlsZS5zZXJ2aWNlLnRzIiwiaXNVbnRpdGxlZCI6ZmFsc2UsImxhbmd1YWdlSWQiOiJ0eXBlc2NyaXB0IiwidmVyc2lvbiI6MSwiaXNDbG9zZWQiOnRydWUsImlzRGlydHkiOmZhbHNlLCJlb2wiOjEsImxpbmVDb3VudCI6NTF9LCJ2aWV3Q29sdW1uIjoxLCJmb2N1c3NlZCI6ZmFsc2V9LHsiZG9jdW1lbnQiOnsidXJpIjp7IiRtaWQiOjEsImZzUGF0aCI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3QucmVwby9za2luLnJlcG8udHMiLCJleHRlcm5hbCI6ImZpbGU6Ly8vbW50LzF0L3ByZy9hcGkvc3JjL21vZHVsZXMvc2xvdC9zbG90LnJlcG8vc2tpbi5yZXBvLnRzIiwicGF0aCI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3QucmVwby9za2luLnJlcG8udHMiLCJzY2hlbWUiOiJmaWxlIn0sImZpbGVOYW1lIjoiL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5yZXBvL3NraW4ucmVwby50cyIsImlzVW50aXRsZWQiOmZhbHNlLCJsYW5ndWFnZUlkIjoidHlwZXNjcmlwdCIsInZlcnNpb24iOjEsImlzQ2xvc2VkIjp0cnVlLCJpc0RpcnR5IjpmYWxzZSwiZW9sIjoxLCJsaW5lQ291bnQiOjcyfSwidmlld0NvbHVtbiI6MSwiZm9jdXNzZWQiOmZhbHNlfSx7ImRvY3VtZW50Ijp7InVyaSI6eyIkbWlkIjoxLCJmc1BhdGgiOiIvbW50LzF0L3ByZy9hcGkvc3JjL21vZHVsZXMvc2xvdC9zbG90LnNlcnZpY2VzL3NwaW4uc2VydmljZS50cyIsImV4dGVybmFsIjoiZmlsZTovLy9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3Quc2VydmljZXMvc3Bpbi5zZXJ2aWNlLnRzIiwicGF0aCI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3Quc2VydmljZXMvc3Bpbi5zZXJ2aWNlLnRzIiwic2NoZW1lIjoiZmlsZSJ9LCJmaWxlTmFtZSI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3Quc2VydmljZXMvc3Bpbi5zZXJ2aWNlLnRzIiwiaXNVbnRpdGxlZCI6ZmFsc2UsImxhbmd1YWdlSWQiOiJ0eXBlc2NyaXB0IiwidmVyc2lvbiI6MSwiaXNDbG9zZWQiOnRydWUsImlzRGlydHkiOmZhbHNlLCJlb2wiOjEsImxpbmVDb3VudCI6MTg0fSwidmlld0NvbHVtbiI6MSwiZm9jdXNzZWQiOmZhbHNlfV19LHsibmFtZSI6IkJyYW5jaDogbWFzdGVyIiwibGlzdCI6W3siZG9jdW1lbnQiOnsidXJpIjp7IiRtaWQiOjEsImZzUGF0aCI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvbW9kdWxlcy9zbG90L3Nsb3Quc2VydmljZXMvc3Bpbi5zZXJ2aWNlLnRzIiwiZXh0ZXJuYWwiOiJmaWxlOi8vL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5zZXJ2aWNlcy9zcGluLnNlcnZpY2UudHMiLCJwYXRoIjoiL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5zZXJ2aWNlcy9zcGluLnNlcnZpY2UudHMiLCJzY2hlbWUiOiJmaWxlIn0sImZpbGVOYW1lIjoiL21udC8xdC9wcmcvYXBpL3NyYy9tb2R1bGVzL3Nsb3Qvc2xvdC5zZXJ2aWNlcy9zcGluLnNlcnZpY2UudHMiLCJpc1VudGl0bGVkIjpmYWxzZSwibGFuZ3VhZ2VJZCI6InR5cGVzY3JpcHQiLCJ2ZXJzaW9uIjoyLCJpc0Nsb3NlZCI6ZmFsc2UsImlzRGlydHkiOmZhbHNlLCJlb2wiOjEsImxpbmVDb3VudCI6MTg2fSwidmlld0NvbHVtbiI6MSwiZm9jdXNzZWQiOmZhbHNlfSx7ImRvY3VtZW50Ijp7InVyaSI6eyIkbWlkIjoxLCJmc1BhdGgiOiIvbW50LzF0L3ByZy9hcGkvc3JjL2luZGV4LnRzIiwiZXh0ZXJuYWwiOiJmaWxlOi8vL21udC8xdC9wcmcvYXBpL3NyYy9pbmRleC50cyIsInBhdGgiOiIvbW50LzF0L3ByZy9hcGkvc3JjL2luZGV4LnRzIiwic2NoZW1lIjoiZmlsZSJ9LCJmaWxlTmFtZSI6Ii9tbnQvMXQvcHJnL2FwaS9zcmMvaW5kZXgudHMiLCJpc1VudGl0bGVkIjpmYWxzZSwibGFuZ3VhZ2VJZCI6InR5cGVzY3JpcHQiLCJ2ZXJzaW9uIjo2LCJpc0Nsb3NlZCI6ZmFsc2UsImlzRGlydHkiOmZhbHNlLCJlb2wiOjEsImxpbmVDb3VudCI6NTh9LCJ2aWV3Q29sdW1uIjoxLCJmb2N1c3NlZCI6dHJ1ZX1dfV0=",
+  "fold.level": 1,
+  // "editor.letterSpacing": 0.4,
+  "workbench.iconTheme": "vscode-icons",
+  "gitlab-notifications.privateToken": "Kbf9ZXG5SyQtw4BxaaDk",
+  "gitlab-notifications.hideIfNone": false, // true/false
+  "gitlab-notifications.refreshInterval": 300, // seconds
+  "gitlab-notifications.showNumberOfNotifications": true, // true/false
+  "gitlab-notifications.color": "",
+  "files.exclude": {
+    ".git/": true,
+    ".history/": true,
+    ".vscode/": true,
+    "build/": true,
+    "node_modules/": true
+  },
+  "search.exclude": {
+    "**/*.code-search": true,
+    "**/bower_components": true,
+    "**/node_modules": true
+  },
+  "files.watcherExclude": {
+    "**/.history/**": true,
+    "**/build/**": true
+  },
+  "typescript.workspaceSymbols.scope": "currentProject",
+  "jest.pathToJest": "npm test --",
+  "terminal.integrated.fontSize": 15,
+  "vetur.useWorkspaceDependencies": true,
+  "editor.tabSize": 2,
+  "vetur.format.options.tabSize": 3,
+  "vueStyle.formatOnSave": false,
+  "[vue]": {
+    "editor.defaultFormatter": "octref.vetur"
+  },
+  "vueTemplateBeautify.quoteConvert": "single",
+  "javascript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
+  "typescript.format.placeOpenBraceOnNewLineForFunctions": true,
+  "[markdown]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.wordWrap": "bounded",
+    "editor.wordWrapColumn": 90
+  },
+  "workbench.colorTheme": "GitHub Plus",
+  "[git-commit]": {
+    "editor.rulers": [72, 50],
+    "editor.wordWrap": "off"
+  },
+  "vsicons.dontShowNewVersionMessage": true,
+  "peacock.favoriteColors": [
+    {
+      "name": "Angular Red",
+      "value": "#dd0531"
+    },
+    {
+      "name": "Azure Blue",
+      "value": "#007fff"
+    },
+    {
+      "name": "JavaScript Yellow",
+      "value": "#f9e64f"
+    },
+    {
+      "name": "Mandalorian Blue",
+      "value": "#1857a4"
+    },
+    {
+      "name": "Node Green",
+      "value": "#215732"
+    },
+    {
+      "name": "React Blue",
+      "value": "#61dafb"
+    },
+    {
+      "name": "Something Different",
+      "value": "#832561"
+    },
+    {
+      "name": "Svelte Orange",
+      "value": "#ff3d00"
+    },
+    {
+      "name": "Vue Green",
+      "value": "#42b883"
+    }
+  ],
+  "eslint.autoFixOnSave": true
+}
