@@ -90,7 +90,7 @@ export function saveFile(options: {
 
     const uniqueName = unique()
     const basePath = `/var/www/html/public/assets/`
-    const baseUrl = `/public/assets/`
+    const baseUrl = `/`
     const extension = options.file.name.split('.').pop() || ''
     const url = baseUrl + (options.path ? options.path : 'img')
     const path = basePath + (options.path ? options.path : 'img')
@@ -129,8 +129,8 @@ export function saveFile(options: {
 }
 export const urlBase = (): string => {
     const _hostname = hostname()
-    console.log('hostname', _hostname)
-    if (isNotebook()) return 'http://localhost'
+
+    if (isNotebook()) return 'http://localhost/public/assets/'
     else if (_hostname === 'sloto-dev')
         return 'https://assets.dev.slotoprizes.tagadagames.com'
     else if (_hostname === 'slotoprizes')
@@ -143,4 +143,14 @@ export const sleep = async (time: number): Promise<void> => {
             resolve()
         }, time)
     })
+}
+export const getUrlWithoutHost = (url: string): string => {
+    const _urlBase = urlBase()
+    if (url.startsWith(_urlBase)) console.log(url.substr(_urlBase.length))
+    else console.log(url)
+    if (url.startsWith(_urlBase)) return url.substr(_urlBase.length)
+    else return url
+}
+export const addHostToPath = (path: string): string => {
+    return urlBase() + path
 }

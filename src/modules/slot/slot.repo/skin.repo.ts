@@ -1,10 +1,12 @@
-import createError from 'http-errors'
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+// #region imports
+import createError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
 import { saveFile, urlBase } from '../../../helpers'
-
 import { query, queryOne, exec } from './../../../db'
+
+// #endregion
 export interface Skin {
     machineSkinTextureUrl: string;
     machineBgColor: string;
@@ -40,7 +42,6 @@ export const getSkin = async (id: number): Promise<Skin | undefined> => {
 }
 export async function postSkinForCrud(fields, files): Promise<any> {
     const isNew = fields.isNew
-    console.log('fields', fields, 'isNew', isNew)
     const file = files.file ?? files.file
     let skinId
     delete fields.isNew

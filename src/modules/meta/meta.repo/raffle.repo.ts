@@ -11,7 +11,7 @@ import moment from "moment"
 import { query, queryOne, exec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
-import { getRandomNumber, saveFile , urlBase } from "../../../helpers"
+import { addHostToPath, getRandomNumber, saveFile , urlBase } from "../../../helpers"
 import { updateWallet, getWallet } from '../../slot/slot.services/wallet.service'
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
@@ -277,6 +277,7 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
   ])
   await updateRulesFromDb()
   _raffle.closingDate = format(new Date(_raffle.closingDate), 'yyyy-MM-dd HH:mm:ss')
+  _raffle.textureUrl = addHostToPath(_raffle.textureUrl)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return _raffle
 }
