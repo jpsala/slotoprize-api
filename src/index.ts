@@ -29,10 +29,9 @@ void (function main() {
     })
   }
   const app = createApp()
-  const port = 8888
   const name = 'wopidom api'
   console.log('hostname', os.hostname())
-  if (os.hostname() === 'slotoprizes') {
+  if (os.hostname() === 'slotoprizes' || (os.hostname() === 'sloto-dev')) {
     server = https.createServer({
       key: fs.readFileSync('/home/jpsala/privkey.pem'),
       // key: fs.readFileSync('/home/jpsala/certs/privkey1.pem'),
@@ -47,9 +46,9 @@ void (function main() {
     createWsServerService(server)
   } else {
     createWsServerService()
-    server = app.listen(port, async () =>
+    server = app.listen(8888, async () =>
     {
-      console.info(`${name} started at port ${port}`)
+      console.info(`${name} started at port ${8888}, not encripted`)
       await configInit()
       await spinRegenerationInit()
     })

@@ -30,7 +30,7 @@ export const getSkinsForCrud = async (): Promise<any> => {
     const url = urlBase()
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return await query(
-        `select id, concat('${url}', machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name`
+        `select id, concat('${url}', machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name from skin`
     )
 }
 export const getSkin = async (id: number): Promise<Skin | undefined> => {
