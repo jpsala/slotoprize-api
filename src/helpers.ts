@@ -1,5 +1,5 @@
 import { readdirSync, unlinkSync, writeFileSync, readFileSync } from 'fs'
-// helpers
+// helper
 import { join } from 'path'
 
 import { hostname } from 'os'
