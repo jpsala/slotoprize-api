@@ -4,7 +4,6 @@ import { checkToken } from '../meta/authMiddleware'
 import { toggleLog } from './slot.services/events/events'
 
 import * as slot from './slot.controller'
-import { spinSettingsForCrudGet, spinSettingsForCrudPost } from './slot.services/spinForCrud.service'
 
 const router = Router()
 router.route('/auth').post(slot.authPost)
