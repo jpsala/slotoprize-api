@@ -31,6 +31,11 @@ export const getJackpotWinners = async (): Promise<PrizeWinners[]> =>
   `)
   return data as PrizeWinners[]
 }
+export async function getJackpotRow(id: number): Promise<JackpotData | undefined>
+{
+  const data = <JackpotData> (await queryOne(`select * from jackpot where id = ${id}`))
+  return data
+}
 export async function getJackpotData(): Promise<JackpotData[] | undefined>
 {
   const data = <JackpotData[]> (await query(`select * from jackpot`))
@@ -58,9 +63,14 @@ export async function cleanLive(data: JackpotData): Promise<JackpotData>
   await exec(`update jackpot set spinCount=0, repeated=repeated+1 where id = ?`, [data.id])
   return data
 }
-export async function addJackpotNextRow(data: JackpotData): Promise<void>
+export async function updateJackpotNextRow(data: JackpotData): Promise<number>{
+  const resp = await exec(`update jackpot set ? where id = ${<number>data.id}`, data)
+  return resp.affectedRows
+}
+export async function addJackpotNextRow(data: JackpotData): Promise<number>
 {
-  await exec(`insert into jackpot set ?`, data)
+  const resp = await exec(`insert into jackpot set ?`, data)
+  return resp.insertId
 }
 export async function getJackpotLiveRow(): Promise<JackpotData | undefined>
 {

@@ -44,7 +44,7 @@ export async function callback(query: {
   }
 
   const savedEventId = await setAndGetIronSourceEvent(eventId, Number(userId), currency, rewards)
-  if (savedEventId) {
+  if (savedEventId && !userIsDev) {
     console.log('Event already saved, returning')
     return `${eventId}:OK`
   }
@@ -70,7 +70,7 @@ export async function callback(query: {
     wsServer.sendToUser(error, userId)
   }
 
-  return `${eventId}:xOK`
+  return `${eventId}:OK`
 }
 
 

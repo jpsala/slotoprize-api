@@ -3,7 +3,7 @@
 import createError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
-import { saveFile, urlBase } from '../../../helpers'
+import { getUrlWithoutHost, saveFile, urlBase } from '../../../helpers'
 import { query, queryOne, exec } from './../../../db'
 
 // #endregion
@@ -44,13 +44,17 @@ export const getSkin = async (id: number): Promise<Skin | undefined> => {
 export async function postSkinForCrud(fields, files): Promise<any> {
     const isNew = fields.isNew
     const file = files.file ?? files.file
+    fields.machineSkinTextureUrl = getUrlWithoutHost(fields.machineSkinTextureUrl)
     let skinId
     delete fields.isNew
-    if (isNew && !file && !fields.machineSkinTextureUrl)
-        throw createError(BAD_REQUEST, 'Select an image please')
-    if (!fields.machineBgColor)
-        throw createError(BAD_REQUEST, 'Background color is required')
-    if (!fields.name) throw createError(BAD_REQUEST, 'Name is required')
+    // if (isNew && !file && !fields.machineSkinTextureUrl)
+    //     throw createError(BAD_REQUEST, 'Select an image please')
+    if ((!file && !fields.machineSkinTextureUrl) && !fields.machineBgColor)
+        throw createError(BAD_REQUEST, 'Select an image and/or a Color please')
+    
+    if (!fields.name)
+        throw createError(BAD_REQUEST, 'Name is required')
+    if (!fields.machineBgColor) fields.machineBgColor = ''  
     if (isNew) {
         delete fields.id
         const respQuery = await exec('insert into skin set ?', fields)

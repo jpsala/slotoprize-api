@@ -19,12 +19,12 @@ import { gameUserRepo } from '../meta/meta.repo'
 import { getPrizes, PrizeWinners } from './slot.services/prizes.service'
 import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
 import { setProfile } from './slot.services/profile.service'
-import { getJackpotData, addJackpotNextRow } from './slot.services/jackpot.service'
+import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
 import { getTombolaForCrud, postTombolaForCrud, postWinLoseForTombolaCrudPost } from './slot.services/tombola.service'
 
 import { getSkinsForCrud, postSkinForCrud, deleteSkinForCrud } from './slot.repo/skin.repo'
 import { updateRulesFromDb } from './slot.services/events/events'
-import { dailyRewardClaim, dailyRewardInfo } from './slot.repo/dailyReward.repo'
+import { setDailyRewardPrize, dailyRewardClaim, dailyRewardInfo, getDailyRewardPrizesForCrud, deleteDailyRewardPrize } from './slot.repo/dailyReward.repo'
 import * as slotService from './slot.services'
 import * as walletService from "./slot.services/wallet.service"
 // import {spin} from './slot.services/spin.service'
@@ -32,8 +32,9 @@ import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.service
 import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
 import { testUser39 } from './slot.repo/spin.regeneration.repo'
 import { callback } from './slot.services/ironsource'
-import { getAdsSettingsForCrud } from './slot.services/addSettings.service'
-
+import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
+import { getTicketsSettingsForCrud, postTicketsSettingsForCrud } from "./slot.services/ticketsSettings.service"
+import { getSpinSettingsForCrud, setSpinSettingsForCrud } from './slot.services/spinForCrud.service'
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
   console.log('req', req)
   const resp = await getPlayerForFront(String(req.query.id))
@@ -178,8 +179,24 @@ export async function eventsForCrudGet(req: Request, res: Response): Promise<any
   const resp = await getEventsForCrud()
   res.status(200).json(resp)
 }
+export async function eventsForCrudPost(req: Request, res: Response): Promise<any>{
+  const resp = await getEventsForCrud()
+  res.status(200).json(resp)
+}
 export async function adsSettingsForCrudGet(req: Request, res: Response): Promise<any>{
   const resp = await getAdsSettingsForCrud()
+  res.status(200).json(resp)
+}
+export async function adsSettingsForCrudPost(req: Request, res: Response): Promise<any>{
+  const resp = await postAdsSettingsForCrud(req.body.interstitialsRatio)
+  res.status(200).json(resp)
+}
+export async function ticketsSettingsForCrudGet(req: Request, res: Response): Promise<any>{
+  const resp = await getTicketsSettingsForCrud()
+  res.status(200).json(resp)
+}
+export async function ticketsSettingsForCrudPost(req: Request, res: Response): Promise<any>{
+  const resp = await postTicketsSettingsForCrud(req.body.ticketValue)
   res.status(200).json(resp)
 }
 export async function supportRequestForCrudGet(req: Request, res: Response): Promise<any>{
@@ -203,11 +220,31 @@ export async function spinDataGet(req: Request, res: Response): Promise<any>{
   res.status(200).json(spinData)
 }
 export async function spinDataPost(req: Request, res: Response): Promise<any>{
-  await addJackpotNextRow(req.body)
-  res.status(200).json({status: 'ok'})
+  const resp = await jackpotPost(req.body)
+  res.status(200).json(resp)
 }
 export async function dailyRewardInfoGet(req: Request, res: Response): Promise<any>{
   await dailyRewardInfo(req.query.deviceId as string)
+  res.status(200).json(1)
+}
+export async function dailyRewardGet(req: Request, res: Response): Promise<any>{
+  const rewards = await getDailyRewardPrizesForCrud()
+  res.status(200).json(rewards)
+}
+export async function dailyRewardPost(req: Request, res: Response): Promise<any>{
+  const rewards = await setDailyRewardPrize(req.body)
+  res.status(200).json(rewards)
+}
+export async function dailyRewardDelete(req: Request, res: Response): Promise<any>{
+  const rewards = await deleteDailyRewardPrize(Number(req.query.id))
+  res.status(200).json(rewards)
+}
+export async function spinSettingsForCrudGet(req: Request, res: Response): Promise<any>{
+  const value = await getSpinSettingsForCrud()
+  res.status(200).json(value)
+}
+export async function spinSettingsForCrudPost(req: Request, res: Response): Promise<any>{
+  await setSpinSettingsForCrud(req.body.spinRegTime as string)
   res.status(200).json(1)
 }
 export async function dailyRewardClaimGet(req: Request, res: Response): Promise<any>{

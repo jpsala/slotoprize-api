@@ -1,6 +1,7 @@
 import { BAD_REQUEST } from 'http-status-codes'
 import createError from 'http-errors'
 import moment from 'moment'
+import createHttpError from 'http-errors'
 import { getWallet } from '../slot.services/wallet.service'
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { Wallet } from './../../meta/models/wallet'
@@ -33,7 +34,7 @@ export const setSpinData = async (user: GameUser): Promise<number> => {
     [new Date(), days, user.id])
   return diff
 }
-export type DailyRewardPrize = { type: string, amount: number }
+export type DailyRewardPrize = { id?:number, type: string, amount: number }
 export const getDailyRewardPrizes = async (): Promise<DailyRewardPrize[]> => {
   const rows = await query(`select * from daily_reward order by id asc`)
   if (!rows) throw new Error('No DailyRewardPrizes in DB')
@@ -42,6 +43,25 @@ export const getDailyRewardPrizes = async (): Promise<DailyRewardPrize[]> => {
     dailyRewardPrizes.push({ type: row.type, amount: Number(row.amount) })
   })
   return dailyRewardPrizes
+}
+export const getDailyRewardPrizesForCrud = async (): Promise<DailyRewardPrize[]> => {
+  const rows =  (await query(`select * from daily_reward order by id asc`)) as DailyRewardPrize[]
+  return rows
+}
+export const setDailyRewardPrize = async (reqData: DailyRewardPrize): Promise<number> => {
+  const isNew = reqData.id === -1
+  if(Number(reqData.amount) < 1) throw createHttpError(BAD_REQUEST, 'Amount has to be a valid integer bigger than 1')
+  if(reqData.type === '') throw createHttpError(BAD_REQUEST, 'Type has to be coin, ticket or spin')
+  if (isNew) {
+    delete reqData.id
+    const resp = await exec(`insert into daily_reward set ?`, reqData)
+    return resp.insertId
+  }
+  await exec(`update daily_reward set ? where id = ${<number> reqData.id}`, reqData)
+  return <number> reqData.id
+}
+export const deleteDailyRewardPrize = async (id: number): Promise<void> => {
+  await query(`delete from daily_reward where id = ${id}`)
 }
 export const getUserPrize = async (user: GameUser): Promise<DailyRewardPrize | undefined> => {
   const lastSpin = await getLastSpin(user)

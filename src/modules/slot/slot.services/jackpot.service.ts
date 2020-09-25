@@ -33,6 +33,23 @@ export const getJackpotLiveRow = async (): Promise<JackpotData> =>
   if(!data) throw createHttpError(BAD_REQUEST, 'There is not a live cycle in the db')
   return data
 }
+export const jackpotPost = async (reqData: JackpotData): Promise<any> => {
+  const isNew = reqData.id === -1
+  console.log('post', reqData)
+  reqData.cycle = Number(reqData.cycle)
+  reqData.prize = Number(reqData.prize)
+  if (isNew) return addJackpotNextRow(reqData)
+  if (isNaN(Number(reqData.cycle))) throw createHttpError(BAD_REQUEST, 'Cycle has to be a valid integer')
+  if (isNaN(Number(reqData.prize))) throw createHttpError(BAD_REQUEST, 'Prize has to be a valid number')
+  if (reqData.confirmed) {
+    if (reqData.cycle === 0 || isNaN(Number(reqData.cycle))) throw createHttpError(BAD_REQUEST, 'Cycle has to be a valid integer bigger than 0')
+    if (reqData.prize === 0 || isNaN(Number(reqData.prize))) throw createHttpError(BAD_REQUEST, 'Prize has to be a valid number bigger than 0')
+  }
+  
+  const resp = await jackpotRepo.updateJackpotNextRow(reqData)
+  // const savedData = await jackpotRepo.getJackpotRow(<number>reqData.id)
+  return resp
+}
 export const addJackpotNextRow = async (data: JackpotData): Promise<void> =>
 {
   const jackpotNextRow = await jackpotRepo.getJackpotNextRow()

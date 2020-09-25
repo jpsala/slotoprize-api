@@ -4,6 +4,7 @@ import { checkToken } from '../meta/authMiddleware'
 import { toggleLog } from './slot.services/events/events'
 
 import * as slot from './slot.controller'
+import { spinSettingsForCrudGet, spinSettingsForCrudPost } from './slot.services/spinForCrud.service'
 
 const router = Router()
 router.route('/auth').post(slot.authPost)
@@ -29,14 +30,22 @@ router.route('/postman').get(slot.postmanGet)
 router.route('/language_code').get(checkToken, slot.languageCodeGet)
 router.route('/support_request').post(checkToken, slot.soportePost)
 // router.route('/event').post(checkToken, slot.eventPost)
-router.route('/events').get(checkToken, slot.eventsForCrudGet)
 router.route('/ads_settings_for_crud').get(checkToken, slot.adsSettingsForCrudGet)
+router.route('/ads_settings_for_crud').post(checkToken, slot.adsSettingsForCrudPost)
+router.route('/tickets_settings_for_crud').get(checkToken, slot.ticketsSettingsForCrudGet)
+router.route('/tickets_settings_for_crud').post(checkToken, slot.ticketsSettingsForCrudPost)
+router.route('/events').get(checkToken, slot.eventsForCrudGet)
 router.route('/event').post(formidableMiddleware(), checkToken, slot.eventPost)
 router.route('/skins').get(checkToken, slot.skinsGet)
 router.route('/eventsReload').post(checkToken, slot.eventsReloadPost)
 router.route('/toggleLog').post(checkToken, (req, res) => { res.status(200).json({ logging: toggleLog() }) })
 router.route('/daily_reward_claim').get(checkToken, slot.dailyRewardClaimGet)
 router.route('/daily_reward_info').get(checkToken, slot.dailyRewardInfoGet)
+router.route('/daily_reward_for_crud').get(checkToken, slot.dailyRewardGet)
+router.route('/daily_reward_for_crud').post(checkToken, slot.dailyRewardPost)
+router.route('/daily_reward_for_crud').delete(checkToken, slot.dailyRewardDelete)
+router.route('/spin_settings_for_crud').get(checkToken, slot.spinSettingsForCrudGet)
+router.route('/spin_settings_for_crud').post(checkToken, slot.spinSettingsForCrudPost)
 router.route('/spin_data').get(checkToken, slot.spinDataGet)
 router.route('/spin_data').post(checkToken, slot.spinDataPost)
 

@@ -3,6 +3,8 @@
 // #region imports
 import path from 'path'
 import fs, { unlinkSync } from 'fs'
+import createHttpError from 'http-errors'
+import { BAD_REQUEST } from 'http-status-codes'
 import { getRandomNumber, getUrlWithoutHost, addHostToPath } from './../../../helpers'
 import { updateRulesFromDb } from './../slot.services/events/events'
 import { exec, query } from './../../../db'
@@ -31,7 +33,7 @@ export async function getEventsForCrud(): Promise<any> {
     "id": -1,
     "eventType": "generic",
     "name": "New Event",
-    "rule": "* * * * * * *",
+    "rule": "* */1 * * * * *",
     "duration": 0,
     "active": 1,
     "popupMessage": "",
@@ -50,6 +52,8 @@ export async function getEventsForCrud(): Promise<any> {
 type EventDto = Event &
 {
   skin?: any,
+  skinId?: number,
+  name?: string,
   notificationFile?: any,
   popupFile?: any,
   id: number,
@@ -61,7 +65,8 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   delete (eventDto as any).skin
   delete (eventDto as any).notificationFile
   delete (eventDto as any).popupFile
-
+  if(String(eventDto.skinId) === 'undefined') delete eventDto.skinId
+  if(eventDto.name === 'New Event') throw createHttpError(BAD_REQUEST, 'Give a name to the event')
   let isNew = false
   if (String(eventDto.id) === '-1') {
     isNew = true
@@ -70,9 +75,9 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
 
   eventDto.notificationTextureUrl = getUrlWithoutHost(<string>eventDto.notificationTextureUrl)
   eventDto.popupTextureUrl = getUrlWithoutHost(<string>eventDto.popupTextureUrl)
-
+  console.log('ev', eventDto)
   const resp = await exec(`REPLACE into event set ?`, <any>eventDto)
-
+  console.log('no', )
   removeActualImage(files?.notificationFile, resp.insertId, 'notification')
   removeActualImage(files?.popupFile, resp.insertId, 'popup')
 
