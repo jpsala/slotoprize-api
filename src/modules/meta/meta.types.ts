@@ -43,7 +43,8 @@ export interface GameUser {
   country: string;
   isNew: boolean;
   isDev: boolean;
-  advertisingId?: number;
+  
+  advertisingId?: string;
   // wallet?: Partial<Wallet>;
   wallet?: Wallet;
 }
