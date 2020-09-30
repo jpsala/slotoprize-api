@@ -53,7 +53,7 @@ async function getRaffleLocalizationData(user: GameUser,raffleId: number): Promi
       raffleId: -1,
       languageCode: languageCode,
       name: 'No localization for ' + languageCode,
-      description: 'No description for '+ languageCode
+      description: 'No localization for '+ languageCode
     }
 
   return camelcaseKeys(localizationData) as LocalizationData
@@ -288,11 +288,15 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
   const gameUser = await getGameUserByDeviceId(deviceId)
   const raffleHistory = await query(`
     SELECT rh.raffle_id as raffle_item_id, rh.transaction_date, rh.tickets,
-           rh.closing_date, rh.raffle_numbers, rl.name, rl.description
+           rh.closing_date, rh.raffle_numbers, 
+           (
+            select IF(count(*) = 0, concat('No localization for ', '${gameUser.languageCode}'), rl.description) from raffle_localization rl
+              where rl.raffle_id = rh.raffle_id and rl.language_code = '${gameUser.languageCode}' limit 1
+          ) as name, coalesce(rl.description, concat('No localization for ', '${gameUser.languageCode}')) description
     FROM raffle_history rh
         inner join raffle on rh.raffle_id = raffle.id
         left join raffle_localization rl on raffle.id = rl.raffle_id and
-                                             rl.language_code = "${gameUser.languageCode}"
+              rl.language_code = "${gameUser.languageCode}"
     where rh.game_user_id = ${gameUser.id}
     order by rh.id desc
     limit 20
@@ -355,7 +359,7 @@ export const getWinners = async (): Promise<any[]> =>
   select concat(gu.first_name, ', ', gu.last_name) as winnerName,
     rh.closing_date as date , concat('${url}', r.texture_url) as textureUrl,
       (
-        select IF(count(*) = 0, 'No localization Data', rl.description) from raffle_localization rl
+        select IF(count(*) = 0, concat('No localization for ', gu.language_code), rl.description) from raffle_localization rl
           where rl.raffle_id = r.id and rl.language_code = gu.language_code limit 1
       ) as prizeName
     from raffle_wins rw

@@ -7,6 +7,7 @@ import getSlotConnection from '../../../db'
 import { SpinData , WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
 import { setGameUserSpinData , getGameUserLastSpinDate } from '../../meta/meta.repo/gameUser.repo'
+import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { GameUser } from './../../meta/meta.types'
 
 import * as jackpotService from './jackpot.service'
@@ -110,6 +111,7 @@ const getSymbolForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
 export const getPayTable = async (): Promise<any> => {
   const conn = await getSlotConnection()
   try {
+    const jackpotLiveRow = await getJackpotLiveRow()
     const [payTable] = await conn.query(`
       select s.symbol_name, s.payment_type, pt.symbol_amount, pt.probability, pt.points
         from pay_table pt
@@ -118,7 +120,8 @@ export const getPayTable = async (): Promise<any> => {
     console.log('pay', payTable)
     for (const row of <any[]>payTable) 
       if (row.payment_type === 'jackpot')
-        console.log('row', row)
+        row.points = jackpotLiveRow?.prize
+    console.log('py', payTable)
     return payTable
   } finally {
     conn.destroy()
