@@ -51,7 +51,7 @@ export const jackpotPost = async (reqData: JackpotData): Promise<any> => {
   // const savedData = await jackpotRepo.getJackpotRow(<number>reqData.id)
   return resp
 }
-export const addJackpotNextRow = async (data: JackpotData): Promise<void> =>
+export const addJackpotNextRow = async (data: JackpotData): Promise<any> =>
 {
   const jackpotNextRow = await jackpotRepo.getJackpotNextRow()
   if (jackpotNextRow) throw createHttpError(BAD_REQUEST, `There is already a jackpot cycle with state = "next"`)
