@@ -16,6 +16,7 @@ import { getLanguagesForCrud, postLanguageForCrud, deleteLanguageForCrud } from 
 import { getCountriesForCrud, postCountryForCrud, getCountries } from '../meta/meta.repo/country.repo'
 
 import { gameUserRepo } from '../meta/meta.repo'
+import { getWinnersForCrud } from '../meta/meta-services/winner.service'
 import { getPrizes, PrizeWinners } from './slot.services/prizes.service'
 import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
 import { setProfile } from './slot.services/profile.service'
@@ -31,7 +32,7 @@ import * as walletService from "./slot.services/wallet.service"
 import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.services/symbol.service'
 import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
 import { testUser39 } from './slot.repo/spin.regeneration.repo'
-import { callback } from './slot.services/ironsource'
+import { callback, getVideoAdsViewCountForCrud } from './slot.services/ironsource'
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
 import { getTicketsSettingsForCrud, postTicketsSettingsForCrud } from "./slot.services/ticketsSettings.service"
 import { getSpinSettingsForCrud, setSpinSettingsForCrud } from './slot.services/spinForCrud.service'
@@ -189,6 +190,14 @@ export async function adsSettingsForCrudGet(req: Request, res: Response): Promis
 }
 export async function adsSettingsForCrudPost(req: Request, res: Response): Promise<any>{
   const resp = await postAdsSettingsForCrud(req.body.interstitialsRatio)
+  res.status(200).json(resp)
+}
+export async function videoAdsViewCountForCrudGet(req: Request, res: Response): Promise<any>{
+  const resp = await getVideoAdsViewCountForCrud(Number(req.query.userId))
+  res.status(200).json(resp)
+}
+export async function winnersForCrudGet(req: Request, res: Response): Promise<any>{
+  const resp = await getWinnersForCrud()
   res.status(200).json(resp)
 }
 export async function ticketsSettingsForCrudGet(req: Request, res: Response): Promise<any>{

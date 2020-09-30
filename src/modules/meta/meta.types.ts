@@ -43,6 +43,7 @@ export interface GameUser {
   country: string;
   isNew: boolean;
   isDev: boolean;
+  advertisingId?: number;
   // wallet?: Partial<Wallet>;
   wallet?: Wallet;
 }
@@ -93,6 +94,8 @@ export interface RafflePrizeData {
   name?: string;
   description?: string;
   localizationData: LocalizationData[];
+  winner?: number;
+  closed?: boolean;
 }
 export interface RafflePrizeDataDB {
   id: number;

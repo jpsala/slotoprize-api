@@ -115,6 +115,10 @@ export const getPayTable = async (): Promise<any> => {
         from pay_table pt
       inner join symbol s on s.id = pt.symbol_id
       order by pt.probability asc`)
+    console.log('pay', payTable)
+    for (const row of <any[]>payTable) 
+      if (row.payment_type === 'jackpot')
+        console.log('row', row)
     return payTable
   } finally {
     conn.destroy()

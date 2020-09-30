@@ -4,7 +4,7 @@ import createHttpError from 'http-errors'
 import { getWallet, updateWallet } from '../wallet.service'
 import { WebSocketMessage, wsServer } from '../webSocket/ws.service'
 import { getGameUser } from '../../../meta/meta.repo/gameUser.repo'
-import { queryOne, exec } from './../../../../db'
+import { queryOne, exec, query } from './../../../../db'
 
 export async function callback(query: {
     USER_ID: string;
@@ -24,6 +24,8 @@ export async function callback(query: {
   const privateKey = 'tagadaGames2235357865'
   const userId = query.USER_ID
   const currency = query.currency
+  const deliveryType = query.DELIVERY_TYPE
+  const adProvider = query.AD_PROVIDER
   if(!['coins', 'spins'].includes(currency)) throw createHttpError(BAD_REQUEST, 'currency has to be coins or spins')
   const rewards = Number(query.rewards)
   const user = await getGameUser(Number(userId))
@@ -43,7 +45,7 @@ export async function callback(query: {
     return `${eventId}:OK`
   }
 
-  const savedEventId = await setAndGetIronSourceEvent(eventId, Number(userId), currency, rewards)
+  const savedEventId = await setAndGetIronSourceEvent(eventId, Number(userId), currency, rewards, deliveryType, adProvider)
   if (savedEventId && !userIsDev) {
     console.log('Event already saved, returning')
     return `${eventId}:OK`
@@ -72,14 +74,31 @@ export async function callback(query: {
 
   return `${eventId}:OK`
 }
+export async function getVideoAdsViewCountForCrud(userId: number): Promise<any> {
+  const deliveryTypeData = await query(`
+      select count(*) as count, deliveryType from iron_source
+      where userId = ${userId}
+      group by deliveryType
+  `)
+  const adProviderData = await query(`
+      select count(*) as count, adProvider from iron_source
+      where userId = ${userId}
+      group by adProvider
+  `)
+  const totalData = await queryOne(`
+      select count(*) as count from iron_source
+      where userId = ${userId}
+  `)
+  return {deliveryTypeData, adProviderData, totalData}
+}
 
-
-const setAndGetIronSourceEvent = async (eventId: string, userId: number, currency: string, rewards: number): Promise<boolean> => {
+const setAndGetIronSourceEvent = async (eventId: string, userId: number, currency: string,
+                                        rewards: number, deliveryType: string, adProvider: string): Promise<boolean> => {
   const resp = await queryOne(`select * from iron_source where eventId = '${eventId}'`)
   if (!resp) {
-    console.log('saving event in iron_source', eventId, userId, currency, rewards)
-    await exec(`insert into iron_source(eventId, userID, currency, rewards)
-      values(?,?,?,?)`, [eventId, userId, currency, rewards])
+    console.log('saving event in iron_source', eventId, userId, currency, rewards, deliveryType, adProvider)
+    await exec(`insert into iron_source(eventId, userID, currency, rewards, deliveryType, adProvider)
+      values(?,?,?,?,?,?)`, [eventId, userId, currency, rewards, deliveryType, adProvider])
     }
   return Boolean(resp)
 }

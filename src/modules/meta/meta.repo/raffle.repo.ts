@@ -28,8 +28,10 @@ export const rafflePurchase = async (deviceId: string, raffleId: number, amount:
 
   const user = await getGameUserByDeviceId(deviceId)
   const wallet = await getWallet(user)
-  const raffle = await getRaffle(raffleId)
+  const raffle = await getRaffle(raffleId,undefined,true,true)
+  console.log('raffle', raffle)
   if (!raffle) throw createError(createError.BadRequest, 'there is no raffle with that ID')
+  if(raffle.winner || raffle.closed) throw createError(createError.BadRequest, 'The raffle has been raffled')
   const raffleCostInTickets = raffle.raffleNumberPrice
   const totalTicketsNeeded = raffleCostInTickets * amount
   if (totalTicketsNeeded > wallet.tickets) throw createError(createError.BadRequest, 'Insufficient tickets')
@@ -151,7 +153,7 @@ export async function getRaffle(id: number,
   const url = urlBase()
 
   const select = rawAllFields
-    ? `SELECT r.*, rl.name, rl.description FROM raffle r
+    ? `SELECT r.*, rl.name, rl.description, (r.closing_date < current_timestamp) as closed FROM raffle r
       inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
     where r.id = ${id}`
     : `SELECT r.id, closing_date, rl.name, rl.description,
