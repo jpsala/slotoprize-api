@@ -60,7 +60,7 @@ export const addJackpotNextRow = async (data: JackpotData): Promise<void> =>
   if(data.spinCount !== 0) data.spinCount = 0
   if(data.prize === 0 && data.confirmed) throw createHttpError(BAD_REQUEST, 'Prize has to be bigger than 0 if is confirmed')
   if(data.cycle === 0 && data.confirmed) throw createHttpError(BAD_REQUEST, 'Cycle has to be bigger than 0 if is confirmed')
-  await jackpotRepo.addJackpotNextRow(data)
+  return await jackpotRepo.addJackpotNextRow(data)
 
 }
 export const addSpinsToJackpotLiveRow = async (amount: number, user: GameUser): Promise<boolean> =>
