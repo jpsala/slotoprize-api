@@ -35,6 +35,7 @@ export const getJackpotLiveRow = async (): Promise<JackpotData> =>
 }
 export const jackpotPost = async (reqData: JackpotData): Promise<any> => {
   const isNew = reqData.id === -1
+  if(isNew) delete reqData.id
   console.log('post', reqData)
   reqData.cycle = Number(reqData.cycle)
   reqData.prize = Number(reqData.prize)
