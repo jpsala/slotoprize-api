@@ -29,10 +29,10 @@ export async function gameInit(deviceId: string): Promise<any> {
     // @URGENT crear savelogin
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
     const hasPendingRaffle = await getHaveWinRaffle(rawUser.id as number)
-    const hasPendingJackpot = await getHaveWinJackpot(rawUser.id as number)
-    const pendingPrizeIsJackpot = hasPendingJackpot
+    // const hasPendingJackpot = await getHaveWinJackpot(rawUser.id as number)
+    // const pendingPrizeIsJackpot = hasPendingJackpot
     const rafflePrizeData = hasPendingRaffle ? await getWinRaffle(rawUser.id as number) : undefined
-    const hasPendingPrize = hasPendingRaffle || hasPendingJackpot
+    const hasPendingPrize = hasPendingRaffle
     await resetPendingPrize(rawUser.id as number)
     const token = getNewToken({id: rawUser.id, deviceId})
     await setGameUserLogin(deviceId)
@@ -70,9 +70,8 @@ export async function gameInit(deviceId: string): Promise<any> {
       languageCode,
       defaultSpinData,
       interstitialsRatio: await getSetting('interstitialsRatio', '5'),
-      hasPendingPrize: hasPendingPrize,
+      hasPendingPrize,
       rafflePrizeData,
-      pendingPrizeIsJackpot,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
       consecutiveDailyLogs,
@@ -85,7 +84,6 @@ export async function gameInit(deviceId: string): Promise<any> {
       walletData: wallet
     }
     if(!rafflePrizeData) delete initData.rafflePrizeData
-    if(!hasPendingPrize) delete (initData as any).pendingPrizeIsJackpot
     return initData
   } catch (error) {
     throw createError(createError.InternalServerError, error)
