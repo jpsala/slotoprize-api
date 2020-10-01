@@ -14,7 +14,7 @@ export interface WebSocketMessage
 {
   code: 200 | 400 | 500;
   message: 'OK' | string;
-  msgType: 'events' | 'webSocket' | 'eventsState' | 'spinTimer' | 'getSpinTimer' | 'adReward';
+  msgType: 'events' | 'webSocket' | 'eventsState' | 'spinTimer' | 'getSpinTimer' | 'adReward' | 'jackpotWin';
   payload: EventPayload | any
 }
 type WsServerService = {

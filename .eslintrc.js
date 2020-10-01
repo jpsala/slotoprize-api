@@ -46,6 +46,7 @@ module.exports = {
     'require-await': 'error',
     '@typescript-eslint/no-floating-promises': 'error',
     'require-atomic-updates': 'off',
+    'eslint prefer-const': 'warn',
     'babel/no-unused-expressions': [
       'error',
       {

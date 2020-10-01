@@ -3,6 +3,7 @@ import { utc } from 'moment'
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
 import createError from 'http-errors'
+import { LENGTH } from 'class-validator'
 import getSlotConnection from '../../../db'
 import { SpinData , WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
@@ -16,6 +17,7 @@ import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import { getSetting } from './settings.service'
 import { getWallet, updateWallet } from './wallet.service'
+import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 
 
 const randomNumbers: number[] = []
@@ -32,17 +34,35 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   const { bet, enoughSpins } = getBetAndCheckFunds(multiplier, spinsInWallet)
   if (!enoughSpins) throw createError(400, 'Insufficient funds')
 
-  const jackpot = await jackpotService.addSpinsToJackpotLiveRow(multiplier, user)
+  const {isJackpot, prize} = await jackpotService.addSpinsToJackpotAndReturnIfIsJackpot(multiplier, user)
+  /*confirmed: 1
+cycle: 1
+id: 18
+isJackpot: true
+prize: 10
+repeated: 9
+spinCount: 1
+state: "live"*/
   // eslint-disable-next-line prefer-const
-  let { winPoints, winType, symbolsData, isWin } = await getWinData(jackpot)
+  let { winPoints, winType, symbolsData, isWin } = await getWinData(isJackpot)
 
   if (winType === 'jackpot' || winType === 'ticket') multiplier = 1
   let winAmount = winPoints * multiplier
 
-
   // siempre se descuenta el costo del spin
   wallet.spins -= bet
   if (winType === 'jackpot') {
+    /*<json of jackpot amount and currency sign, and player name or player location>*/
+    const wsMessage: WebSocketMessage = {
+      code: 200,
+      message: 'OK',
+      msgType: 'jackpotWin',
+      payload: {
+        amount: prize,
+        playerName: `${user.firstName}, ${user.lastName}`
+      }
+    }
+    wsServer.send(wsMessage)
     isWin = true
   } else if (isWin) {
     const eventMultiplier = getActiveEventMultiplier()
@@ -117,11 +137,9 @@ export const getPayTable = async (): Promise<any> => {
         from pay_table pt
       inner join symbol s on s.id = pt.symbol_id
       order by pt.probability asc`)
-    console.log('pay', payTable)
     for (const row of <any[]>payTable) 
       if (row.payment_type === 'jackpot')
         row.points = jackpotLiveRow?.prize
-    console.log('py', payTable)
     return payTable
   } finally {
     conn.destroy()

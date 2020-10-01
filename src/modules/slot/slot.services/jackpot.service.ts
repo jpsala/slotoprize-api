@@ -63,20 +63,23 @@ export const addJackpotNextRow = async (data: JackpotData): Promise<any> =>
   return await jackpotRepo.addJackpotNextRow(data)
 
 }
-export const addSpinsToJackpotLiveRow = async (amount: number, user: GameUser): Promise<boolean> =>
+export const addSpinsToJackpotAndReturnIfIsJackpot = async (amount: number, user: GameUser):
+             Promise<JackpotData & { isJackpot: boolean }> =>
 {
   while (spinBlocked) await sleep(10)
   spinBlocked = true
   let isJackpot = false
+  let ret: JackpotData & { isJackpot: boolean }
   try {
     await jackpotRepo.addSpinsToJackpotLiveRow(amount)
-    const {spinCount, cycle} = await getJackpotLiveRow()
-    isJackpot = Number(spinCount) >= Number(cycle)
+    const liveRow = await getJackpotLiveRow()
+    isJackpot = Number(liveRow.spinCount) >= Number(liveRow.cycle)
     if (isJackpot) await thisModule.jackpotWin(user)
+    ret = {...liveRow, isJackpot }
   } finally {
     spinBlocked = false
   }
-  return isJackpot
+  return ret
 
 }
 export const getNewLiveRow = async (): Promise<JackpotData | undefined> =>
