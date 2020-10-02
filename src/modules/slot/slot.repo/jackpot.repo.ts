@@ -53,7 +53,7 @@ export async function addSpinsToJackpotLiveRow(amount: number): Promise<void>
 export async function setJackpotWinned(user: GameUser, jackpotLiveRow: JackpotData): Promise<void>
 {
   await query(`insert into jackpot_win(game_user_id, jackpot_id, state) values (?, ?, ?)`, [
-    String(user.id), String(jackpotLiveRow.id), 'new'
+    String(user.id), String(jackpotLiveRow.id), 'won'
   ])
 }
 export async function cleanLive(data: JackpotData): Promise<JackpotData>

@@ -132,7 +132,7 @@ export async function resetPendingPrize(userId: number): Promise<void> {
 export async function getHaveWinJackpot(userId: number): Promise<boolean> {
   const winData = await queryOne(`
     select count(*) as win from jackpot_win jw
-    where state = 'new' and jw.game_user_id = ${userId} and jw.notified = 0
+    where state = 'won' and jw.game_user_id = ${userId} and jw.notified = 0
   `)
   return winData.win > 0
 }

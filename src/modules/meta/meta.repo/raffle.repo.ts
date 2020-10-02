@@ -206,8 +206,8 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
   const diffLiveDate = closingDateUtc.diff(liveDateUtc.utc(), 'seconds')
   const diffClosigDate = closingDateUtc.diff(moment.utc(), 'seconds')
 
-  if(diffClosigDate <= 0 && (raffle.state === 'ready' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
-  if(diffLiveDate <= 0 && (raffle.state === 'ready' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle live date can not be after closing date')
+  if(diffClosigDate <= 0 && (raffle.state === 'new' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
+  if(diffLiveDate <= 0 && (raffle.state === 'new' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle live date can not be after closing date')
   const raffleForDB = {
     id: raffle.id,
     closing_date: format(closingDate, 'yyyy-MM-dd HH:mm:ss'),
@@ -215,7 +215,7 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
     raffle_number_price: raffle.price || 0,
     texture_url: raffle.textureUrl || '',
     item_highlight: 0,
-    state: raffle.state || 'ready'
+    state: raffle.state || 'new'
   }
   if (!localizationData || localizationData.length < 1)
     throw createError(createError.BadRequest, 'raffle.localizationData is required')
@@ -332,7 +332,7 @@ export async function raffleTime(raffleId: number): Promise<any> {
   const eventData = JSON.stringify({"id": Number(raffleId)})
   await exec(`delete from event where data = '${eventData}'`)
   await updateRulesFromDb()
-  await exec(`update raffle set winner = ${winnerRaffleHistory.game_user_id}, state = "waiting" where id = ${raffleId}`)
+  await exec(`update raffle set winner = ${winnerRaffleHistory.game_user_id}, state = "won" where id = ${raffleId}`)
   await exec(`update raffle_history set win = 1 where id = ${winnerRaffleHistory.id}`)
   return winnerRaffleHistory
 }

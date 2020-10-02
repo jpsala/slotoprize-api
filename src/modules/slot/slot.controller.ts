@@ -16,7 +16,7 @@ import { getLanguagesForCrud, postLanguageForCrud, deleteLanguageForCrud } from 
 import { getCountriesForCrud, postCountryForCrud, getCountries } from '../meta/meta.repo/country.repo'
 
 import { gameUserRepo } from '../meta/meta.repo'
-import { getWinnersForCrud } from '../meta/meta-services/winner.service'
+import { getWinnersForCrud, postWinnersStatusForCrud } from '../meta/meta-services/winner.service'
 import { getPrizes, PrizeWinners } from './slot.services/prizes.service'
 import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
 import { setProfile } from './slot.services/profile.service'
@@ -135,6 +135,10 @@ export async function prizeNotifiedPost(req: Request, res: Response): Promise<an
 }
 export async function prizesWinnersGet(req: Request, res: Response): Promise<any>{
   const resp: PrizeWinners[] = await getPrizes()
+  res.status(200).json(resp)
+}
+export async function changeWinnersStatusForCrudPost(req: Request, res: Response): Promise<any>{
+  const resp: PrizeWinners[] = await postWinnersStatusForCrud(req.body.items, req.body.state)
   res.status(200).json(resp)
 }
 export async function withTokenGet(req: Request, res: Response): Promise<any>{
