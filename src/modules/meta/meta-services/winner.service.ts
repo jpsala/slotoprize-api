@@ -5,7 +5,7 @@ import { getGameUserByDeviceId } from "../meta.repo/gameUser.repo"
 /* date, prize, origin, status, useId, user */
 export async function getWinnersForCrud(): Promise<any> {
   const select = `
-  (select jw.id, gu.device_id,
+  select jw.id, gu.device_id,
       if(last_name != '', concat(last_name, ', ', first_name), 'No name in Profile') as user,
       if(gu.email != '', gu.email, 'No Email in Profile')          as email,
       date_format(jw.createdAt, '%Y-%m-%d')                        as date,
@@ -18,7 +18,7 @@ export async function getWinnersForCrud(): Promise<any> {
       inner join game_user gu on jw.game_user_id = gu.id
    where jw.createdAT
       union
-   select rh.id, gu.device_id,
+   select r.id, gu.device_id,
       if(last_name != '', concat(last_name, ', ', first_name), '') as user,
       if(gu.email != '', gu.email, 'n/a')                          as email,
       date_format(rh.closing_date, '%Y-%m-%d')                     as date,
@@ -32,7 +32,7 @@ export async function getWinnersForCrud(): Promise<any> {
       inner join game_user gu on r.winner = gu.id
       left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
     where rh.closing_date
-) order by 5
+ order by 5
 `
 const data = await query(select)
   for (const row of data) 
@@ -46,5 +46,5 @@ export const postWinnersStatusForCrud = async (items: any[], state: string ): Pr
     if (item.origin === 'Jackpot') 
       await exec(`update jackpot_win set state = '${state}' where id = ${<number>item.id}`)  
     else
-      await exec(`update raffle_history set state = '${state}' where id = ${<number>item.id}`)  
+      await exec(`update raffle set state = '${state}' where id = ${<number>item.id}`)  
 }
