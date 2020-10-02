@@ -1,9 +1,0 @@
-import { GameUser } from "../../meta/meta.types"
-import createTestModule from "./testModule"
-
-export const getUser = async (deviceId = 'fakeUserId'): Promise<GameUser> =>
-{
-  const testModule = createTestModule()
-  const user = await testModule.getSuperUser(deviceId)
-  return user
-}

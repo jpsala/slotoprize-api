@@ -5,7 +5,7 @@ import * as languageRepo from "../../../meta/meta.repo/language.repo"
 import {setReqUser} from '../../../meta/authMiddleware'
 import {getOrSetGameUserByDeviceId} from "../../../meta/meta-services/meta.service"
 import {getNewToken} from '../../../../services/jwtService'
-import {getHaveWinRaffle, setGameUserLogin, getHaveWinJackpot, getWinRaffle, resetPendingPrize } from '../../../meta/meta.repo/gameUser.repo'
+import {getHaveWinRaffle, setGameUserLogin, getWinRaffle, resetPendingPrize } from '../../../meta/meta.repo/gameUser.repo'
 import {getWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import {getReelsData} from "../symbol.service"

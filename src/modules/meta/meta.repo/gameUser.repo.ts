@@ -142,13 +142,12 @@ export async function getHaveProfile(userId: number): Promise<boolean> {
   return profileData.lastName !== "" &&
          profileData.firstName !== "" &&
          profileData.address !== "" &&
-         profileData.age !== 0 &&
          profileData.city !== "" &&
          profileData.country !== "" &&
-         profileData.phoneCode !== "" &&
          profileData.email !== "" &&
          profileData.phoneNumber !== "" &&
          profileData.state !== "" &&
+         profileData.title !== "" &&
          profileData.zipCode !== ""
 }
 export async function delUser(deviceId: string): Promise < void > {

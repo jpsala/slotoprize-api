@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { exec, query } from "../../../db"
 import { getGameUserByDeviceId } from "../meta.repo/gameUser.repo"
 

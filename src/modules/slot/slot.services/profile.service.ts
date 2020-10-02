@@ -1,10 +1,10 @@
 import camelcaseKeys from 'camelcase-keys'
 import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
+import { format } from 'date-fns'
 import {getGameUserByDeviceId, toTest} from '../../meta/meta.repo/gameUser.repo'
-import {queryOne, exec as metaExec} from '../../../db'
+import {queryOne, exec} from '../../../db'
 import {GameUser} from "../../meta/meta.types"
-import { toBoolean } from './../../../helpers'
 
 export const getProfile = async (deviceId: string): Promise<GameUser | Partial<GameUser>> => {
   toTest()
@@ -18,23 +18,23 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   const userExists = await queryOne(`select * from game_user where device_id = '${user.deviceId}'`)
   if (!userExists)
     throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
-
-  const isMale = toBoolean(user.isMale)
-  await metaExec(`
+  const birthDate = user.birthDate || format(new Date(), 'yyyy-MM-dd')
+  const isDev = user.isDev ? 1 : 0
+  await exec(`
           update game_user set
               email = '${user.email || ""}',
               first_name = '${user?.firstName || ""}',
               last_name = '${user.lastName || ""}',
               device_name = '${user.deviceName || ""}',
               device_model = '${user.deviceModel || ""}',
-              phone_code = '${user.phoneCode || ""}',
               phone_number = '${user.phoneNumber || ""}',
-              is_male = ${isMale ? 1 : 0},
-              age = '${user.age || ""}',
               address = '${user.address || ""}',
               city = '${user.city || ""}',
               zip_code = '${user.zipCode || ""}',
               state = '${user.state || ""}',
+              title = '${user.title || ""}',
+              birth_date = "${String(birthDate)}",
+              isDev = '${isDev}',
               country = '${user.country || ""}',
               advertisingId = '${user.advertisingId || ""}'
           where device_id = '${user.deviceId}'
@@ -43,9 +43,9 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   const updatedUser = await queryOne(`
           select * from game_user where device_id = '${user.deviceId}'
       `)
+  console.log('updtedUser', updatedUser)
   delete updatedUser.createdAt
   delete updatedUser.updatedAt
   delete updatedUser.password
-  updatedUser.isMale = updatedUser.isMail === 1
   return camelcaseKeys(updatedUser) as GameUser
 }
