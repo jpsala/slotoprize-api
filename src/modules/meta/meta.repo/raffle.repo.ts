@@ -11,7 +11,7 @@ import moment from "moment"
 import { query, queryOne, exec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
-import { addHostToPath, getRandomNumber, saveFile , urlBase } from "../../../helpers"
+import { addHostToPath, getRandomNumber, getUrlWithoutHost, saveFile , urlBase } from "../../../helpers"
 import { updateWallet, getWallet } from '../../slot/slot.services/wallet.service'
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
@@ -206,6 +206,7 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
   const diffLiveDate = closingDateUtc.diff(liveDateUtc.utc(), 'seconds')
   const diffClosigDate = closingDateUtc.diff(moment.utc(), 'seconds')
 
+  raffle.textureUrl =  getUrlWithoutHost(raffle.textureUrl)
   if(diffClosigDate <= 0 && (raffle.state === 'new' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
   if(diffLiveDate <= 0 && (raffle.state === 'new' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle live date can not be after closing date')
   const raffleForDB = {
@@ -279,7 +280,7 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
   ])
   await updateRulesFromDb()
   _raffle.closingDate = format(new Date(_raffle.closingDate), 'yyyy-MM-dd HH:mm:ss')
-  _raffle.textureUrl = addHostToPath(_raffle.textureUrl)
+  if(image)_raffle.textureUrl = addHostToPath(_raffle.textureUrl)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return _raffle
 }

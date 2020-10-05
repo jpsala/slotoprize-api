@@ -26,7 +26,7 @@ export const init = async (): Promise<void> =>
     ruleFromDb.popupTextureUrl = url + ruleFromDb.popupTextureUrl
     ruleFromDb.notificationTextureUrl = url + ruleFromDb.notificationTextureUrl
     ruleFromDb.rule = JSON.parse(ruleFromDb.rule)
-    console.log('ruleFromDb', ruleFromDb)
+    console.log('ruleFromDb', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
     // if (ruleFromDb.rule.type === 'weekly') {
     //   for (const day of ruleFromDb.rule.days)
     //     for (const hour of day.hours) {
