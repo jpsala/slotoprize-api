@@ -18,7 +18,7 @@ export const toggleLog = (): boolean => { return log = !log }
 export const init = async (): Promise<void> =>
 {
   // testEvent.run()
-  later.date.localTime()
+  // later.date.localTime()
   const rulesFromDB = await query('select * from event where active = 1')
   const url = urlBase()
   for (const ruleFromDb of rulesFromDB) {
