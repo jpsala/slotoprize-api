@@ -40,6 +40,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     delete rawUser.createdAt
     delete rawUser.modifiedAt
     delete rawUser.password
+    delete rawUser.sendWinJackpotEventWhenProfileFilled
     const reelsData = await getReelsData()
     reelsData.forEach((reel) => {
       reel.symbolsData.forEach((reelSymbol) => {

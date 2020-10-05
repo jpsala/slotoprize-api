@@ -34,6 +34,7 @@
 
   function onMessage(evt)
   {
+    // writeToScreen('<pre>'+evt.data+'</pre>');
     writeToScreen('<pre>'+JSON.stringify(JSON.parse(evt.data), null, 2)+'</pre>');
     websocket.close();
   }
