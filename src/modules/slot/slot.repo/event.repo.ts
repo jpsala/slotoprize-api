@@ -122,3 +122,11 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   popupFile = popupFile ? addHostToPath(popupFile) : undefined
   return { notificationFile, popupFile, id: isNew ? resp.insertId : -1, isNew }
 }
+export async function deleteEvent(id: number): Promise<boolean> {
+  const respDelete = await exec(`
+    delete from event where id = ${id}
+  `)
+  await updateRulesFromDb()
+  console.log('resp', respDelete)
+  return respDelete.affectedRows === 1
+}

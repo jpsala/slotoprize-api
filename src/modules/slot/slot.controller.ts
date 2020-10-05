@@ -30,7 +30,7 @@ import * as slotService from './slot.services'
 import * as walletService from "./slot.services/wallet.service"
 // import {spin} from './slot.services/spin.service'
 import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.services/symbol.service'
-import { setEvent, getEventsForCrud } from './slot.repo/event.repo'
+import { setEvent, getEventsForCrud, deleteEvent } from './slot.repo/event.repo'
 import { testUser39 } from './slot.repo/spin.regeneration.repo'
 import { callback, getVideoAdsViewCountForCrud } from './slot.services/ironsource'
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
@@ -222,6 +222,10 @@ export async function skinsGet(req: Request, res: Response): Promise<any>{
 }
 export async function eventPost(req: Request, res: Response): Promise<void>{
     const resp = await setEvent(req.fields, req.files)
+    res.status(200).json(resp)
+}
+export async function eventDelete(req: Request, res: Response): Promise<void>{
+    const resp = await deleteEvent(Number(req.query.id))
     res.status(200).json(resp)
 }
 export async function eventsReloadPost(req: Request, res: Response): Promise<any>{

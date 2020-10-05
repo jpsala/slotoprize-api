@@ -37,6 +37,7 @@ router.route('/tickets_settings_for_crud').get(checkToken, slot.ticketsSettingsF
 router.route('/tickets_settings_for_crud').post(checkToken, slot.ticketsSettingsForCrudPost)
 router.route('/events').get(checkToken, slot.eventsForCrudGet)
 router.route('/event').post(formidableMiddleware(), checkToken, slot.eventPost)
+router.route('/event').delete(checkToken, slot.eventDelete)
 router.route('/skins').get(checkToken, slot.skinsGet)
 router.route('/eventsReload').post(checkToken, slot.eventsReloadPost)
 router.route('/toggleLog').post(checkToken, (req, res) => { res.status(200).json({ logging: toggleLog() }) })
