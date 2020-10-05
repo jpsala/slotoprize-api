@@ -70,7 +70,7 @@ export async function gameInit(deviceId: string): Promise<any> {
       // requireProfileData: requireProfileData ? 1 : 0,
       languageCode,
       defaultSpinData,
-      interstitialsRatio: await getSetting('interstitialsRatio', '5'),
+      interstitialsRatio: Number(await getSetting('interstitialsRatio', '5')),
       hasPendingPrize,
       rafflePrizeData,
       profileData: toCamelCase(rawUser),
