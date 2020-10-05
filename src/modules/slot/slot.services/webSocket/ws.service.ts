@@ -16,6 +16,8 @@ export interface WebSocketMessage
   message: 'OK' | string;
   msgType: 'events' | 'webSocket' | 'eventsState' | 'spinTimer' | 'getSpinTimer' | 'adReward' | 'jackpotWin';
   payload: EventPayload | any
+  isJson?: boolean
+  log?: boolean
 }
 type WsServerService = {
   server: WebSocket.Server,
@@ -120,21 +122,21 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     const payload = JSON.stringify(_msg.payload)
     const msgStr = Object.assign({}, _msg) as any
     msgStr.payload = payload
-    const msg = JSON.stringify(msgStr)
-    // console.log('msg', msg)
-    if (client)
+    const msg = JSON.stringify(_msg.isJson ? _msg : msgStr)
+    if(_msg.log) console.log('ws send with log', _msg, _msg.payload)
+    if (client) {
 
-      // console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
+      console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
       client.send(msg)
 
-    else
+    }else
 
       // console.log('sending msg to all clients', _msg.payload.name, _msg.payload.action)
-      server.clients.forEach((client) =>
+      {server.clients.forEach((client) =>
       {
         console.log('sended to specific client inside send to all')
         client.send(msg)
-      })
+      })}
 
   }
   const sendRaw = (_msg: any, client: WebSocket | undefined = undefined): void =>

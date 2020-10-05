@@ -1,12 +1,16 @@
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import createHttpError from 'http-errors'
+import camelcaseKeys from 'camelcase-keys'
 import { JackpotData} from '../slot.repo/jackpot.repo'
 import * as jackpotRepo from '../slot.repo/jackpot.repo'
+import { getHaveProfile, markGameUserForEventWhenProfileGetsFilled, unMarkGameUserForEventWhenProfileGetsFilled } from '../../meta/meta.repo/gameUser.repo'
+import { queryOne } from '../../../db'
 import { PrizeWinners } from './prizes.service'
 
 import { sleep } from './../../../helpers'
 import { GameUser } from './../../meta/meta.types'
 import * as thisModule from './jackpot.service'
+import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 let spinBlocked = false
 
 export async function jackpotWin(user: GameUser): Promise<void>
@@ -93,4 +97,31 @@ export const getJackpotWinners = async (): Promise<PrizeWinners[]> =>
 {
   const winners = await jackpotRepo.getJackpotWinners()
   return winners
+}
+
+export const sendJackpotWinEvent = async (user: GameUser, jackpotRowId: number): Promise<void> => {
+  const userForSaving: GameUser = camelcaseKeys(user)
+  if (await getHaveProfile(user.id)) {
+      const jackpotData:{prize: number} = await queryOne(`
+        select id, cycle, prize, state, repeated, spinCount, confirmed
+        from jackpot 
+        where id = ${jackpotRowId}
+      `)
+      console.log('jackpotData', jackpotData)
+      const wsMessage: WebSocketMessage = {
+        code: 200,
+        message: 'OK',
+        msgType: 'jackpotWin',
+        payload: {
+          amount: jackpotData.prize,
+          winnerName: `${userForSaving.firstName}, ${userForSaving.lastName}`,
+          winnerLocation: `${userForSaving.address}`
+        }
+      }
+      wsServer.send(wsMessage)
+      await unMarkGameUserForEventWhenProfileGetsFilled(userForSaving)
+  } else {
+      console.log('incomplete profile, marking for future send', )
+      await markGameUserForEventWhenProfileGetsFilled(user, jackpotRowId)
+    }
 }

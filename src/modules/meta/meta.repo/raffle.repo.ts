@@ -264,7 +264,7 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
     await exec(`update raffle set texture_url = ? where id = ${_raffle.id}`, [saveResp.url])
     _raffle.textureUrl = saveResp.url
   }
-  const rule = dateToRule(new Date(_raffle.closingDate))
+  const rule = `{ "type": "cron", "rule": "${dateToRule(new Date(_raffle.closingDate))}" }`
   const eventIdAnt = JSON.stringify({ "id": _raffle.id })
   await exec(`delete from event where data = '${eventIdAnt}'`)
   await exec(`insert into event set ? `, [

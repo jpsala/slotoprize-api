@@ -243,3 +243,13 @@ export const getPlayersForFront = async (from: number, limit: number, filter: st
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return players
 }
+export const markGameUserForEventWhenProfileGetsFilled = async (user: GameUser, jackpotId: number): Promise<void> => {
+  await exec(`
+    update game_user set sendWinJackpotEventWhenProfileFilled = ${jackpotId} where id = ${user.id}
+  `)
+}
+export const unMarkGameUserForEventWhenProfileGetsFilled = async (user: GameUser): Promise<void> => {
+  await exec(`
+    update game_user set sendWinJackpotEventWhenProfileFilled = null where id = ${user.id}
+  `)
+}

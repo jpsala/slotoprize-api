@@ -1,14 +1,22 @@
+import later from '@breejs/later'
 import { raffleTime } from '../../../meta/meta.repo/raffle.repo'
 import { isValidJSON } from '../../../../helpers'
 import { WebSocketMessage, wsServer } from './../webSocket/ws.service'
 import { Skin } from './../../slot.repo/skin.repo'
+
 //#region interface
 export type EventType = 'raffle' | 'generic'
 // later.date.localTime()
+export type Rule = 
+  { type: 'cron', rule: string } |
+  { type: 'unique', start: string, end: string } |
+  { type: 'daily', hours: [{ start: string, duration: number }]} |
+  { type: 'weekly', days: [{day: string, hours: [{ start: string, duration: string }]}]}
+  
 export interface Event
 {
-  eventType: EventType;
-  rule: string;
+  eventType: EventType; 
+  rule: Rule;
   duration: number;
   laterTimerHandler: later.Timer | undefined;
   endTimeoutHandler: NodeJS.Timeout | undefined;
@@ -56,7 +64,7 @@ export interface EventDTO
   id: number;
   name: string;
   eventType: string;
-  rule: string;
+  rule: Rule;
   duration: number;
   active: number;
   popupMessage: string;
@@ -92,9 +100,8 @@ const callBackForStart = async (event: Event): Promise<void> =>
   }
   else if (event.eventType === 'raffle')
   {
-    console.log('(event.sched?.next', event.sched?.next(1, new Date()))
-    // @TODO Que pasa que llama 2 veces si no hago el clear?
-    event.laterTimerHandler?.clear()
+    // console.log('(event.sched?.next', event.sched?.next(1, new Date()))
+    // event.laterTimerHandler?.clear()
     console.log('start raffle event', event.payload.name, event.payload.notificationData.message)
     await raffleTime(event.data.id)
   }
@@ -102,6 +109,8 @@ const callBackForStart = async (event: Event): Promise<void> =>
 
 const callBackForStop = (event): void =>
 {
+  const payload = event.payload as EventPayload
+  console.log('Event stop', payload.name, payload.notificationData.message, event.next, payload)
   event.isActive = false
   wsMessage.payload = event.payload
   wsServer.send(wsMessage as WebSocketMessage)

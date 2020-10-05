@@ -5,6 +5,7 @@ import { format } from 'date-fns'
 import {getGameUserByDeviceId, toTest} from '../../meta/meta.repo/gameUser.repo'
 import {queryOne, exec} from '../../../db'
 import {GameUser} from "../../meta/meta.types"
+import { sendJackpotWinEvent } from './jackpot.service'
 
 export const getProfile = async (deviceId: string): Promise<GameUser | Partial<GameUser>> => {
   toTest()
@@ -18,8 +19,9 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   const userExists = await queryOne(`select * from game_user where device_id = '${user.deviceId}'`)
   if (!userExists)
     throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
-  const birthDate = user.birthDate || format(new Date(), 'yyyy-MM-dd')
   const isDev = user.isDev ? 1 : 0
+  const birthDateParts = (String(user.birthDate) || format(new Date(), 'yyyy-MM-dd')).split('T')
+  const birthDate = birthDateParts[0]
   await exec(`
           update game_user set
               email = '${user.email || ""}',
@@ -47,5 +49,15 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   delete updatedUser.createdAt
   delete updatedUser.updatedAt
   delete updatedUser.password
+  delete updatedUser.sendWinJackpotEventWhenProfileFilled
+  await sendWinJackpotEventIfCorrespond(updatedUser)
   return camelcaseKeys(updatedUser) as GameUser
+}
+
+const sendWinJackpotEventIfCorrespond = async (user: GameUser): Promise<void> => {
+  const respPendingEvent = await queryOne(`
+    select sendWinJackpotEventWhenProfileFilled from game_user where id = '${user.id}'
+  `)
+  if (respPendingEvent?.sendWinJackpotEventWhenProfileFilled)
+    await sendJackpotWinEvent(user, respPendingEvent.sendWinJackpotEventWhenProfileFilled)
 }

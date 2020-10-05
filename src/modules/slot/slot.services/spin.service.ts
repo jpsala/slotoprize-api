@@ -7,7 +7,7 @@ import { LENGTH } from 'class-validator'
 import getSlotConnection from '../../../db'
 import { SpinData , WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
-import { setGameUserSpinData , getGameUserLastSpinDate } from '../../meta/meta.repo/gameUser.repo'
+import { setGameUserSpinData , getGameUserLastSpinDate, markGameUserForEventWhenProfileGetsFilled } from '../../meta/meta.repo/gameUser.repo'
 import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { GameUser } from './../../meta/meta.types'
 
@@ -34,7 +34,7 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   const { bet, enoughSpins } = getBetAndCheckFunds(multiplier, spinsInWallet)
   if (!enoughSpins) throw createError(400, 'Insufficient funds')
 
-  const {isJackpot, prize} = await jackpotService.addSpinsToJackpotAndReturnIfIsJackpot(multiplier, user)
+  const {id: jackpotRowId, isJackpot} = await jackpotService.addSpinsToJackpotAndReturnIfIsJackpot(multiplier, user)
   /*confirmed: 1
 cycle: 1
 id: 18
@@ -53,16 +53,7 @@ state: "live"*/
   wallet.spins -= bet
   if (winType === 'jackpot') {
     /*<json of jackpot amount and currency sign, and player name or player location>*/
-    const wsMessage: WebSocketMessage = {
-      code: 200,
-      message: 'OK',
-      msgType: 'jackpotWin',
-      payload: {
-        amount: prize,
-        playerName: `${user.firstName}, ${user.lastName}`
-      }
-    }
-    wsServer.send(wsMessage)
+    await jackpotService.sendJackpotWinEvent(user, <number>jackpotRowId)
     isWin = true
   } else if (isWin) {
     const eventMultiplier = getActiveEventMultiplier()
