@@ -45,6 +45,7 @@ export interface GameUser {
   advertisingId?: string;
   // wallet?: Partial<Wallet>;
   wallet?: Wallet;
+  sendWinJackpotEventWhenProfileFilled?: boolean;
 }
 export const fakeUser = (override: Partial<GameUser> = {}): GameUser => {
   return {

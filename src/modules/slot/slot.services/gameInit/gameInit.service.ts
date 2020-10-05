@@ -82,7 +82,8 @@ export async function gameInit(deviceId: string): Promise<any> {
       betPrice,
       maxMultiplier,
       reelsData,
-      walletData: wallet
+      walletData: wallet,
+      maxAllowedBirthYear: Number(await getSetting('maxAllowedBirthYear', '2002'))
     }
     if(!rafflePrizeData) delete initData.rafflePrizeData
     return initData
