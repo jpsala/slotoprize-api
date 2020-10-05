@@ -6,7 +6,7 @@ import { classToPlain } from "class-transformer"
 import { RowDataPacket } from 'mysql2'
 import * as metaService from '../../meta/meta-services/meta.service'
 import getConnection, {queryOne, exec, query } from '../../../db'
-import { LanguageData, GameUser, fakeUser } from '../meta.types'
+import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
 import { urlBase } from './../../../helpers'
 import { Wallet } from './../models/wallet'
@@ -103,20 +103,27 @@ export async function getLoginData(userId: number): Promise<{count: number, last
       (select max(u.date) from game_user_login u where u.game_user_id = ${userId}) as lastLogin`)
   return response as {count: number, lastLogin: Date}
 }
-export async function getWinRaffle(userId: number): Promise<any>
+export async function getWinRaffle(userId: number): Promise<Partial<RafflePrizeData>>
 {
-  const url = urlBase()
-
   const winData = await queryOne(`
-    select r.id, r.closing_date,
-      r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight
-      from raffle_history rh
+    select r.id, if(rl.id, rl.name, 'No localization data') as name,
+    if(rl.id, rl.description, 'No localization data') as description, r.closing_date as closingDate,
+    r.raffle_number_price as raffleNumberPrize, r.item_highlight as itemHighlight
+    from raffle_history rh
       inner join raffle r on rh.raffle_id = r.id
-      where win = 1 and rh.game_user_id = ${userId} and notified = 0
-      order by rh.id desc limit 1
+      inner join game_user gu on r.winner = gu.id
+      left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = gu.language_code
+    where win = 1 and rh.game_user_id = ${userId} and notified = 0
+    order by rh.id desc limit 1
   `)
+  const rafflePrizeData: Partial <RafflePrizeData> = {
+    id: winData.id, name: winData.name, description: winData.description,
+    closingDate: winData.closingDate, raffleNumberPrice: winData.raffleNumberPrize,
+    itemHighlight: winData.itemHighlight === 1
+  }
+  console.log('rafflePrizeData', rafflePrizeData)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return winData
+  return rafflePrizeData
 }
 export async function getHaveWinRaffle(userId: number): Promise<boolean> {
   const winData = await queryOne(`
