@@ -67,9 +67,9 @@ export const getUserPrize = async (user: GameUser): Promise<DailyRewardPrize | u
   const lastSpin = await getLastSpin(user)
   if (lastSpin == null) return undefined
   const prizes = await getDailyRewardPrizes()
-  if (lastSpin.days >= prizes.length) lastSpin.days = prizes.length - 1
+  if (lastSpin.days >= prizes.length) lastSpin.days = prizes.length
   console.log('lastSpin.days', lastSpin.days, prizes)
-  return prizes[lastSpin.days]
+  return prizes[lastSpin.days-1]
 }
 export const isDailyRewardClaimed = async (deviceId: string): Promise<boolean> => {
   const user = await getGameUserByDeviceId(deviceId)

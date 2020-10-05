@@ -57,9 +57,9 @@ export async function gameInit(deviceId: string): Promise<any> {
       })
     })
     const dailyRewards: DailyRewardPrize[] = await getDailyRewardPrizes()
+    await setSpinData(rawUser as GameUser)
     const consecutiveDailyLogs = await getLastSpinDays(rawUser as GameUser)
     const dailyRewardClaimed = await isDailyRewardClaimed(deviceId)
-    await setSpinData(rawUser as GameUser)
     const languageCode = rawUser.languageCode
     const defaultSpinData = await getLooseSpin()
     delete rawUser.languageCode
