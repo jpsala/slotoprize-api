@@ -45,7 +45,6 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   const updatedUser = await queryOne(`
           select * from game_user where device_id = '${user.deviceId}'
       `)
-  console.log('updtedUser', updatedUser)
   delete updatedUser.createdAt
   delete updatedUser.updatedAt
   delete updatedUser.password

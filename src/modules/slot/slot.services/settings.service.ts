@@ -10,7 +10,6 @@ export const init = async (): Promise<void> =>
 export const getSetting = async (key: string, defaultValue: string): Promise<string> => {
   const setting = settings.find(_setting => _setting.name.toUpperCase() === key.toUpperCase()) as Setting
   if (setting === undefined && defaultValue !== undefined) {
-    console.log('setting not found', key)
     console.warn('SettingValue for ', key, 'not found, inserting  a default value of ', defaultValue)
     const respInsert = (await exec('insert into setting(name, value) values (?, ?)', [key, defaultValue]))
     settings.push({id: respInsert.insertId, name: key, value: defaultValue, description: ''})

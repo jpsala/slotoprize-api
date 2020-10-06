@@ -63,6 +63,8 @@ export async function gameInit(deviceId: string): Promise<any> {
     const languageCode = rawUser.languageCode
     const defaultSpinData = await getLooseSpin()
     delete rawUser.languageCode
+    const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
+    const maxAllowedBirthYear = Number(await getSetting('maxAllowedBirthYear', '2002'))
     const initData = {
       sessionId: token,
       gameVersion: await getSetting('gameVersion', '0.1'),
@@ -70,7 +72,7 @@ export async function gameInit(deviceId: string): Promise<any> {
       // requireProfileData: requireProfileData ? 1 : 0,
       languageCode,
       defaultSpinData,
-      interstitialsRatio: Number(await getSetting('interstitialsRatio', '5')),
+      interstitialsRatio,
       hasPendingPrize,
       rafflePrizeData,
       profileData: toCamelCase(rawUser),
@@ -83,7 +85,7 @@ export async function gameInit(deviceId: string): Promise<any> {
       maxMultiplier,
       reelsData,
       walletData: wallet,
-      maxAllowedBirthYear: Number(await getSetting('maxAllowedBirthYear', '2002'))
+      maxAllowedBirthYear
     }
     if(!rafflePrizeData) delete initData.rafflePrizeData
     return initData
