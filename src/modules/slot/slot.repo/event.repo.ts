@@ -24,6 +24,7 @@ export async function getEvents(eventId?: number, onlyGeneric = false): Promise<
   events.forEach((event) => {
     event.popupTextureUrl = addHostToPath(event.popupTextureUrl)
     event.notificationTextureUrl = addHostToPath(event.notificationTextureUrl)
+    event.particlesTextureUrl = addHostToPath(event.particlesTextureUrl)
   })
   return events as Event[]
 }
@@ -46,6 +47,7 @@ export async function getEventsForCrud(): Promise<any> {
     "popupTextureUrl": "",
     "notificationMessage": "",
     "notificationTextureUrl": "",
+    "particlesTextureUrl": "",
     "skinId": -1,
     "devOnly": 1,
     "data": "",
@@ -63,15 +65,18 @@ type EventDto = Event &
   skinId?: number,
   name?: string,
   notificationFile?: any,
+  particlesFile?: any,
   popupFile?: any,
   id: number,
   popupTextureUrl?: string | undefined,
   notificationTextureUrl?: string | undefined
+  particlesTextureUrl?: string | undefined
 }
-export async function setEvent(eventDto: EventDto, files: { notificationFile?: any, popupFile?: any }): Promise<any> {
+export async function setEvent(eventDto: EventDto, files: { notificationFile?: any, popupFile?: any, particlesFile?: any }): Promise<any> {
   delete (eventDto as any).skin
   delete (eventDto as any).notificationFile
   delete (eventDto as any).popupFile
+  delete (eventDto as any).particlesFile
   if(String(eventDto.skinId) === 'undefined') delete eventDto.skinId
   if(eventDto.name === 'New Event') throw createHttpError(BAD_REQUEST, 'Give a name to the event')
   let isNew = false
@@ -80,25 +85,29 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
     delete (eventDto as any).id
   }
 
+  eventDto.particlesTextureUrl = getUrlWithoutHost(<string>eventDto.particlesTextureUrl)
   eventDto.notificationTextureUrl = getUrlWithoutHost(<string>eventDto.notificationTextureUrl)
   eventDto.popupTextureUrl = getUrlWithoutHost(<string>eventDto.popupTextureUrl)
   const resp = await exec(`REPLACE into event set ?`, <any>eventDto)
   removeActualImage(files?.notificationFile, resp.insertId, 'notification')
   removeActualImage(files?.popupFile, resp.insertId, 'popup')
+  removeActualImage(files?.particlesFile, resp.insertId, 'particles')
 
   let notificationFile = saveFileAndGetFilePath(files?.notificationFile, resp.insertId, 'notification')
   let popupFile = saveFileAndGetFilePath(files?.popupFile, resp.insertId, 'popup')
+  let particlesFile = saveFileAndGetFilePath(files?.particlesFile, resp.insertId, 'particles')
 
   eventDto.popupTextureUrl = popupFile ?? eventDto.popupTextureUrl
   eventDto.notificationTextureUrl = notificationFile ?? eventDto.notificationTextureUrl
+  eventDto.particlesTextureUrl = particlesFile ?? eventDto.particlesTextureUrl
   if (isNew) eventDto.id = resp.insertId
   await exec(`REPLACE into event set ?`, <any>eventDto)
   await updateRule(eventDto)
 
-  function removeActualImage(file: any, eventId: number, whichFile: 'notification' | 'popup'): void {
+  function removeActualImage(file: any, eventId: number, whichFile: 'notification' | 'popup' | 'particles'): void {
     if (!file) return undefined
     const eventImgPath = `/var/www/html/public/assets/img/events`
-    const fileNamePart = whichFile === 'notification' ? 'notificationImg' : 'popupImg'
+    const fileNamePart = `${whichFile}Img`
     const fileNameStartWith = `${eventId}_${fileNamePart}`
     fs.readdir(eventImgPath, (err, files) => {
       files.forEach(file => {
@@ -107,11 +116,11 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
       })
     })
   }
-  function saveFileAndGetFilePath(file: any, eventId: number, whichFile: 'notification' | 'popup'): string | undefined {
+  function saveFileAndGetFilePath(file: any, eventId: number, whichFile: 'notification' | 'popup' | 'particles'): string | undefined {
     if (!file) return undefined
     const rand = getRandomNumber(111, 10000)
     const eventImgPath = `/var/www/html/public/assets/img/events`
-    const fileNamePart = whichFile === 'notification' ? 'notificationImg' : 'popupImg'
+    const fileNamePart = `${whichFile}Img`
     const fileName = `${eventId}_${fileNamePart}_${rand}.${file.name.split('.').pop()}`
     // const fileNameWithPath = path.join(file.path, fileName)
     const oldPath = file.path
@@ -123,7 +132,8 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   }
   notificationFile = notificationFile ? addHostToPath(notificationFile) : undefined
   popupFile = popupFile ? addHostToPath(popupFile) : undefined
-  return { notificationFile, popupFile, id: isNew ? resp.insertId : -1, isNew }
+  particlesFile = particlesFile ? addHostToPath(particlesFile) : undefined
+  return { notificationFile, popupFile, particlesFile, id: isNew ? resp.insertId : -1, isNew }
 }
 
 export async function deleteEvent(id: number): Promise<boolean> {
