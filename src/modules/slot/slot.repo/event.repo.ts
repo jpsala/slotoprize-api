@@ -47,7 +47,8 @@ export async function getEventsForCrud(): Promise<any> {
     // "betPrice": await getSetting('betPrice', 1)
   }
   console.log('events', events)
-  return { events: events.filter(e => String(e.rule).includes('daily')), newEvent }
+  // return { events: events.filter(e => String(e.rule).includes('daily')), newEvent }
+  return { events, newEvent }
 }
 
 type EventDto = Event &
