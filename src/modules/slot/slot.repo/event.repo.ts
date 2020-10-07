@@ -5,6 +5,7 @@ import path from 'path'
 import fs, { unlinkSync } from 'fs'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
+import { format } from 'date-fns'
 import { getRandomNumber, getUrlWithoutHost, addHostToPath } from './../../../helpers'
 import { updateRule, updateRulesFromDb } from './../slot.services/events/events'
 import { exec, query } from './../../../db'
@@ -28,12 +29,17 @@ export async function getEvents(eventId?: number, onlyGeneric = false): Promise<
 }
 export async function getEventsForCrud(): Promise<any> {
   const events: any = <any>(await getEvents(undefined, true))
+  const rule =  {
+    type: 'unique',
+    start: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+    end: format(new Date(), 'yyyy-MM-dd HH:mm:ss')
+  }
   const newEvent =
   {
     "id": -1,
     "eventType": "generic",
     "name": "New Event",
-    "rule": "* */1 * * * * *",
+    "rule": JSON.stringify(rule),
     "duration": 0,
     "active": 1,
     "popupMessage": "",
