@@ -90,7 +90,7 @@ const wsMessage: Partial<WebSocketMessage> = {
 const callBackForStart = async (event: Event): Promise<void> =>
 {
   const payload = event.payload as EventPayload
-  console.log('Event start, name %O, notificationData %O, payload %O', payload.name, payload.notificationData.message, payload)
+  console.log('Event start, name %O, notificationData %O, payload %O', payload.name, payload.notificationData.message)
   if (Array.isArray(event.payload)) throw new Error('Here event.payload can not be an array')
   if (event.eventType === 'generic')
   {
