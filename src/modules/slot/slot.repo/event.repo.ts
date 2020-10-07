@@ -63,11 +63,9 @@ type EventDto = Event &
   notificationTextureUrl?: string | undefined
 }
 export async function setEvent(eventDto: EventDto, files: { notificationFile?: any, popupFile?: any }): Promise<any> {
-  console.log('eventDto', Object.assign({}, eventDto))
   delete (eventDto as any).skin
   delete (eventDto as any).notificationFile
   delete (eventDto as any).popupFile
-  console.log('eventDto.rule', eventDto.rule)
   if(String(eventDto.skinId) === 'undefined') delete eventDto.skinId
   if(eventDto.name === 'New Event') throw createHttpError(BAD_REQUEST, 'Give a name to the event')
   let isNew = false
@@ -78,19 +76,15 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
 
   eventDto.notificationTextureUrl = getUrlWithoutHost(<string>eventDto.notificationTextureUrl)
   eventDto.popupTextureUrl = getUrlWithoutHost(<string>eventDto.popupTextureUrl)
-  console.log('ev', eventDto)
   const resp = await exec(`REPLACE into event set ?`, <any>eventDto)
-  console.log('no', )
   removeActualImage(files?.notificationFile, resp.insertId, 'notification')
   removeActualImage(files?.popupFile, resp.insertId, 'popup')
 
   let notificationFile = saveFileAndGetFilePath(files?.notificationFile, resp.insertId, 'notification')
   let popupFile = saveFileAndGetFilePath(files?.popupFile, resp.insertId, 'popup')
 
-  console.log('eventDto', eventDto)
   eventDto.popupTextureUrl = popupFile ?? eventDto.popupTextureUrl
   eventDto.notificationTextureUrl = notificationFile ?? eventDto.notificationTextureUrl
-  console.log('eventDto', eventDto)
   if (isNew) eventDto.id = resp.insertId
   await exec(`REPLACE into event set ?`, <any>eventDto)
   await updateRule(eventDto)
@@ -131,6 +125,5 @@ export async function deleteEvent(id: number): Promise<boolean> {
     delete from event where id = ${id}
   `)
   await updateRulesFromDb()
-  console.log('resp', respDelete)
   return respDelete.affectedRows === 1
 }

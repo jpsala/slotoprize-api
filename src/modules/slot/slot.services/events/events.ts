@@ -13,7 +13,7 @@ import { createEvent, Event, EventDTO, EventPayload} from './event'
 // import * as testEvent from './testEvent'
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
 let allEvents: Event[] = []
-let log = false
+let log = true
 export const toggleLog = (): boolean => { return log = !log }
 export const init = async (): Promise<void> =>
 {
@@ -26,7 +26,7 @@ export const init = async (): Promise<void> =>
     ruleFromDb.popupTextureUrl = url + ruleFromDb.popupTextureUrl
     ruleFromDb.notificationTextureUrl = url + ruleFromDb.notificationTextureUrl
     ruleFromDb.rule = JSON.parse(ruleFromDb.rule)
-    console.log('ruleFromDb', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
+    console.log('init() ruleFromDb', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
     // if (ruleFromDb.rule.type === 'weekly') {
     //   for (const day of ruleFromDb.rule.days)
     //     for (const hour of day.hours) {
@@ -205,7 +205,6 @@ export function scheduleEvent(event: Partial<Event>): Event
 }
 export function dateToRule(date: Date): string
 {
-
   const day = date.getDate()
   const month = date.getMonth()
   const monthName = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][month]
@@ -217,7 +216,7 @@ export function dateToRule(date: Date): string
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const updateRule = async (rule: any): Promise<void> => {
-  console.log('rule', rule)
+  console.log('update rule', JSON.stringify(rule,null,2))
   let ruleParsed
   try {
     ruleParsed = JSON.parse(rule.rule)
@@ -245,7 +244,11 @@ export const updateRule = async (rule: any): Promise<void> => {
     popupTextureUrl: rule.popupTextureUrl,
     rule: ruleParsed
   }
-  updateEvent(<Event>event, eventForSave as any)
+  if(event)
+    updateEvent(event, eventForSave as any)
+  else
+  processEvents([eventForSave as any], true)
+
 }
 export const updateRulesFromDb = async (): Promise<void> =>
 {
