@@ -157,7 +157,7 @@ export function scheduleEvent(event: Partial<Event>): Event
     console.log('error in events, later.schedule', error, scheduleData)
   }
 
-  log && console.log('Interval begins in %O', event.distance)
+  console.log('Interval of %O begins in %O', (event.payload as any)?.name, event.distance)
   event.laterTimerHandler = later.setInterval(function ()
   {
     // @TODO Que pasa que llama 2 veces si no hago el clear?
