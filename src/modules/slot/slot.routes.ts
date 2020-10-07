@@ -50,6 +50,7 @@ router.route('/spin_settings_for_crud').get(checkToken, slot.spinSettingsForCrud
 router.route('/spin_settings_for_crud').post(checkToken, slot.spinSettingsForCrudPost)
 router.route('/spin_data').get(checkToken, slot.spinDataGet)
 router.route('/spin_data').post(checkToken, slot.spinDataPost)
+router.route('/all_events').get(checkToken, slot.allEvents)
 
 router.route('/playersForFront').get(checkToken, slot.playersForFrontGet)
 router.route('/support_request_for_crud').get(checkToken, slot.supportRequestForCrudGet)

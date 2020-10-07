@@ -1,6 +1,3 @@
-cambiar el rojo por un azul en devMode
-
-
 20-09-2020
 saltear si devRequest
 * ips de ironsource

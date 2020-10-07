@@ -24,7 +24,7 @@ import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
 import { getTombolaForCrud, postTombolaForCrud, postWinLoseForTombolaCrudPost } from './slot.services/tombola.service'
 
 import { getSkinsForCrud, postSkinForCrud, deleteSkinForCrud } from './slot.repo/skin.repo'
-import { updateRulesFromDb } from './slot.services/events/events'
+import { getAllEvents, updateRulesFromDb } from './slot.services/events/events'
 import { setDailyRewardPrize, dailyRewardClaim, dailyRewardInfo, getDailyRewardPrizesForCrud, deleteDailyRewardPrize } from './slot.repo/dailyReward.repo'
 import * as slotService from './slot.services'
 import * as walletService from "./slot.services/wallet.service"
@@ -235,6 +235,10 @@ export async function eventsReloadPost(req: Request, res: Response): Promise<any
 export async function spinDataGet(req: Request, res: Response): Promise<any>{
   const spinData = await getJackpotData()
   res.status(200).json(spinData)
+}
+export function allEvents(req: Request, res: Response): any{
+  const resp = getAllEvents()
+  res.status(200).json(resp)
 }
 export async function spinDataPost(req: Request, res: Response): Promise<any>{
   const resp = await jackpotPost(req.body)

@@ -6,9 +6,9 @@ import fs, { unlinkSync } from 'fs'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { getRandomNumber, getUrlWithoutHost, addHostToPath } from './../../../helpers'
-import { updateRulesFromDb } from './../slot.services/events/events'
+import { updateRule, updateRulesFromDb } from './../slot.services/events/events'
 import { exec, query } from './../../../db'
-import { EventDTO, Event } from './../slot.services/events/event'
+import { EventDTO, Event, Rule } from './../slot.services/events/event'
 // #endregion
 
 export async function addEvent(eventRule: EventDTO): Promise<void> {
@@ -46,7 +46,8 @@ export async function getEventsForCrud(): Promise<any> {
     "multiplier": 1,
     // "betPrice": await getSetting('betPrice', 1)
   }
-  return { events, newEvent }
+  console.log('events', events)
+  return { events: events.filter(e => String(e.rule).includes('daily')), newEvent }
 }
 
 type EventDto = Event &
@@ -65,6 +66,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   delete (eventDto as any).skin
   delete (eventDto as any).notificationFile
   delete (eventDto as any).popupFile
+  console.log('eventDto.rule', eventDto.rule)
   if(String(eventDto.skinId) === 'undefined') delete eventDto.skinId
   if(eventDto.name === 'New Event') throw createHttpError(BAD_REQUEST, 'Give a name to the event')
   let isNew = false
@@ -90,7 +92,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   console.log('eventDto', eventDto)
   if (isNew) eventDto.id = resp.insertId
   await exec(`REPLACE into event set ?`, <any>eventDto)
-  await updateRulesFromDb()
+  await updateRule(eventDto)
 
   function removeActualImage(file: any, eventId: number, whichFile: 'notification' | 'popup'): void {
     if (!file) return undefined
@@ -122,6 +124,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   popupFile = popupFile ? addHostToPath(popupFile) : undefined
   return { notificationFile, popupFile, id: isNew ? resp.insertId : -1, isNew }
 }
+
 export async function deleteEvent(id: number): Promise<boolean> {
   const respDelete = await exec(`
     delete from event where id = ${id}

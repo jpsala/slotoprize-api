@@ -73,35 +73,31 @@ export const init = async (): Promise<void> =>
   }
   processEvents(rulesFromDB)
 }
-export function processEvents(eventsFromDB: EventDTO[]): void
+export function processEvents(eventsFromDB: EventDTO[], isUpdate = false): void
 {
-  allEvents.forEach(event => { if (event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler) })
-  allEvents.forEach(event => <void>event.laterTimerHandler?.clear())
-  allEvents = []
+  if(isUpdate){
+    allEvents.forEach(event => { if (event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler) })
+    allEvents.forEach(event => <void>event.laterTimerHandler?.clear())
+    allEvents = []
+  }
   for (const eventFromDB of eventsFromDB)
   {  
     if(eventFromDB.duration < 0) continue
-    const savedEvent = allEvents.find(event => !isArray(event.payload) && event.payload.id === eventFromDB.id)
-    if (savedEvent)
-    { 
-      updateEvent(savedEvent, eventFromDB) 
-    } else
-    {
-      const newEvent: Partial<Event> = createEvent(eventFromDB)
-      const event = scheduleEvent(newEvent) 
-      allEvents.push(event)
-      const payload = event.payload as EventPayload
-      log && console.log('event loaded ', payload.name, event.rule, event.distance)
-    }
+    const newEvent: Partial<Event> = createEvent(eventFromDB)
+    const event = scheduleEvent(newEvent) 
+    allEvents.push(event)
+    const payload = event.payload as EventPayload
+    log && console.log('event loaded ', payload.name, event.rule, event.distance)
   }
-  function updateEvent(savedEvent: Event, eventFromDB: EventDTO)
+}
+function updateEvent(savedEvent: Event, eventFromDB: EventDTO)
+{
+  log && console.log('events updateEvent', savedEvent.eventType, savedEvent.rule)
+  console.log('savedEvent.rule', savedEvent, eventFromDB)
+  if (savedEvent.rule !== eventFromDB.rule || eventFromDB.duration !== savedEvent.duration)
   {
-    log && console.log('events updateEvent', savedEvent.eventType, savedEvent.rule)
-    if (savedEvent.rule !== eventFromDB.rule || eventFromDB.duration !== savedEvent.duration)
-    {
-      deleteEvent(savedEvent)
-      createEvent(eventFromDB)
-    }
+    deleteEvent(savedEvent)
+    processEvents([eventFromDB], true)
   }
 }
 export function deleteEvent(event: Event): void 
@@ -111,7 +107,6 @@ export function deleteEvent(event: Event): void
   const raffleIdx = allEvents.findIndex(savedEvent => !isArray(savedEvent.payload) && !isArray(event.payload) && savedEvent.payload.id === event.payload.id)
   if (raffleIdx >= 0) allEvents.splice(raffleIdx, 1)
 }
-
 export function scheduleEvent(event: Partial<Event>): Event
 {
   function splitDate(date): { year: number, month: number, day: number, hour: number, minute: number, second: number} {
@@ -220,6 +215,38 @@ export function dateToRule(date: Date): string
   // console.log('dateToRule', date, `* ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`)
   return `0 ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`
 }
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const updateRule = async (rule: any): Promise<void> => {
+  console.log('rule', rule)
+  let ruleParsed
+  try {
+    ruleParsed = JSON.parse(rule.rule)
+  } catch (error) {
+    throw createHttpError(BAD_REQUEST, 'Rule can not be parsed')
+  }
+  const event = allEvents.find(_event => {
+    return String((_event.payload as EventPayload).id) === String(rule.id)
+  })
+  const eventForSave = {
+    active: rule.active,
+    betPrice: rule.betPrice,
+    data: rule.data,
+    description: rule.description,
+    devOnly: rule.devOnly,
+    duration: rule.duration,
+    eventType: rule.eventType,
+    id: rule.id,
+    multiplier: rule.multiplier,
+    name: rule.name,
+    notificationMessage: rule.notificationMessage,
+    notificationTextureUrl: rule.notificationTextureUrl,
+    particlesTextureUrl: rule.particlesTextureUrl,
+    popupMessage: rule.popupMessage,
+    popupTextureUrl: rule.popupTextureUrl,
+    rule: ruleParsed
+  }
+  updateEvent(<Event>event, eventForSave as any)
+}
 export const updateRulesFromDb = async (): Promise<void> =>
 {
   await init()
@@ -255,5 +282,19 @@ export const getEvents = (): Event[] =>
 {
   return allEvents.filter(event => event)
 }
-
+export function getAllEvents(): any[] {
+  const activeEvents = getEvents()
+  const retArray: any[] = []
+  activeEvents.forEach(event => {
+    const nextsRaw = event.sched?.next(10, new Date())
+    let nexts = 0
+    if (typeof nextsRaw === 'object')
+      nexts = nextsRaw.map(next => {
+        return { next, distance: formatDistanceStrict(new Date(), next) }
+      })
+    retArray.push(Object.assign(event,{nexts}))
+  })
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return retArray
+}
 void (async () => { if (process.env.NODE_ENV !== 'testing') await init() })()
