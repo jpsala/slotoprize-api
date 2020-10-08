@@ -20,15 +20,23 @@ export const init = async (): Promise<void> =>
   const rulesFromDB = await query('select * from event where active = 1')
   await processEvents(rulesFromDB)
 }
-export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
+export async function processEvents(eventsFromDB: EventDTO[]): Promise<void> 
 { 
   const url = urlBase()
   for (const ruleFromDb of eventsFromDB) {
-    const savedEvent = allEvents.find(_event => Number((_event.payload as EventPayload).id) === Number(ruleFromDb.id))
-    if (savedEvent) {
-      if (savedEvent.endTimeoutHandler) clearTimeout(savedEvent.endTimeoutHandler) 
+    const savedEventIdx = allEvents.findIndex(_event => Number((_event.payload as EventPayload).id) === Number(ruleFromDb.id))
+    const savedEvent = allEvents[savedEventIdx]
+    if (savedEventIdx >= 0) { 
+      console.log('reloading event', savedEventIdx) 
+      if (savedEvent.endTimeoutHandler) clearTimeout(savedEvent.endTimeoutHandler)  
       savedEvent.laterTimerHandler?.clear()
+      allEvents.splice(savedEventIdx, 1)
     }
+    console.log('ruleFromDb.active', ruleFromDb.active)
+    if (Number(ruleFromDb.active) === 0)  
+      continue
+    
+    
     ruleFromDb.skin = await getSkin(ruleFromDb.skinId)
     ruleFromDb.popupTextureUrl = url + ruleFromDb.popupTextureUrl
     ruleFromDb.notificationTextureUrl = url + ruleFromDb.notificationTextureUrl
@@ -49,6 +57,7 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
   }
   for (const eventFromDB of eventsFromDB)
   {  
+    if (Number(ruleFromDb.active) === 0) continue
     if(eventFromDB.duration < 0) continue
     const newEvent: Partial<Event> = createEvent(eventFromDB)
     const event = scheduleEvent(newEvent) 
@@ -62,9 +71,13 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
 export function deleteEvent(eventId: number): void 
 {
   const savedEventIdx = allEvents.findIndex(_event => !isArray(_event.payload) && !isArray(_event.payload) && _event.payload.id === eventId)
-  const savedEvent = allEvents[savedEventIdx]
+  const savedEvent = allEvents[savedEventIdx] 
+  if (!savedEventIdx) {
+    console.log('Event not in memory')
+    return
+  }
   console.log('deleteEvent', savedEventIdx, savedEvent )
-  savedEvent.laterTimerHandler?.clear()
+  savedEvent.laterTimerHandler?.clear() 
   if (savedEvent.endTimeoutHandler) clearTimeout(savedEvent.endTimeoutHandler)
   if (savedEventIdx >= 0) allEvents.splice(savedEventIdx, 1)
 }

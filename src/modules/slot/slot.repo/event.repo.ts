@@ -10,6 +10,7 @@ import { getRandomNumber, getUrlWithoutHost, addHostToPath } from './../../../he
 import { processEvents, updateRulesFromDb } from './../slot.services/events/events'
 import { exec, query } from './../../../db'
 import { EventDTO, Event  } from './../slot.services/events/event'
+import * as eventsService from './../slot.services/events/events'
 // #endregion
 
 export async function addEvent(eventRule: EventDTO): Promise<void> {
@@ -137,6 +138,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
 }
 
 export async function deleteEvent(id: number): Promise<boolean> {
+  eventsService.deleteEvent(id)
   const respDelete = await exec(`
     delete from event where id = ${id}
   `)
