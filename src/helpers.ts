@@ -139,6 +139,7 @@ export const sleep = async (time: number): Promise<void> => {
     })
 }
 export const getUrlWithoutHost = (url: string): string => {
+    if(!url) return ''
     const _urlBase = urlBase()
     let retUrl: string
     if (url.startsWith(_urlBase)) retUrl = url.substr(_urlBase.length)
