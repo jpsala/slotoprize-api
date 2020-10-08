@@ -139,11 +139,16 @@ export const sleep = async (time: number): Promise<void> => {
     })
 }
 export const getUrlWithoutHost = (url: string): string => {
-    if(!url) return ''
     const _urlBase = urlBase()
-    if (url.startsWith(_urlBase)) return url.substr(_urlBase.length)
-    else return url
+    let retUrl: string
+    if (url.startsWith(_urlBase)) retUrl = url.substr(_urlBase.length)
+    else retUrl = url
+    if (!retUrl || retUrl.toLocaleUpperCase() === 'UNDEFINED' || retUrl === '' || retUrl.toUpperCase() === 'NULL') retUrl = ''
+    return retUrl
+    
 }
 export const addHostToPath = (path: string): string => {
+    console.log('addHostToPath path', path)
+    if(!path || path.toLocaleUpperCase() === 'UNDEFINED' || path === '' || path.toUpperCase() === 'NULL') return ''
     return urlBase() + path
 }

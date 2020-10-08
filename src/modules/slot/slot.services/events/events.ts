@@ -38,9 +38,10 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
     
     
     ruleFromDb.skin = await getSkin(ruleFromDb.skinId)
-    ruleFromDb.popupTextureUrl = url + ruleFromDb.popupTextureUrl
-    ruleFromDb.notificationTextureUrl = url + ruleFromDb.notificationTextureUrl
-    ruleFromDb.particlesTextureUrl = url + ruleFromDb.particlesTextureUrl
+    console.log('ruleFromDb', ruleFromDb)
+    ruleFromDb.popupTextureUrl = ruleFromDb.popupTextureUrl ? url + ruleFromDb.popupTextureUrl : ''
+    ruleFromDb.notificationTextureUrl = ruleFromDb.notificationTextureUrl ? url + ruleFromDb.notificationTextureUrl : ''
+    ruleFromDb.particlesTextureUrl = ruleFromDb.particlesTextureUrl ? url + ruleFromDb.particlesTextureUrl : ''
     ruleFromDb.rule = <Rule>JSON.parse(ruleFromDb.rule as any)
     console.log('init event', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
     if (ruleFromDb.rule.type === 'unique') {

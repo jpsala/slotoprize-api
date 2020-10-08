@@ -85,10 +85,10 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
     isNew = true
     delete (eventDto as any).id
   }
-
+  console.log('setEvent', eventDto)
   eventDto.particlesTextureUrl = getUrlWithoutHost(<string>eventDto.particlesTextureUrl)
   eventDto.notificationTextureUrl = getUrlWithoutHost(<string>eventDto.notificationTextureUrl)
-  eventDto.popupTextureUrl = getUrlWithoutHost(<string>eventDto.popupTextureUrl)
+  eventDto.popupTextureUrl = getUrlWithoutHost(<string>eventDto.popupTextureUrl) 
   const resp = await exec(`REPLACE into event set ?`, <any>eventDto)
   removeActualImage(files?.notificationFile, resp.insertId, 'notification')
   removeActualImage(files?.popupFile, resp.insertId, 'popup')
@@ -96,7 +96,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
 
   let notificationFile = saveFileAndGetFilePath(files?.notificationFile, resp.insertId, 'notification')
   let popupFile = saveFileAndGetFilePath(files?.popupFile, resp.insertId, 'popup')
-  let particlesFile = saveFileAndGetFilePath(files?.particlesFile, resp.insertId, 'particles')
+  let particlesFile = saveFileAndGetFilePath(files?.particlesFile, resp.insertId, 'particles') 
 
   eventDto.popupTextureUrl = popupFile ?? eventDto.popupTextureUrl
   eventDto.notificationTextureUrl = notificationFile ?? eventDto.notificationTextureUrl

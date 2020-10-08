@@ -92,11 +92,13 @@ const callBackForStart = async (event: Event): Promise<void> =>
   const payload = event.payload as EventPayload
   console.log('Event start, name %O, notificationData %O', payload.name, payload.notificationData.message)
   if (Array.isArray(event.payload)) throw new Error('Here event.payload can not be an array')
-  if (event.eventType === 'generic' && !event.payload.devOnly)
+  if (event.eventType === 'generic')
   {
     event.isActive = true
-    wsMessage.payload = event.payload
-    wsServer.send(wsMessage as WebSocketMessage)
+    if (!event.payload.devOnly) {
+      wsMessage.payload = event.payload
+      wsServer.send(wsMessage as WebSocketMessage)
+    }
     // console.log('onstrt event sent ', event)
   }
   else if (event.eventType === 'raffle')
