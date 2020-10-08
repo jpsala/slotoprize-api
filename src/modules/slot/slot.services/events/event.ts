@@ -97,6 +97,7 @@ const callBackForStart = async (event: Event): Promise<void> =>
     event.isActive = true
     wsMessage.payload = event.payload
     wsServer.send(wsMessage as WebSocketMessage)
+    console.log('onstrt event sent ', event)
   }
   else if (event.eventType === 'raffle')
   {
@@ -113,8 +114,8 @@ const callBackForStop = (event): void =>
   console.log('Event stop, name %O, notificationData %O, payload %O', payload.name, payload.notificationData.message, payload)
   event.isActive = false
   wsMessage.payload = event.payload
-  console.log('event sent ', event)
   wsServer.send(wsMessage as WebSocketMessage)
+  console.log('onstop event sent ', event)
 }
 
 export function createEvent(eventDto: EventDTO): Event
