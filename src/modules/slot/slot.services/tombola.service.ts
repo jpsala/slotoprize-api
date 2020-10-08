@@ -21,7 +21,8 @@ export const getPayTableForCrud = async (): Promise<any> => {
     if ((row.symbol as any).paymentType === 'jackpot') {
       const liveRow = await getJackpotLiveRow()
       const idxSymbol = payTable.findIndex(_symbol => Number(_symbol.id) === Number(row.id))
-      if(idxSymbol >= 0) payTable[idxSymbol].points = Number(liveRow?.prize)
+      if (idxSymbol >= 0) payTable[idxSymbol].points = Number(liveRow?.prize)
+      console.log('jackpot for tombola', payTable[idxSymbol])
     }
   }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
