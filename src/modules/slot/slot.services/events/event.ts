@@ -97,6 +97,7 @@ const callBackForStart = async (event: Event): Promise<void> =>
     event.isActive = true
     wsMessage.payload = event.payload
     wsServer.send(wsMessage as WebSocketMessage)
+    console.log('callbackforstart send ws event', wsMessage)
   }
   else if (event.eventType === 'raffle')
   {

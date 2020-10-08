@@ -9,56 +9,32 @@ import { BAD_REQUEST } from 'http-status-codes'
 import { urlBase } from './../../../../helpers'
 import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
-import { createEvent, Event, EventDTO, EventPayload} from './event'
+import { createEvent, Event, EventDTO, EventPayload, Rule} from './event'
 // import * as testEvent from './testEvent'
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
-let allEvents: Event[] = []
+const allEvents: Event[] = []
 let log = true
 export const toggleLog = (): boolean => { return log = !log }
 export const init = async (): Promise<void> =>
 {
-  // testEvent.run()
-  // later.date.localTime()
   const rulesFromDB = await query('select * from event where active = 1')
+  await processEvents(rulesFromDB)
+}
+export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
+{ 
   const url = urlBase()
-  for (const ruleFromDb of rulesFromDB) {
+  for (const ruleFromDb of eventsFromDB) {
+    const savedEvent = allEvents.find(_event => Number((_event.payload as EventPayload).id) === Number(ruleFromDb.id))
+    if (savedEvent) {
+      if (savedEvent.endTimeoutHandler) clearTimeout(savedEvent.endTimeoutHandler) 
+      savedEvent.laterTimerHandler?.clear()
+    }
     ruleFromDb.skin = await getSkin(ruleFromDb.skinId)
     ruleFromDb.popupTextureUrl = url + ruleFromDb.popupTextureUrl
     ruleFromDb.notificationTextureUrl = url + ruleFromDb.notificationTextureUrl
-    ruleFromDb.rule = JSON.parse(ruleFromDb.rule)
-    console.log('init() ruleFromDb', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
-    // if (ruleFromDb.rule.type === 'weekly') {
-    //   for (const day of ruleFromDb.rule.days)
-    //     for (const hour of day.hours) {
-    //       console.log('parse', `${<string>day.day} ${<string>hour.start}`, 'e HH:mm:ss')
-    //       let startDay = parse(`${<string>day.day} ${<string>hour.start}`, 'e HH:mm:ss', new Date())
-    //       const endDate = add(startDay, { seconds: <number>ruleFromDb.duration })
-    //       console.log('startDate', startDay, endDate)
-    //       if (new Date() > startDay) {
-    //         startDay = add(new Date(), { seconds: 1 })
-    //         hour.start = format(startDay, 'HH:mm:ss')
-    //       }
-    //       const diffInSeconds = differenceInSeconds(endDate, startDay)
-    //       ruleFromDb.lateDuration = diffInSeconds
-    //     }
-    //   console.log('ruleFromDb', ruleFromDb)
-    // }
-    // if (ruleFromDb.rule.type === 'daily') {
-    //   console.log('ruleFromDb before', Object.assign({},ruleFromDb.rule))
-    //   for (const hour of ruleFromDb.rule.hours) {
-    //     console.log('parse', `${<string>hour.start}`, 'HH:mm:ss')
-    //     let startDay = parse(`${<string>hour.start}`, 'HH:mm:ss', new Date())
-    //     const endDate = add(startDay, { seconds: <number>ruleFromDb.duration })
-    //     console.log('startDate %O endDate %O', startDay, endDate)
-    //     if (new Date() > startDay && new Date() < endDate) {
-    //       startDay = add(new Date(), { seconds: 1 })
-    //       hour.start = format(startDay, 'HH:mm:ss')
-    //     }
-    //     const diffInSeconds = differenceInSeconds(endDate, startDay)
-    //     ruleFromDb.lateDuration = diffInSeconds
-    //   }
-    //   console.log('ruleFromDb after', ruleFromDb.rule)
-    // }
+    ruleFromDb.particlesTextureUrl = url + ruleFromDb.particlesTextureUrl
+    ruleFromDb.rule = <Rule>JSON.parse(ruleFromDb.rule as any)
+    console.log('processEvents() ruleFromDb', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
     if (ruleFromDb.rule.type === 'unique') {
       const ruleDateStart = parse(ruleFromDb.rule.start, 'yyyy-MM-dd HH:mm:ss', new Date())
       let dateStart = ruleDateStart
@@ -71,15 +47,6 @@ export const init = async (): Promise<void> =>
       ruleFromDb.duration  = diffInSeconds
     }
   }
-  processEvents(rulesFromDB)
-}
-export function processEvents(eventsFromDB: EventDTO[], isUpdate = false): void
-{
-  if(isUpdate){
-    allEvents.forEach(event => { if (event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler) })
-    allEvents.forEach(event => <void>event.laterTimerHandler?.clear())
-    allEvents = []
-  }
   for (const eventFromDB of eventsFromDB)
   {  
     if(eventFromDB.duration < 0) continue
@@ -87,19 +54,11 @@ export function processEvents(eventsFromDB: EventDTO[], isUpdate = false): void
     const event = scheduleEvent(newEvent) 
     allEvents.push(event)
     const payload = event.payload as EventPayload
-    log && console.log('event loaded ', payload.name, event.rule, event.distance)
+    log && console.log('event loaded ', payload.name, event.rule, event.distance) 
   }
+
 }
-function updateEvent(savedEvent: Event, eventFromDB: EventDTO)
-{
-  log && console.log('events updateEvent', savedEvent.eventType, savedEvent.rule)
-  console.log('savedEvent.rule', savedEvent, eventFromDB)
-  if (savedEvent.rule !== eventFromDB.rule || eventFromDB.duration !== savedEvent.duration)
-  {
-    deleteEvent(savedEvent)
-    processEvents([eventFromDB], true)
-  }
-}
+
 export function deleteEvent(event: Event): void 
 {
   event.laterTimerHandler?.clear()
@@ -107,7 +66,7 @@ export function deleteEvent(event: Event): void
   const raffleIdx = allEvents.findIndex(savedEvent => !isArray(savedEvent.payload) && !isArray(event.payload) && savedEvent.payload.id === event.payload.id)
   if (raffleIdx >= 0) allEvents.splice(raffleIdx, 1)
 }
-export function scheduleEvent(event: Partial<Event>): Event
+ export function scheduleEvent(event: Partial<Event>): Event
 {
   function splitDate(date): { year: number, month: number, day: number, hour: number, minute: number, second: number} {
     const dateAndTime = date.split(' ')
@@ -215,41 +174,41 @@ export function dateToRule(date: Date): string
   return `0 ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const updateRule = async (rule: any): Promise<void> => {
-  console.log('update rule', JSON.stringify(rule,null,2))
-  let ruleParsed
-  try {
-    ruleParsed = JSON.parse(rule.rule)
-  } catch (error) {
-    throw createHttpError(BAD_REQUEST, 'Rule can not be parsed')
-  }
-  const event = allEvents.find(_event => {
-    return String((_event.payload as EventPayload).id) === String(rule.id)
-  })
-  const eventForSave = {
-    active: rule.active,
-    betPrice: rule.betPrice,
-    data: rule.data,
-    description: rule.description,
-    devOnly: rule.devOnly,
-    duration: rule.duration,
-    eventType: rule.eventType,
-    id: rule.id,
-    multiplier: rule.multiplier,
-    name: rule.name,
-    notificationMessage: rule.notificationMessage,
-    notificationTextureUrl: rule.notificationTextureUrl,
-    particlesTextureUrl: rule.particlesTextureUrl,
-    popupMessage: rule.popupMessage,
-    popupTextureUrl: rule.popupTextureUrl,
-    rule: ruleParsed
-  }
-  if(event)
-    updateEvent(event, eventForSave as any)
-  else
-  processEvents([eventForSave as any], true)
+// export const updateRule = async (rule: any): Promise<void> => {
+//   console.log('update rule', JSON.stringify(rule,null,2))
+//   let ruleParsed
+//   try {
+//     ruleParsed = JSON.parse(rule.rule)
+//   } catch (error) {
+//     throw createHttpError(BAD_REQUEST, 'Rule can not be parsed')
+//   }
+//   const event = allEvents.find(_event => {
+//     return String((_event.payload as EventPayload).id) === String(rule.id)
+//   })
+//   const eventForSave = {
+//     active: rule.active,
+//     betPrice: rule.betPrice,
+//     data: rule.data,
+//     description: rule.description,
+//     devOnly: rule.devOnly,
+//     duration: rule.duration,
+//     eventType: rule.eventType,
+//     id: rule.id,
+//     multiplier: rule.multiplier,
+//     name: rule.name,
+//     notificationMessage: rule.notificationMessage,
+//     notificationTextureUrl: rule.notificationTextureUrl,
+//     particlesTextureUrl: rule.particlesTextureUrl,
+//     popupMessage: rule.popupMessage,
+//     popupTextureUrl: rule.popupTextureUrl,
+//     rule: ruleParsed
+//   }
+//   if(event)
+//     updateEvent(event, eventForSave as any)
+//   else
+//     await processEvents([eventForSave as any], true)
 
-}
+// }
 export const updateRulesFromDb = async (): Promise<void> =>
 {
   await init()

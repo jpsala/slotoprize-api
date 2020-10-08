@@ -7,9 +7,9 @@ import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { format } from 'date-fns'
 import { getRandomNumber, getUrlWithoutHost, addHostToPath } from './../../../helpers'
-import { updateRule, updateRulesFromDb } from './../slot.services/events/events'
+import { processEvents, updateRulesFromDb } from './../slot.services/events/events'
 import { exec, query } from './../../../db'
-import { EventDTO, Event, Rule } from './../slot.services/events/event'
+import { EventDTO, Event  } from './../slot.services/events/event'
 // #endregion
 
 export async function addEvent(eventRule: EventDTO): Promise<void> {
@@ -102,7 +102,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   eventDto.particlesTextureUrl = particlesFile ?? eventDto.particlesTextureUrl
   if (isNew) eventDto.id = resp.insertId
   await exec(`REPLACE into event set ?`, <any>eventDto)
-  await updateRule(eventDto)
+  await processEvents([eventDto] as any[])
 
   function removeActualImage(file: any, eventId: number, whichFile: 'notification' | 'popup' | 'particles'): void {
     if (!file) return undefined
