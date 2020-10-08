@@ -36,6 +36,7 @@ import { callback, getVideoAdsViewCountForCrud } from './slot.services/ironsourc
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
 import { getTicketsSettingsForCrud, postTicketsSettingsForCrud } from "./slot.services/ticketsSettings.service"
 import { getSpinSettingsForCrud, setSpinSettingsForCrud } from './slot.services/spinForCrud.service'
+import { appodealCallback } from './slot.services/appodeal'
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
   console.log('req', req)
   const resp = await getPlayerForFront(String(req.query.id))
@@ -355,5 +356,11 @@ export async function ironsource(req: Request, res: Response): Promise<any>
     country: 'string';
     negativeCallback: 'string';
   }, ipAddr, dev === 'true')
+  res.status(200).send(resp)
+}
+export function appodeal(req: Request, res: Response): any
+{
+  const { 'dev-request': dev } = req.headers
+  const resp = appodealCallback(<string> req.query.data1, <string> req.query.data2, dev)
   res.status(200).send(resp)
 }
