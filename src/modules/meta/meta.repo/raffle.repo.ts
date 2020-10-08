@@ -17,7 +17,7 @@ import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
 
 
-import { dateToRule, updateRulesFromDb } from './../../slot/slot.services/events/events'
+import { dateToRule, deleteEvent, updateRulesFromDb } from './../../slot/slot.services/events/events'
 import { getHaveWinRaffle, getHaveProfile } from './gameUser.repo'
 
 export const rafflePurchase = async (deviceId: string, raffleId: number, amount: number): Promise<Wallet> => {
@@ -332,8 +332,9 @@ export async function raffleTime(raffleId: number): Promise<any> {
   if (!winnerRaffleHistory) throw new Error('There was a problem in raffle time')
   await saveWinner(winnerRaffleHistory.id)
   const eventData = JSON.stringify({"id": Number(raffleId)})
+  const event = await queryOne(`select id from event where data = '${eventData}'`)
+  deleteEvent(Number(event.id))
   await exec(`delete from event where data = '${eventData}'`)
-  await updateRulesFromDb()
   await exec(`update raffle set winner = ${winnerRaffleHistory.game_user_id}, state = "won" where id = ${raffleId}`)
   await exec(`update raffle_history set win = 1 where id = ${winnerRaffleHistory.id}`)
   return winnerRaffleHistory

@@ -141,9 +141,6 @@ export const sleep = async (time: number): Promise<void> => {
 export const getUrlWithoutHost = (url: string): string => {
     if(!url) return ''
     const _urlBase = urlBase()
-    console.log('urlBase', _urlBase)
-    if (url.startsWith(_urlBase)) console.log(url.substr(_urlBase.length))
-    else console.log(url)
     if (url.startsWith(_urlBase)) return url.substr(_urlBase.length)
     else return url
 }

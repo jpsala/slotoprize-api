@@ -13,7 +13,7 @@ import { createEvent, Event, EventDTO, EventPayload, Rule} from './event'
 // import * as testEvent from './testEvent'
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
 const allEvents: Event[] = []
-let log = true
+let log = false
 export const toggleLog = (): boolean => { return log = !log }
 export const init = async (): Promise<void> =>
 {
@@ -34,7 +34,7 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
     ruleFromDb.notificationTextureUrl = url + ruleFromDb.notificationTextureUrl
     ruleFromDb.particlesTextureUrl = url + ruleFromDb.particlesTextureUrl
     ruleFromDb.rule = <Rule>JSON.parse(ruleFromDb.rule as any)
-    console.log('processEvents() ruleFromDb', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
+    console.log('init event', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
     if (ruleFromDb.rule.type === 'unique') {
       const ruleDateStart = parse(ruleFromDb.rule.start, 'yyyy-MM-dd HH:mm:ss', new Date())
       let dateStart = ruleDateStart
@@ -59,12 +59,14 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
 
 }
 
-export function deleteEvent(event: Event): void 
+export function deleteEvent(eventId: number): void 
 {
-  event.laterTimerHandler?.clear()
-  if (event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler)
-  const raffleIdx = allEvents.findIndex(savedEvent => !isArray(savedEvent.payload) && !isArray(event.payload) && savedEvent.payload.id === event.payload.id)
-  if (raffleIdx >= 0) allEvents.splice(raffleIdx, 1)
+  const savedEventIdx = allEvents.findIndex(_event => !isArray(_event.payload) && !isArray(_event.payload) && _event.payload.id === eventId)
+  const savedEvent = allEvents[savedEventIdx]
+  console.log('deleteEvent', savedEventIdx, savedEvent )
+  savedEvent.laterTimerHandler?.clear()
+  if (savedEvent.endTimeoutHandler) clearTimeout(event.endTimeoutHandler)
+  if (savedEventIdx >= 0) allEvents.splice(savedEventIdx, 1)
 }
  export function scheduleEvent(event: Partial<Event>): Event
 {
@@ -115,8 +117,10 @@ export function deleteEvent(event: Event): void
   } catch (error) {
     console.log('error in events, later.schedule', error, scheduleData)
   }
-
-  console.log('Interval of %O begins in %O', (event.payload as any)?.name, event.distance)
+  if(event.distance)
+    console.log('Interval of %O begins in %O', (event.payload as any)?.name, event.distance)
+  else
+    console.log('! Interval of %O There is not', (event.payload as any)?.name)
   event.laterTimerHandler = later.setInterval(function ()
   {
     // @TODO Que pasa que llama 2 veces si no hago el clear?
@@ -257,6 +261,7 @@ export function getAllEvents(): any[] {
     retArray.push(Object.assign(event,{nexts}))
   })
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  console.log('allEvents', retArray)
   return retArray
 }
 void (async () => { if (process.env.NODE_ENV !== 'testing') await init() })()

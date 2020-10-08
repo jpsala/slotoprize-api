@@ -1,4 +1,4 @@
-20-09-2020
+<!-- 20-09-2020
 saltear si devRequest
 * ips de ironsource
 * hash
@@ -184,4 +184,4 @@ ratio win/lose = 100
 --------------------
 
 
-
+ -->

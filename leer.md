@@ -1,4 +1,4 @@
-- Corregir raffles para que en la app solo aparezcan las LIVE (en el MENU es la opcion GIFT)
+<!-- - Corregir raffles para que en la app solo aparezcan las LIVE (en el MENU es la opcion GIFT)
   solo pasar los que estan en live - raffle_prize_data
 
 - Terminar seccion WINNERS (front, <> y backend) la lista de winners comprende la info del player y la info del premio: raffles y jackpots
@@ -10,4 +10,4 @@
 
     scooter.png",
     "rafflePrizeName": "Quisque nec vestibulum leo, nec dictum nulla."
-  }
+  } -->
