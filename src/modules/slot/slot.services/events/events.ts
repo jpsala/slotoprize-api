@@ -57,7 +57,7 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
   }
   for (const eventFromDB of eventsFromDB)
   {  
-    if (Number(ruleFromDb.active) === 0) continue
+    if (Number(eventFromDB.active) === 0) continue
     if(eventFromDB.duration < 0) continue
     const newEvent: Partial<Event> = createEvent(eventFromDB)
     const event = scheduleEvent(newEvent) 
