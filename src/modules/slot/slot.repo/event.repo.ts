@@ -86,6 +86,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
     delete (eventDto as any).id
   }
   console.log('setEvent', eventDto)
+  if(!eventDto.devOnly) eventDto.devOnly = 0
   eventDto.particlesTextureUrl = getUrlWithoutHost(<string>eventDto.particlesTextureUrl)
   eventDto.notificationTextureUrl = getUrlWithoutHost(<string>eventDto.notificationTextureUrl)
   eventDto.popupTextureUrl = getUrlWithoutHost(<string>eventDto.popupTextureUrl) 
@@ -103,6 +104,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   eventDto.particlesTextureUrl = particlesFile ?? eventDto.particlesTextureUrl
   if (isNew) eventDto.id = resp.insertId
   await exec(`REPLACE into event set ?`, <any>eventDto)
+  console.log('eventDto', eventDto)
   await processEvents([eventDto] as any[])
 
   function removeActualImage(file: any, eventId: number, whichFile: 'notification' | 'popup' | 'particles'): void {

@@ -102,24 +102,26 @@ export const getJackpotWinners = async (): Promise<PrizeWinners[]> =>
 export const sendJackpotWinEvent = async (user: GameUser, jackpotRowId: number): Promise<void> => {
   const userForSaving: GameUser = camelcaseKeys(user)
   if (await getHaveProfile(user.id)) {
-      const jackpotData:{prize: number} = await queryOne(`
-        select id, cycle, prize, state, repeated, spinCount, confirmed
-        from jackpot 
-        where id = ${jackpotRowId}
-      `)
-      console.log('jackpotData', jackpotData)
-      const wsMessage: WebSocketMessage = {
-        code: 200,
-        message: 'OK',
-        msgType: 'jackpotWin',
-        payload: {
-          amount: jackpotData.prize,
-          winnerName: `${userForSaving.firstName}, ${userForSaving.lastName}`,
-          winnerLocation: `${userForSaving.address}`
-        }
+    const liveRow = await getJackpotLiveRow()
+    const jackpotData:{prize: number} = await queryOne(`
+      select id, cycle, prize, state, repeated, spinCount, confirmed
+      from jackpot 
+      where id = ${jackpotRowId}
+    `)
+    const wsMessage: WebSocketMessage = {
+      code: 200,
+      message: 'OK',
+      msgType: 'jackpotWin',
+      payload: {
+        amount: jackpotData.prize,
+        winnerId: userForSaving.id,
+        winnerName: `${userForSaving.firstName}, ${userForSaving.lastName}`,
+        winnerLocation: `${userForSaving.country}`,
+        updatedAmount: liveRow.prize,
       }
-      wsServer.send(wsMessage)
-      await unMarkGameUserForEventWhenProfileGetsFilled(userForSaving)
+    }
+    wsServer.send(wsMessage)
+    await unMarkGameUserForEventWhenProfileGetsFilled(userForSaving)
   } else {
       console.log('incomplete profile, marking for future send', )
       await markGameUserForEventWhenProfileGetsFilled(user, jackpotRowId)
