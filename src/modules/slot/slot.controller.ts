@@ -361,6 +361,6 @@ export async function ironsource(req: Request, res: Response): Promise<any>
 export function appodeal(req: Request, res: Response): any
 {
   const { 'dev-request': dev } = req.headers
-  const resp = appodealCallback(<string> req.query.data1, <string> req.query.data2, dev)
+  const resp = appodealCallback(<string> req.query.data1, <string> req.query.data2, dev === 'true')
   res.status(200).send(resp)
 }
