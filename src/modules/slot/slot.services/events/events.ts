@@ -120,20 +120,24 @@ export function deleteEvent(eventId: number): void
       })
     })
   }
-  let nexts
+   let nexts = ''
   try
   {
     const payload = event.payload as EventPayload
     event.sched = later.schedule(scheduleData)
     event.next = event.sched.next(1, new Date()) as Date | 0
-    nexts = event.sched.next(3, new Date()) as Date | 0
+    const nextsDates = event.sched.next(3, new Date()) as Date[] 
+    for (const next of (nextsDates))
+      if (next) 
+        nexts += `${(formatDistanceStrict(new Date(), next))} `
+         
     event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next) : ''
     log && console.log('scheduling', event.rule, 'name', payload.name, ' distance:', event.distance)
   } catch (error) {
     console.log('error in events, later.schedule', error, scheduleData)
   }
   if(event.distance)
-    console.log('Interval of %O begins in %O and later in %O', (event.payload as any)?.name, event.distance, nexts.length > 0? formatDistanceStrict(new Date(), nexts[1]):'no next info')
+    console.log('Interval of %O in %O ', (event.payload as any)?.name,  nexts)
   else
     console.log('! Interval of %O There is not', (event.payload as any)?.name)
   event.laterTimerHandler = later.setInterval(function ()

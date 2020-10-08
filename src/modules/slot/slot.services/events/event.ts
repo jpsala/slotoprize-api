@@ -92,12 +92,12 @@ const callBackForStart = async (event: Event): Promise<void> =>
   const payload = event.payload as EventPayload
   console.log('Event start, name %O, notificationData %O', payload.name, payload.notificationData.message)
   if (Array.isArray(event.payload)) throw new Error('Here event.payload can not be an array')
-  if (event.eventType === 'generic')
+  if (event.eventType === 'generic' && !event.payload.devOnly)
   {
     event.isActive = true
     wsMessage.payload = event.payload
     wsServer.send(wsMessage as WebSocketMessage)
-    console.log('onstrt event sent ', event)
+    // console.log('onstrt event sent ', event)
   }
   else if (event.eventType === 'raffle')
   {
@@ -113,9 +113,11 @@ const callBackForStop = (event): void =>
   const payload = event.payload as EventPayload
   console.log('Event stop, name %O, notificationData %O, payload %O', payload.name, payload.notificationData.message, payload)
   event.isActive = false
-  wsMessage.payload = event.payload
-  wsServer.send(wsMessage as WebSocketMessage)
-  console.log('onstop event sent ', event)
+  if (!event.payload.devOnly) {
+    wsMessage.payload = event.payload
+    wsServer.send(wsMessage as WebSocketMessage)
+  }
+  // console.log('onstop event sent ', event)
 }
 
 export function createEvent(eventDto: EventDTO): Event

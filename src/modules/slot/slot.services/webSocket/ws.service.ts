@@ -123,7 +123,8 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     const msgStr = Object.assign({}, _msg) as any
     msgStr.payload = payload
     const msg = JSON.stringify(_msg.isJson ? _msg : msgStr)
-    if(_msg.log) console.log('ws send with log', _msg, _msg.payload)
+    if (_msg.log) console.log('ws send with log', _msg, _msg.payload)
+    console.log('msg send', _msg)
     if (client) {
 
       console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
