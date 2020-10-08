@@ -266,7 +266,7 @@ export async function spinSettingsForCrudGet(req: Request, res: Response): Promi
   res.status(200).json(value)
 }
 export async function spinSettingsForCrudPost(req: Request, res: Response): Promise<any>{
-  await setSpinSettingsForCrud(req.body.spinRegTime as string)
+  await setSpinSettingsForCrud(req.body)
   res.status(200).json(1)
 }
 export async function dailyRewardClaimGet(req: Request, res: Response): Promise<any>{
