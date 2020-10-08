@@ -1,3 +1,4 @@
+import { WSAEINVALIDPROCTABLE } from 'constants'
 import createError from 'http-errors'
 import * as httpStatusCodes from 'http-status-codes'
 import snakeCaseKeys from 'snakecase-keys'
@@ -8,7 +9,7 @@ import * as metaService from '../../meta/meta-services/meta.service'
 import getConnection, {queryOne, exec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
-import { urlBase } from './../../../helpers'
+import { addHostToPath, urlBase } from './../../../helpers'
 import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
 
@@ -108,7 +109,8 @@ export async function getWinRaffle(userId: number): Promise<Partial<RafflePrizeD
   const winData = await queryOne(`
     select r.id, if(rl.id, rl.name, 'No localization data') as name,
     if(rl.id, rl.description, 'No localization data') as description, r.closing_date as closingDate,
-    r.raffle_number_price as raffleNumberPrize, r.item_highlight as itemHighlight
+    r.raffle_number_price as raffleNumberPrize, r.item_highlight as itemHighlight,
+    r.texture_url as textureUrl
     from raffle_history rh
       inner join raffle r on rh.raffle_id = r.id
       inner join game_user gu on r.winner = gu.id
@@ -119,7 +121,7 @@ export async function getWinRaffle(userId: number): Promise<Partial<RafflePrizeD
   const rafflePrizeData: Partial <RafflePrizeData> = {
     id: winData.id, name: winData.name, description: winData.description,
     closingDate: winData.closingDate, raffleNumberPrice: winData.raffleNumberPrize,
-    itemHighlight: winData.itemHighlight === 1
+    itemHighlight: winData.itemHighlight === 1, textureUrl: addHostToPath(winData.textureUrl)
   }
   console.log('rafflePrizeData', rafflePrizeData)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
