@@ -1,6 +1,7 @@
 import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
 import createHttpError from 'http-errors'
+import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { urlBase } from './../../../helpers'
 import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
@@ -12,12 +13,17 @@ export const getPayTableForCrud = async (): Promise<any> => {
   const payTable: PayTableDTO[] = await query(`
   select * from pay_table
     order by probability asc`)
-  for (const row of payTable)
+  for (const row of payTable) {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     row.symbol = camelcaseKeys(await queryOne(`
       select id, concat('${url}', texture_url) as texture_url, payment_type, symbol_name from symbol where id = ${row.symbol_id}
     `))
-
+    if ((row.symbol as any).paymentType === 'jackpot') {
+      const liveRow = await getJackpotLiveRow()
+      const idxSymbol = payTable.findIndex(_symbol => Number(_symbol.id) === Number(row.id))
+      if(idxSymbol >= 0) payTable[idxSymbol].points = Number(liveRow?.prize)
+    }
+  }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return camelcaseKeys(payTable)
 }
