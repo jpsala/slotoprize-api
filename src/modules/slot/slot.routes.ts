@@ -52,6 +52,7 @@ router.route('/spin_data').get(checkToken, slot.spinDataGet)
 router.route('/spin_data').post(checkToken, slot.spinDataPost)
 router.route('/all_events').get(checkToken, slot.allEvents)
 
+router.route('/max_allowed_birth_year').post(checkToken, slot.maxAllowedBirthYearPost)
 router.route('/playersForFront').get(checkToken, slot.playersForFrontGet)
 router.route('/support_request_for_crud').get(checkToken, slot.supportRequestForCrudGet)
 router.route('/symbols_for_crud').get(slot.symbolsGet)

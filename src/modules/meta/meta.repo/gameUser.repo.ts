@@ -249,7 +249,8 @@ export const getPlayersForFront = async (from: number, limit: number, filter: st
     limit ${from}, ${limit}
 `))
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return players
+  const maxAllowedBirthYear = await getSetting('maxAllowedBirthYear', '2002')
+  return { players, maxAllowedBirthYear }
 }
 export const markGameUserForEventWhenProfileGetsFilled = async (user: GameUser, jackpotId: number): Promise<void> => {
   await exec(`

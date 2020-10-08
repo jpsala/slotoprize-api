@@ -37,10 +37,15 @@ import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/a
 import { getTicketsSettingsForCrud, postTicketsSettingsForCrud } from "./slot.services/ticketsSettings.service"
 import { getSpinSettingsForCrud, setSpinSettingsForCrud } from './slot.services/spinForCrud.service'
 import { appodealCallback } from './slot.services/appodeal'
+import { setSetting } from './slot.services/settings.service'
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
   console.log('req', req)
   const resp = await getPlayerForFront(String(req.query.id))
   res.status(200).json(resp)
+}
+export async function maxAllowedBirthYearPost(req: Request, res: Response): Promise<any>{
+  await setSetting('maxAllowedBirthYear', req.body.maxAllowedBirthYear)
+  res.status(200).json({status: 'ok'})
 }
 export async function playersForFrontGet(req: Request, res: Response): Promise<any>{
   const resp = await getPlayersForFront(Number(req.query.from), Number(req.query.limit), String(req.query.filter))
