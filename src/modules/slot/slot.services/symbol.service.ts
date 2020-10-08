@@ -94,7 +94,6 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
     const oldPath = file.path
     const newPath = path.join(eventImgPath, fileName)
     const rawData = readFileSync(oldPath)
-    console.log('newPath, rawData', newPath, rawData)
     writeFileSync(newPath, rawData)
     unlinkSync(oldPath)
     return `/symbols/live/${fileName}`

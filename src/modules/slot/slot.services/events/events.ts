@@ -133,7 +133,7 @@ export function deleteEvent(eventId: number): void
     console.log('error in events, later.schedule', error, scheduleData)
   }
   if(event.distance)
-    console.log('Interval of %O begins in %O and later in %O', (event.payload as any)?.name, event.distance, formatDistanceStrict(new Date(), nexts[1]))
+    console.log('Interval of %O begins in %O and later in %O', (event.payload as any)?.name, event.distance, nexts.length > 0? formatDistanceStrict(new Date(), nexts[1]):'no next info')
   else
     console.log('! Interval of %O There is not', (event.payload as any)?.name)
   event.laterTimerHandler = later.setInterval(function ()
