@@ -16,13 +16,18 @@ export type UserSpinRegenerationData = {
   dirty: boolean,
   spinsRegenerated: number
 }
-const usersSpinRegenerationArray: UserSpinRegenerationData[] = []
+let usersSpinRegenerationArray: UserSpinRegenerationData[] = []
 let spinsAmountForSpinRegeneration: number
 let lapseForSpinRegeneration
 let maxSpinsForSpinRegeneration
+let spinRegenerationTimoutHandle
+let intervalForSavingArrayToDBHandle
 export async function spinRegenerationInit(): Promise<void>
 {
+  usersSpinRegenerationArray = []
+  console.log('spinRegenerationInit')
   lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10')) * 1000
+  console.log('lapseForSpinRegeneration', lapseForSpinRegeneration)
   maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10'))
 
   // await exec(`update wallet set spins=0 where game_user_id = 583`)
@@ -76,6 +81,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
     // console.log('Update user %o spins %o last %o now %o diff %o', userSpinRegenerationData.userId,
     //              userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'),
     //              nowMoment.format('YYYY-MM-DD HH:mm:ss'),  diff / 1000)
+    console.log('userSpinRegenerationData.spins %O, maxSpinsForSpinRegeneration %O', userSpinRegenerationData.spins, maxSpinsForSpinRegeneration)
     console.log('Update user %o spins %o last spin %o now %o rest %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'), nowMoment.format('YYYY-MM-DD HH:mm:ss'),  `${diff / 1000} Secs`)
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
@@ -142,10 +148,12 @@ async function saveSpinRegenerationDataToDB(){
     }
 }
 function initIntervalForSavingArrayToDB(): void{
-  setInterval(() => void saveSpinRegenerationDataToDB(), 5000)
+  clearInterval(intervalForSavingArrayToDBHandle)
+  intervalForSavingArrayToDBHandle = setInterval(() => void saveSpinRegenerationDataToDB(), 5000)
 }
 function initIntervalForSpinRegeneration(): void {
-  setInterval(function (): void
+  clearInterval(spinRegenerationTimoutHandle)
+  spinRegenerationTimoutHandle = setInterval(function (): void
   {
     void spinRegenerationUsersInArray()
   }, 1000)

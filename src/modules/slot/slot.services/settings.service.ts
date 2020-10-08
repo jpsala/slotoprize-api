@@ -1,3 +1,4 @@
+import { spinRegenerationInit } from '../slot.repo/spin.regeneration.repo'
 import { query, exec } from './../../../db'
 type Setting = {id?: number, name: string, value: string, description: string}
 let settings: Setting[] = []
@@ -28,6 +29,9 @@ export const setSetting = async (key: string, value : string): Promise<void> => 
     const respInsert =  await exec(`insert into setting(value, name) values('${value}', '${key}')`)
     settings.push({id: respInsert.insertId, name: key, value: value, description: ''})
   }
+  if (['lapseForSpinRegeneration', 'maxSpinsForSpinRegeneration', 'spinsAmountForSpinRegeneration'].includes(key)) 
+    await spinRegenerationInit()
+  
 }
 
 
