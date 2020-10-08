@@ -9,7 +9,7 @@ import camelcaseKeys from 'camelcase-keys'
 import createHttpError from 'http-errors'
 import { query, queryOne, exec } from '../../../db'
 import { LanguageData } from '../meta.types'
-import { saveFile, urlBase } from '../../../helpers'
+import { getUrlWithoutHost, saveFile, urlBase } from '../../../helpers'
 
 export async function getLanguages(): Promise<LanguageData[]> {
     const url = urlBase()
@@ -51,6 +51,8 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
     const isNew = fields.isNew
     const localizationFile = files.localizationFile
     const textureFile = files.textureFile
+    fields.localization_url = getUrlWithoutHost(fields.localization_url)
+    fields.texture_url = getUrlWithoutHost(fields.texture_url)
     let respQuery
 
     delete fields.isNew
@@ -59,6 +61,7 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
         throw createHttpError(BAD_REQUEST, 'Select a JSON file please')
     if (isNew && !(textureFile || fields.texture_url))
         throw createHttpError(BAD_REQUEST, 'Select an image please')
+    
 
     let languageId
 
@@ -70,9 +73,7 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
         const { texture_url, localization_url } = await queryOne(
             `select texture_url, localization_url from language where id = ${fields.id}`
         )
-
         const localizationPath = '/var/www/html/public/assets/localization'
-
         if (texture_url && textureFile) {
             const textureFileToDelete = join(
                 localizationPath,
@@ -94,12 +95,9 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
     }
 
     if (localizationFile) {
-        const saveResp = saveFile({
-            file: localizationFile,
-            path: 'localization',
-            preppend: fields.language_code,
-            id: languageId
-        })
+        const saveResp = saveFile(
+            { file: localizationFile, path: 'localization', preppend: fields.language_code, id: languageId }
+        )
         await query(`update language set localization_url = ? where id = ?`, [
             saveResp.url,
             languageId
