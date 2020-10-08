@@ -65,7 +65,7 @@ export function deleteEvent(eventId: number): void
   const savedEvent = allEvents[savedEventIdx]
   console.log('deleteEvent', savedEventIdx, savedEvent )
   savedEvent.laterTimerHandler?.clear()
-  if (savedEvent.endTimeoutHandler) clearTimeout(event.endTimeoutHandler)
+  if (savedEvent.endTimeoutHandler) clearTimeout(savedEvent.endTimeoutHandler)
   if (savedEventIdx >= 0) allEvents.splice(savedEventIdx, 1)
 }
  export function scheduleEvent(event: Partial<Event>): Event
