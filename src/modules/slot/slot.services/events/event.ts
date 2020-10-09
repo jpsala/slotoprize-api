@@ -24,7 +24,7 @@ export interface Event
   next: Date | 0;
   distance: string;
   sched: later.Schedule | undefined;
-  payload: EventPayload | EventPayload[];
+  payload: EventPayload;
   callBackForStart?(event: Event): void;
   callBackForStop?(event: Event): void;
   callBackForBeforeReload?(event: Event): void;
@@ -89,20 +89,16 @@ const wsMessage: Partial<WebSocketMessage> = {
 
 const callBackForStart = async (event: Event): Promise<void> =>
 {
-  const payload = event.payload as EventPayload
-  console.log('Event start, name %O, notificationData %O', payload.name, payload.notificationData.message)
-  if (Array.isArray(event.payload)) throw new Error('Here event.payload can not be an array')
+  const payload = event.payload
+  console.log('Event start, name %O, notificationData %O', payload.name)
   if (event.eventType === 'generic')
   {
     event.isActive = true
       wsMessage.payload = event.payload
       wsServer.send(wsMessage as WebSocketMessage)
-    // console.log('onstrt event sent ', event)
   }
   else if (event.eventType === 'raffle')
   {
-    // console.log('(event.sched?.next', event.sched?.next(1, new Date()))
-    // event.laterTimerHandler?.clear()
     console.log('start raffle event', event.payload.name, event.payload.notificationData.message)
     await raffleTime(event.data.id)
   }
@@ -115,7 +111,6 @@ const callBackForStop = (event): void =>
   event.isActive = false
     wsMessage.payload = event.payload
     wsServer.send(wsMessage as WebSocketMessage)
-  // console.log('onstop event sent ', event)
 }
 
 export function createEvent(eventDto: EventDTO): Event

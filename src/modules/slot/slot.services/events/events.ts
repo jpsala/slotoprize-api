@@ -3,15 +3,18 @@ import { isArray } from 'util'
 import later from '@breejs/later'
 import { formatDistanceStrict, differenceInSeconds , parse, add, format } from 'date-fns'
 
-
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
-import { urlBase } from './../../../../helpers'
+import { GameUser } from '../../../meta/meta.types'
+import { isNotebook, urlBase } from './../../../../helpers'
 import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
 import { createEvent, Event, EventDTO, EventPayload, Rule} from './event'
 // import * as testEvent from './testEvent'
 // process.env.TZ = 'America/Argentina/Buenos_Aires'
+
+if(isNotebook()) later.date.localTime()
+
 const allEvents: Event[] = []
 let log = false
 export const toggleLog = (): boolean => { return log = !log }
@@ -24,7 +27,7 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
 { 
   const url = urlBase()
   for (const ruleFromDb of eventsFromDB) {
-    const savedEventIdx = allEvents.findIndex(_event => Number((_event.payload as EventPayload).id) === Number(ruleFromDb.id))
+    const savedEventIdx = allEvents.findIndex(_event => Number((_event.payload).id) === Number(ruleFromDb.id))
     const savedEvent = allEvents[savedEventIdx]
     if (savedEventIdx >= 0) { 
       console.log('reloading event', savedEventIdx) 
@@ -32,18 +35,26 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
       savedEvent.laterTimerHandler?.clear()
       allEvents.splice(savedEventIdx, 1)
     }
-    console.log('ruleFromDb.active', ruleFromDb.active)
     if (Number(ruleFromDb.active) === 0)  
       continue
     
+    /*
+      no lo tiene que mandar el evento si es de a los que no son devs
+
+    * el multiplier no tiene que afectar a los que no son devs
+      es para testeo
+
+    * el getEventsState no tiene que listarlo para los que no son devs
+      lista de even activos solo manda eventos dev a los usuarios dev
+
+    */
     
     ruleFromDb.skin = await getSkin(ruleFromDb.skinId)
-    console.log('ruleFromDb', ruleFromDb)
     ruleFromDb.popupTextureUrl = ruleFromDb.popupTextureUrl ? url + ruleFromDb.popupTextureUrl : ''
     ruleFromDb.notificationTextureUrl = ruleFromDb.notificationTextureUrl ? url + ruleFromDb.notificationTextureUrl : ''
     ruleFromDb.particlesTextureUrl = ruleFromDb.particlesTextureUrl ? url + ruleFromDb.particlesTextureUrl : ''
     ruleFromDb.rule = <Rule>JSON.parse(ruleFromDb.rule as any)
-    console.log('init event', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
+    console.log('processEvents event', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
     if (ruleFromDb.rule.type === 'unique') {
       const ruleDateStart = parse(ruleFromDb.rule.start, 'yyyy-MM-dd HH:mm:ss', new Date())
       let dateStart = ruleDateStart
@@ -63,7 +74,7 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
     const newEvent: Partial<Event> = createEvent(eventFromDB)
     const event = scheduleEvent(newEvent) 
     allEvents.push(event)
-    const payload = event.payload as EventPayload
+    const payload = event.payload
     log && console.log('event loaded ', payload.name, event.rule, event.distance) 
   }
 
@@ -121,7 +132,7 @@ export function deleteEvent(eventId: number): void
       })
     })
   }
-   let nexts = ''
+  let nexts = ''
   try
   {
     const payload = event.payload as EventPayload
@@ -129,18 +140,16 @@ export function deleteEvent(eventId: number): void
     event.next = event.sched.next(1, new Date()) as Date | 0
     const nextsDates = event.sched.next(3, new Date()) as Date[] 
     for (const next of (nextsDates))
-      if (next) 
-        nexts += `${(formatDistanceStrict(new Date(), next))} `
-         
+      if (next) nexts += `${(formatDistanceStrict(new Date(), next))} `        
     event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next) : ''
     log && console.log('scheduling', event.rule, 'name', payload.name, ' distance:', event.distance)
   } catch (error) {
     console.log('error in events, later.schedule', error, scheduleData)
   }
   if(event.distance)
-    console.log('Interval of %O in %O ', (event.payload as any)?.name,  nexts)
+    console.log('scheduleEvent of %O in %O ', (event.payload as any)?.name,  nexts)
   else
-    console.log('! Interval of %O There is not', (event.payload as any)?.name)
+    console.log('! scheduleEvent of %O There is not', (event.payload as any)?.name)
   event.laterTimerHandler = later.setInterval(function ()
   {
     // @TODO Que pasa que llama 2 veces si no hago el clear?
@@ -161,7 +170,7 @@ export function deleteEvent(eventId: number): void
       payload.action = 'start'
       event.isActive = true
       if (event.duration && event.duration > 0) event.isActive = true
-      console.log('later.setInterval name %O, action %O, ends in %O, start again in %O', payload?.name, payload?.action, event.duration, event.distance)
+      // console.log('later.setInterval name %O, action %O, ends in %O, start again in %O', payload?.name, payload?.action, event.duration, event.distance)
       // log && console.log('later.setInterval name %O, action %O, ends in %O, start again in %O', payload?.name, payload?.action, event.duration, event.distance)
       event.callBackForStart(event as Event)
     }
@@ -237,27 +246,19 @@ export const updateRulesFromDb = async (): Promise<void> =>
 {
   await init()
 }
-export const getActiveEventMultiplier = (): number =>
+export const getActiveEventMultiplier = (user: GameUser): number =>
 {
-  return allEvents.filter(event => event.isActive).reduce((initMultiplier, event) =>
+  return allEvents.filter(event => event.isActive).reduce((multiplierAcumulator, event) =>
   {
     {
-      const multiplier = isArray(event.payload) ? 0 : event.payload.multiplier
-      return multiplier * initMultiplier
+      const multiplier = event.payload.multiplier
+      if(event.payload.devOnly && !user.isDev) return multiplierAcumulator
+      return multiplier * multiplierAcumulator
     }
   }, 1)
 }
 export const getActiveBetPrice = (): number =>
 {
-  // const defaultbetPrice = Number(await getSetting('betPrice', 1))
-  // const eventbetPrice = allEvents.filter(event => event.isActive).reduce((initBetPrice, event) =>
-  // {
-  //   {
-  //     const betPrice = isArray(event.payload) ? 0 : event.payload.betPrice
-  //     return betPrice + initBetPrice
-  //   }
-  // }, 0)
-  // return eventbetPrice === 0 ? defaultbetPrice : eventbetPrice
   return 1
 }
 export const getActiveEvents = (): Event[] =>
@@ -282,6 +283,7 @@ export function getAllEvents(): any[] {
   })
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   console.log('allEvents', retArray)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return retArray
 }
 void (async () => { if (process.env.NODE_ENV !== 'testing') await init() })()

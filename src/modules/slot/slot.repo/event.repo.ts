@@ -55,7 +55,6 @@ export async function getEventsForCrud(): Promise<any> {
     "multiplier": 1,
     // "betPrice": await getSetting('betPrice', 1)
   }
-  console.log('events', events)
   // return { events: events.filter(e => String(e.rule).includes('daily')), newEvent }
   return { events, newEvent }
 }
@@ -69,6 +68,8 @@ type EventDto = Event &
   particlesFile?: any,
   popupFile?: any,
   id: number,
+  active: number,
+  devOnly: number,
   popupTextureUrl?: string | undefined,
   notificationTextureUrl?: string | undefined
   particlesTextureUrl?: string | undefined
@@ -85,8 +86,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
     isNew = true
     delete (eventDto as any).id
   }
-  console.log('setEvent', eventDto)
-  if(!eventDto.devOnly) eventDto.devOnly = 0
+  if(!eventDto.active) eventDto.active = 0
   eventDto.particlesTextureUrl = getUrlWithoutHost(<string>eventDto.particlesTextureUrl)
   eventDto.notificationTextureUrl = getUrlWithoutHost(<string>eventDto.notificationTextureUrl)
   eventDto.popupTextureUrl = getUrlWithoutHost(<string>eventDto.popupTextureUrl) 
@@ -104,8 +104,8 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   eventDto.particlesTextureUrl = particlesFile ?? eventDto.particlesTextureUrl
   if (isNew) eventDto.id = resp.insertId
   await exec(`REPLACE into event set ?`, <any>eventDto)
-  console.log('eventDto', eventDto)
-  await processEvents([eventDto] as any[])
+  const rulesFromDB = await query('select * from event where id = '+eventDto.id)
+  await processEvents(rulesFromDB)
 
   function removeActualImage(file: any, eventId: number, whichFile: 'notification' | 'popup' | 'particles'): void {
     if (!file) return undefined

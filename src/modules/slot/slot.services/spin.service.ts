@@ -3,11 +3,10 @@ import { utc } from 'moment'
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
 import createError from 'http-errors'
-import { LENGTH } from 'class-validator'
 import getSlotConnection from '../../../db'
 import { SpinData , WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
-import { setGameUserSpinData , getGameUserLastSpinDate, markGameUserForEventWhenProfileGetsFilled } from '../../meta/meta.repo/gameUser.repo'
+import { setGameUserSpinData , getGameUserLastSpinDate } from '../../meta/meta.repo/gameUser.repo'
 import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { GameUser } from './../../meta/meta.types'
 
@@ -17,7 +16,6 @@ import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import { getSetting } from './settings.service'
 import { getWallet, updateWallet } from './wallet.service'
-import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 
 
 const randomNumbers: number[] = []
@@ -35,14 +33,6 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   if (!enoughSpins) throw createError(400, 'Insufficient funds')
 
   const {id: jackpotRowId, isJackpot} = await jackpotService.addSpinsToJackpotAndReturnIfIsJackpot(multiplier, user)
-  /*confirmed: 1
-cycle: 1
-id: 18
-isJackpot: true
-prize: 10
-repeated: 9
-spinCount: 1
-state: "live"*/
   // eslint-disable-next-line prefer-const
   let { winPoints, winType, symbolsData, isWin } = await getWinData(isJackpot)
 
@@ -52,11 +42,10 @@ state: "live"*/
   // siempre se descuenta el costo del spin
   wallet.spins -= bet
   if (winType === 'jackpot') {
-    /*<json of jackpot amount and currency sign, and player name or player location>*/
-    await jackpotService.sendJackpotWinEvent(user, <number>jackpotRowId)
+    await jackpotService.sendJackpotWinEvent(user, <number>jackpotRowId) 
     isWin = true
   } else if (isWin) {
-    const eventMultiplier = getActiveEventMultiplier()
+    const eventMultiplier = getActiveEventMultiplier(user)
     winAmount = winAmount * eventMultiplier
     wallet[`${winType}s`] += (winAmount)
   }

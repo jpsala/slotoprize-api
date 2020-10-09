@@ -32,7 +32,7 @@ export function processEvents(eventsFromDB: EventDTO[]): void
   allEvents = []
   for (const eventFromDB of eventsFromDB)
   {
-    const savedEvent = allEvents.find(event => !isArray(event.payload) && event.payload.id === eventFromDB.id)
+    const savedEvent = allEvents.find(event => event.payload.id === eventFromDB.id)
     if (savedEvent)
     {
       updateEvent(savedEvent, eventFromDB)
@@ -41,7 +41,7 @@ export function processEvents(eventsFromDB: EventDTO[]): void
       const newEvent: Partial<Event> = createEvent(eventFromDB)
       const event = scheduleEvent(newEvent)
       allEvents.push(event)
-      const payload = event.payload as EventPayload
+      const payload = event.payload
       log && console.log('event loaded ', payload.name, event.rule, event.distance)
     }
   }
@@ -59,7 +59,7 @@ export function deleteEvent(event: Event): void
 {
   event.laterTimerHandler?.clear()
   if (event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler)
-  const raffleIdx = allEvents.findIndex(savedEvent => !isArray(savedEvent.payload) && !isArray(event.payload) && savedEvent.payload.id === event.payload.id)
+  const raffleIdx = allEvents.findIndex(savedEvent => savedEvent.payload.id === event.payload.id)
   if (raffleIdx >= 0) allEvents.splice(raffleIdx, 1)
 }
 
@@ -140,22 +140,13 @@ export const getActiveEventMultiplier = (): number =>
   return allEvents.filter(event => event.isActive).reduce((initMultiplier, event) =>
   {
     {
-      const multiplier = isArray(event.payload) ? 0 : event.payload.multiplier
+      const multiplier = event.payload.multiplier
       return multiplier * initMultiplier
     }
   }, 1)
 }
 export const getActiveBetPrice = (): number =>
 {
-  // const defaultbetPrice = Number(await getSetting('betPrice', 1))
-  // const eventbetPrice = allEvents.filter(event => event.isActive).reduce((initBetPrice, event) =>
-  // {
-  //   {
-  //     const betPrice = isArray(event.payload) ? 0 : event.payload.betPrice
-  //     return betPrice + initBetPrice
-  //   }
-  // }, 0)
-  // return eventbetPrice === 0 ? defaultbetPrice : eventbetPrice
   return 1
 }
 export const getActiveEvents = (): Event[] =>

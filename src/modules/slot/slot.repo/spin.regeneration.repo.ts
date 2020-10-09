@@ -25,9 +25,7 @@ let intervalForSavingArrayToDBHandle
 export async function spinRegenerationInit(): Promise<void>
 {
   usersSpinRegenerationArray = []
-  console.log('spinRegenerationInit')
   lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10')) * 1000
-  console.log('lapseForSpinRegeneration', lapseForSpinRegeneration)
   maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10'))
 
   // await exec(`update wallet set spins=0 where game_user_id = 583`)

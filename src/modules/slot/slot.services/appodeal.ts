@@ -1,11 +1,15 @@
 import crypto, { Utf8AsciiLatin1Encoding } from 'crypto'
 import queryString from 'querystring'
 import { format } from 'util'
+import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
+import { getWallet, updateWallet } from './wallet.service'
+import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function appodealCallback(data1: string, data2: string, dev: boolean): void {
+export async function appodealCallback(data1: string, data2: string, dev: boolean): Promise<void> {
+  console.log('d1', 'd2', data1, data2)
   //Encryption key you set for the app in dashboard
   // const encryptionKey = "encryptionKeyForAppodeal9405"
-  const encryptionKey = "qwerty"
+  const encryptionKey = "encryptionKeyForAppodeal9405"
   //data1 and data2 sent as GET parameters
   // const data1 = "02A87383F97008D2F8898DA81A39EDAF"
   // const data2 = "839EA3731891B24D8025F447747F097664DB4F6A1B88351796EFF7234BE99B21A8E6176F7515C0E4520E898BE97F1B50D48F9979DE6B96822CA9E4DAB6094076E71A2898DC22632FEE638F611334B08557964783B9F98C10D2B841C2182ED5F707F569143431847800EDA5C0D2FFE8BC2550D4F16850F57DBE4315404D10BA295D724A30BB3B2FB6FB72F74624819D5F89AEFB73E8C8EE0D61E8224E749C6BC8"
@@ -37,10 +41,35 @@ export function appodealCallback(data1: string, data2: string, dev: boolean): vo
   console.log('timeStamp data', new Date(String(timestamp)))
   console.log('userId %O, amount %O, currency %O, impressionId %O, timestamp %O hash %o', userId, amount, currency, impressionId, timestamp, hash)
   //If hashes match impression is valid
-  if ((<string>hash).toUpperCase() === hashString.toUpperCase()) 
+  if ((<string>hash).toUpperCase() === hashString.toUpperCase()){
+    const user = await getGameUser(Number(userId))
+  // const userIsDev = user.isDev
+    const wallet = await getWallet(user)
+    wallet[String(currency).toLocaleLowerCase()] += amount
+    await updateWallet(user, wallet)
+    const wsMessage: WebSocketMessage = {
+      code: 200,
+      message: 'OK',
+      msgType: 'adReward',
+      payload: {
+        type: currency === 'Spins' as string ? 'spin' : 'coin',
+        amount
+      }
+    }
+  
+    try {
+      wsServer.sendToUser(wsMessage, Number(userId))
+      console.log('sended to user', userId)
+    } catch (error) {
+      wsServer.sendToUser(error, userId)
+    }
     //Validate amount and currency
     //Check impression_id for uniqueness
     //Add funds to user balance
+    /*
+    userId 609, amount 2, currency Spins, impressionId a16ec4ca-4c66-4011-9163-9b13ef701495,
+    */
     console.log("Funds added")
 
+  }
 }

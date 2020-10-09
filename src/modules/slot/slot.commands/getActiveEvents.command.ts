@@ -8,9 +8,14 @@ type Message = { payload: any, client: WebSocket }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const runCommand = (cmd: string, data: Message): void => {
-    const activeEvents = getActiveEvents()
+  const userIsDev = (data.client as any).isDev
+
+  const activeEvents = getActiveEvents().filter(_event => {
+      if(_event.payload.devOnly && !userIsDev) return false
+      return true
+    })
     const wsMessages: EventPayload[] = []
-    activeEvents.forEach(event => wsMessages.push(event.payload as EventPayload))
+    activeEvents.forEach(event => wsMessages.push(event.payload))
     const wsMessage: Partial<WebSocketMessage> = {
       code: 200,
       message: 'OK',
