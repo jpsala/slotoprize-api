@@ -46,8 +46,14 @@ export async function appodealCallback(data1: string, data2: string, dev: boolea
     const user = await getGameUser(Number(userId))
   // const userIsDev = user.isDev
     const wallet = await getWallet(user)
-    wallet[String(currency).toLocaleLowerCase()] += amount
+    const paymentType = String(currency).toLocaleLowerCase()
+    console.log('wallet', wallet, paymentType, wallet[paymentType])
+    const walletAmount = Number(wallet[paymentType])
+    const newAmount = walletAmount + Number(amount)
+    wallet[paymentType] = newAmount
+    console.log('walletAmount', walletAmount)
     await updateWallet(user, wallet)
+    console.log('wallet', wallet)
     const wsMessage: WebSocketMessage = {
       code: 200,
       message: 'OK',
