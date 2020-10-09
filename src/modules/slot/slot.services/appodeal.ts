@@ -7,7 +7,7 @@ import { getWallet, updateWallet } from './wallet.service'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function appodealCallback(data1: string, data2: string, dev: boolean): Promise<void> {
-  console.log('d1', 'd2', data1, data2)
+  // console.log('d1', 'd2', data1, data2)
   //Encryption key you set for the app in dashboard
   // const encryptionKey = "encryptionKeyForAppodeal9405"
   const encryptionKey = "encryptionKeyForAppodeal9405"
@@ -39,7 +39,7 @@ export async function appodealCallback(data1: string, data2: string, dev: boolea
   //Hash of the data calculation
   const hashString = crypto.createHash('sha1').update(format("user_id=%s&amount=%s&currency=%s&impression_id=%s&timestamp=%s", userId, amount, currency, impressionId, timestamp)).digest('hex')
 
-  console.log('timeStamp data', new Date(String(timestamp)))
+  // console.log('timeStamp data', new Date(String(timestamp)))
   console.log('userId %O, amount %O, currency %O, impressionId %O, timestamp %O hash %o', userId, amount, currency, impressionId, timestamp, hash)
   //If hashes match impression is valid
   if ((<string>hash).toUpperCase() === hashString.toUpperCase()){
