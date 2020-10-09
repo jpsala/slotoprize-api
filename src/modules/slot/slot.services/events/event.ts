@@ -1,9 +1,11 @@
+// #region Imports
 import later from '@breejs/later'
+import { add, addSeconds, format, formatDuration, intervalToDuration } from 'date-fns'
 import { raffleTime } from '../../../meta/meta.repo/raffle.repo'
 import { isValidJSON } from '../../../../helpers'
 import { WebSocketMessage, wsServer } from './../webSocket/ws.service'
 import { Skin } from './../../slot.repo/skin.repo'
-
+// #endregion
 //#region interface
 export type EventType = 'raffle' | 'generic'
 // later.date.localTime()
@@ -90,7 +92,9 @@ const wsMessage: Partial<WebSocketMessage> = {
 const callBackForStart = async (event: Event): Promise<void> =>
 {
   const payload = event.payload
-  console.log('Event start, name %O, notificationData %O', payload.name)
+  const dateEnd = add(new Date(), { seconds: event.duration })
+  const dur = intervalToDuration({ start: new Date(), dateEnd })
+  console.log('Event start, name %O, duration %o', payload.name, formatDuration(dur, { format: ['days', 'hours', 'minutes', 'seconds'] }))
   if (event.eventType === 'generic')
   {
     event.isActive = true
@@ -152,4 +156,3 @@ export function createEvent(eventDto: EventDTO): Event
   }
   return event
 }
-
