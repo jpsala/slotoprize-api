@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import crypto, { Utf8AsciiLatin1Encoding } from 'crypto'
 import queryString from 'querystring'
 import { format } from 'util'
@@ -69,7 +70,7 @@ export async function appodealCallback(data1: string, data2: string, dev: boolea
     /*
     userId 609, amount 2, currency Spins, impressionId a16ec4ca-4c66-4011-9163-9b13ef701495,
     */
-    console.log("Funds added")
+    console.log(`appodeal user ${user.id}/${user.deviceId}, ${currency} ${amount}`)
 
   }
 }
