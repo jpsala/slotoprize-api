@@ -93,7 +93,7 @@ const callBackForStart = async (event: Event): Promise<void> =>
 {
   const payload = event.payload
   const dateEnd = add(new Date(), { seconds: event.duration })
-  const dur = intervalToDuration({ start: new Date(), dateEnd })
+  const dur = intervalToDuration({ start: new Date(), end:dateEnd })
   console.log('Event start, name %O, duration %o', payload.name, formatDuration(dur, { format: ['days', 'hours', 'minutes', 'seconds'] }))
   if (event.eventType === 'generic')
   {
