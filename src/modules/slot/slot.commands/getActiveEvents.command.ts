@@ -18,7 +18,7 @@ export const runCommand = (cmd: string, data: Message): void => {
   activeEvents.forEach(event => wsMessages.push(event.payload))
   const wsMessage: Partial<WebSocketMessage> = {
     code: 200,
-    message: 'OKss',
+    message: 'OK',
     msgType: 'eventsState',
     payload: wsMessages
   }
