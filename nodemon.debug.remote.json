@@ -1,0 +1,10 @@
+{
+  "watch": [
+    "src",
+    ".env"
+  ],
+  "ext": ".ts",
+  "ignore": [],
+  "exec": "node --inspect=8899 -r ts-node/register src/index",
+  "args": []
+}
