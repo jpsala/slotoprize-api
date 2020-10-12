@@ -206,7 +206,7 @@ export async function addGameUser(user: GameUser): Promise<GameUser> {
     return gameUserDto as GameUser
   }
 export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Promise<GameUser>{
-  const fakedUser = fakeUser(override)
+  const fakedUser = await fakeUser(override)
   const newUser = await addGameUser(fakedUser)
   return newUser
 }

@@ -17,6 +17,7 @@ import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
 
 
+import { getSetting } from '../../slot/slot.services/settings.service'
 import { dateToRule, deleteEvent, reloadRulesFromDb } from './../../slot/slot.services/events/events'
 import { getHaveWinRaffle, getHaveProfile } from './gameUser.repo'
 
@@ -92,6 +93,7 @@ export async function prizeNotified(raffleId: number): Promise<string> {
 export async function getRafflesForCrud(id?: number)
 {
   const url = urlBase()
+  const languageCode = await getSetting('languageCode', 'fr-FR')
 
   const where = id ? ` where r.id = ${id} ` : ''
   console.log(`
@@ -103,12 +105,13 @@ export async function getRafflesForCrud(id?: number)
           concat(gu.last_name,', ',gu.first_name) as winner, gu.id as gameUserId,
           (select sum(raffle_numbers) as sold from raffle_history where raffle_id = r.id) as sold
   from raffle r
-      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'fr-FR'
+      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = '${languageCode}'
       left join game_user gu on r.winner = gu.id
       left join state s on rl.name = s.name
   ${where}
   order by r.closing_date asc
 `, )
+  
   const raffles = await query(`
     select r.id, r.state, rl.name, rl.description, gu.email, gu.device_id deviceID,
             date_format(r.closing_date, '%Y-%m-%d %H:%i:%s') as closingDate,
@@ -118,7 +121,7 @@ export async function getRafflesForCrud(id?: number)
             concat(gu.last_name,', ',gu.first_name) as winner, gu.id as gameUserId,
             (select sum(raffle_numbers) as sold from raffle_history where raffle_id = r.id) as sold
     from raffle r
-        inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'fr-FR'
+        inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = '${languageCode}'
         left join game_user gu on r.winner = gu.id
         left join state s on rl.name = s.name
     ${where}
@@ -166,15 +169,16 @@ export async function getRafflesForCrud(id?: number)
 export async function getRaffle(id: number,
   fieldsToExclude: string[] | undefined = undefined, camelCased = true, rawAllFields = false): Promise<RafflePrizeData> {
   const url = urlBase()
+  const languageCode = await getSetting('languageCode', 'fr-FR')
 
   const select = rawAllFields
     ? `SELECT r.*, rl.name, rl.description, (r.closing_date < current_timestamp) as closed FROM raffle r
-      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'fr-FR'
+      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = ${languageCode}
     where r.id = ${id}`
     : `SELECT r.id, closing_date, rl.name, rl.description,
       r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight
       FROM raffle r
-      left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'fr-FR'
+      left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = ${languageCode}
       where r.id = ${id}`
   const raffle = await queryOne(select) as RafflePrizeData
   if (fieldsToExclude)

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
-import { isArray } from 'util'
 import later from '@breejs/later'
 import { formatDistanceStrict, differenceInSeconds } from 'date-fns'
 import { urlBase } from './../../../../helpers'
@@ -28,7 +27,7 @@ export const init = async (): Promise<void> =>
 export function processEvents(eventsFromDB: EventDTO[]): void
 {
   allEvents.forEach(event => { if (event.endTimeoutHandler) clearTimeout(event.endTimeoutHandler) })
-  allEvents.forEach(event => event.laterTimerHandler?.clear())
+  allEvents.forEach(event => { event.laterTimerHandler?.clear() })
   allEvents = []
   for (const eventFromDB of eventsFromDB)
   {

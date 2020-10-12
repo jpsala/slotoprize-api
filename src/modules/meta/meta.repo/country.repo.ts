@@ -8,7 +8,7 @@ import { saveFile , urlBase } from '../../../helpers'
 
 import { queryOne, query } from './../../../db'
 
-export async function getCountries(fields: string[] | undefined = undefined): Promise<Country[] | Partial<Country>> {
+export async function getCountries(): Promise<Country[] | Partial<Country>> {
   const countries = await query(`
     select id, name, phone_prefix from  country
   `, undefined, true) as Country[]

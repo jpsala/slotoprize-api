@@ -5,14 +5,10 @@ import { formatDistanceStrict, differenceInSeconds , parse, add, format } from '
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { GameUser } from '../../../meta/meta.types'
-import { isNotebook, urlBase } from './../../../../helpers'
+import { urlBase } from './../../../../helpers'
 import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
 import { createEvent, Event, EventDTO, EventPayload, Rule} from './event'
-// import * as testEvent from './testEvent'
-// process.env.TZ = 'America/Argentina/Buenos_Aires'
-
-if(isNotebook()) later.date.localTime()
 
 const allEvents: Event[] = []
 let log = false

@@ -1,4 +1,5 @@
 import faker from 'faker'
+import { getSetting } from '../slot/slot.services/settings.service'
 import { Wallet } from './../slot/slot.types'
 /* eslint-disable babel/camelcase */
 
@@ -47,7 +48,8 @@ export interface GameUser {
   wallet?: Wallet;
   sendWinJackpotEventWhenProfileFilled?: boolean;
 }
-export const fakeUser = (override: Partial<GameUser> = {}): GameUser => {
+export const  fakeUser = async (override: Partial<GameUser> = {}): Promise<GameUser> => {
+  const languageCode = await getSetting('languageCode', 'fr-FR')
   return {
     id: -1,
     firstName: faker.name.firstName(),
@@ -60,7 +62,7 @@ export const fakeUser = (override: Partial<GameUser> = {}): GameUser => {
     createdAt: faker.date.past(),
     modifiedAt: faker.date.past(),
     password: faker.internet.password(),
-    languageCode: 'fr-FR',
+    languageCode,
     address: faker.address.streetAddress(),
     city: faker.address.city(),
     zipCode: faker.address.zipCode(),

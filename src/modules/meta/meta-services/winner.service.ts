@@ -1,8 +1,11 @@
 import { exec, query } from "../../../db"
+import { getSetting } from "../../slot/slot.services/settings.service"
 import { getGameUserByDeviceId } from "../meta.repo/gameUser.repo"
 
 /* date, prize, origin, status, useId, user */
 export async function getWinnersForCrud(): Promise<any> {
+  const languageCode = await getSetting('languageCode', 'fr-FR')
+  
   const select = `
     select jw.id, gu.device_id,
         if(last_name != '', concat(last_name, ', ', first_name), 'No name in Profile') as user,
@@ -29,7 +32,7 @@ export async function getWinnersForCrud(): Promise<any> {
         inner join raffle_history rh on rw.raffle_history_id = rh.id
         inner join raffle r on rh.raffle_id = r.id
         inner join game_user gu on r.winner = gu.id
-        left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'fr-FR'
+        left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = '${languageCode}'
       where rh.closing_date
   order by 5 desc
 `

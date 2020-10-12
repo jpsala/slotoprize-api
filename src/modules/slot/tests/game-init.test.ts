@@ -77,9 +77,11 @@ describe(`game-init new user`, () => {
       })
     })
   })
-  it('languageCode to be fr-FR', () => {
+  it('languageCode to be fr-FR', async () => {
       // 'languageCode to be fr-FR'
-    expect(fakeExpres.responseData.languageCode).toBe('fr-FR')
+      const languageCode = await getSetting('languageCode', 'fr-FR')
+
+    expect(fakeExpres.responseData.languageCode).toBe(languageCode)
   })
   it('ticketPrice to be equal to the setting', async () => {
     const ticketPrice = await getSetting('ticketPrice', '2')
@@ -104,9 +106,11 @@ describe(`game-init new user`, () => {
       // 'languagesData.length to be > 0'.length
     expect(fakeExpres.responseData.languagesData.length).toBeGreaterThan(0)
   })
-  it('languagesData[0].languageCode === "fr-FR"', () => {
+  it('languagesData[0].languageCode === "fr-FR"', async () => {
       // 'languagesData[0].languageCode === "fr-FR"'
-    expect(fakeExpres.responseData.languagesData[0].languageCode).toBe('fr-FR')
+      const languageCode = await getSetting('languageCode', 'fr-FR')
+
+    expect(fakeExpres.responseData.languagesData[0].languageCode).toBe(languageCode)
   })
   it(`isNew to be true`, () => {
     expect(fakeExpres.responseData.profileData.isNew).toBe(true)
@@ -143,53 +147,3 @@ describe(`game-init new user`, () => {
     expect(fakeExpres.responseData.reelsData[0].symbolsData[0]).toHaveProperty('textureUrl')
   })
 })
-
-/*
-{
-      sessionId: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTExLCJkZXZpY2VJZCI6ImJvcnJhcjEzIiwiaWF0IjoxNTk0NDMyMzE4LCJleHAiOjE1OTQ1MzIzMTh9.piVNwgrxX4R9irf4hid6O-QZvAsyh9QL-FYffDIHUBI',
-      requireProfileData: 0,
-      languageCode: 'fr-FR',
-      hasPendingPrize: 0,
-      profileData: {
-        id: 111,
-        firstName: '',
-        lastName: '',
-        email: '',
-        deviceName: '',
-        deviceModel: '',
-        age: null,
-        phoneCode: '',
-        phoneNumber: '',
-        languageCode: 'fr-FR',
-        countryPhoneCode: '',
-        isMale: null,
-        address: '',
-        zipCode: '',
-        state: '',
-        country: '',
-        city: '',
-        isNew: false
-      },
-      languagesData: [
-        {
-          languageCode: 'fr-FR',
-          textureUrl: 'https://assets.slotoprizes.tagadagames.com/localization/english.png',
-          localizationUrl: 'https://assets.slotoprizes.tagadagames.com/localization/localization_english.json'
-        },
-        {
-          languageCode: 'es',
-          textureUrl: 'https://assets.slotoprizes.tagadagames.com/localization/spain.png',
-          localizationUrl: 'https://assets.slotoprizes.tagadagames.com/localization/localization_spanish.json'
-        }
-      ],
-      ticketPrice: 2,
-      betPrice: 1,
-      maxMultiplier: 3,
-      reelsData: [
-        { symbolsData: [Array] },
-        { symbolsData: [Array] },
-        { symbolsData: [Array] }
-      ],
-      walletData: TextRow { coins: 10, tickets: 10 }
-    }
-*/

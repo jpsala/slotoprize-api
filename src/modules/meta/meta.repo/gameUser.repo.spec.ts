@@ -1,9 +1,11 @@
 import snakeCase from 'snakecase-keys'
-import { fakeUser, GameUser } from '../../meta/models'
+import { fakeUser, GameUser } from '../models'
 import { addGameUser } from "./gameUser.repo"
 const user: GameUser = fakeUser()
-it('Insert gameUser in DB',  async () => {
-  user.languageCode = 'fr-FR'
+it('Insert gameUser in DB', async () => {
+  const languageCode = await getSetting('languageCode', 'fr-FR')
+
+  user.languageCode = languageCode
   const userSnakeCase = snakeCase(user)
   let result
   try {
