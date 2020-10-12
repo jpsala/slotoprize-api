@@ -173,12 +173,12 @@ export async function getRaffle(id: number,
 
   const select = rawAllFields
     ? `SELECT r.*, rl.name, rl.description, (r.closing_date < current_timestamp) as closed FROM raffle r
-      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = ${languageCode}
+      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = '${languageCode}'
     where r.id = ${id}`
     : `SELECT r.id, closing_date, rl.name, rl.description,
       r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight
       FROM raffle r
-      left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = ${languageCode}
+      left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = '${languageCode}'
       where r.id = ${id}`
   const raffle = await queryOne(select) as RafflePrizeData
   if (fieldsToExclude)
