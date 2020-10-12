@@ -24,7 +24,7 @@ import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
 import { getTombolaForCrud, postTombolaForCrud, postWinLoseForTombolaCrudPost } from './slot.services/tombola.service'
 
 import { getSkinsForCrud, postSkinForCrud, deleteSkinForCrud } from './slot.repo/skin.repo'
-import { getAllEvents, updateRulesFromDb } from './slot.services/events/events'
+import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
 import { setDailyRewardPrize, dailyRewardClaim, dailyRewardInfo, getDailyRewardPrizesForCrud, deleteDailyRewardPrize } from './slot.repo/dailyReward.repo'
 import * as slotService from './slot.services'
 import * as walletService from "./slot.services/wallet.service"
@@ -149,8 +149,10 @@ export async function changeWinnersStatusForCrudPost(req: Request, res: Response
 }
 export async function withTokenGet(req: Request, res: Response): Promise<any>{
   const loginToken = req.query.token as string
-  const statusToken = verifyToken(loginToken)
-  const { id } = statusToken.decodedToken as User
+  const {decodedToken, error} = verifyToken(loginToken)
+  if (!decodedToken || error)
+    return res.status(401).send({ auth: false, message: 'The user in the token was not found in the db' })
+  const { id } = decodedToken as User
   const user = await metaService.getUserById(id)
   if (!user)
     return res.status(401).send({ auth: false, message: 'The user in the token was not found in the db' })
@@ -235,7 +237,7 @@ export function eventDelete(req: Request, res: Response): void{
     res.status(200).json(resp)
 }
 export async function eventsReloadPost(req: Request, res: Response): Promise<any>{
-  await updateRulesFromDb()
+  await reloadRulesFromDb()
   res.status(200).json({ status: 'ok' })
 }
 export async function spinDataGet(req: Request, res: Response): Promise<any>{
