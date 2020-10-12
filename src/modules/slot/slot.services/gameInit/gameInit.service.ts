@@ -21,7 +21,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     const wallet = await getWallet(rawUser as GameUser)
     const payTable = await getPayTable()
     const betPrice = Number(await getSetting('betPrice', '1'))
-    const ticketPrice = Number(await getSetting('ticketPrice', '1'))
+    const ticketPrice = Number(await getSetting('ticketPrice', '1')) 
     const maxMultiplier = Number(await getSetting('maxMultiplier', '3'))
     const languages = (await languageRepo.getLanguages()) as Array<Partial<LanguageData>>
     // const requireProfileData = Number(await settingGet('requireProfileData', 0))
@@ -65,9 +65,10 @@ export async function gameInit(deviceId: string): Promise<any> {
     delete rawUser.languageCode
     const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
     const maxAllowedBirthYear = Number(await getSetting('maxAllowedBirthYear', '2002'))
+    const gameVersion = String(await getSetting('gameVersion', '0.1'))
     const initData = {
       sessionId: token,
-      gameVersion: await getSetting('gameVersion', '0.1'),
+      gameVersion,
       gameIdentifier: await getSetting('gameIdentifier', 'this is the gameIdentifier'),
       // requireProfileData: requireProfileData ? 1 : 0,
       languageCode,
