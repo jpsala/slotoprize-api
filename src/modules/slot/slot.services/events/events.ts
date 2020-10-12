@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
-import { isArray } from 'util'
 import later from '@breejs/later'
 import { formatDistanceStrict, differenceInSeconds , parse, add, format } from 'date-fns'
 
@@ -37,18 +36,7 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
     }
     if (Number(ruleFromDb.active) === 0)  
       continue
-    
-    /*
-      no lo tiene que mandar el evento si es de a los que no son devs
-
-    * el multiplier no tiene que afectar a los que no son devs
-      es para testeo
-
-    * el getEventsState no tiene que listarlo para los que no son devs
-      lista de even activos solo manda eventos dev a los usuarios dev
-
-    */
-    
+   
     ruleFromDb.skin = await getSkin(ruleFromDb.skinId)
     ruleFromDb.popupTextureUrl = ruleFromDb.popupTextureUrl ? url + ruleFromDb.popupTextureUrl : ''
     ruleFromDb.notificationTextureUrl = ruleFromDb.notificationTextureUrl ? url + ruleFromDb.notificationTextureUrl : ''
@@ -82,7 +70,10 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
 
 export function deleteEvent(eventId: number): void 
 {
-  const savedEventIdx = allEvents.findIndex(_event => !isArray(_event.payload) && !isArray(_event.payload) && _event.payload.id === eventId)
+  const savedEventIdx = allEvents.findIndex(_event => {
+    console.log('_event', eventId )
+   return Number(_event.payload.id) === Number(eventId)
+  })
   const savedEvent = allEvents[savedEventIdx] 
   if (!savedEventIdx) {
     console.log('Event not in memory')
@@ -206,44 +197,13 @@ export function dateToRule(date: Date): string
   // console.log('dateToRule', date, `* ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`)
   return `0 ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`
 }
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-// export const updateRule = async (rule: any): Promise<void> => {
-//   console.log('update rule', JSON.stringify(rule,null,2))
-//   let ruleParsed
-//   try {
-//     ruleParsed = JSON.parse(rule.rule)
-//   } catch (error) {
-//     throw createHttpError(BAD_REQUEST, 'Rule can not be parsed')
-//   }
-//   const event = allEvents.find(_event => {
-//     return String((_event.payload as EventPayload).id) === String(rule.id)
-//   })
-//   const eventForSave = {
-//     active: rule.active,
-//     betPrice: rule.betPrice,
-//     data: rule.data,
-//     description: rule.description,
-//     devOnly: rule.devOnly,
-//     duration: rule.duration,
-//     eventType: rule.eventType,
-//     id: rule.id,
-//     multiplier: rule.multiplier,
-//     name: rule.name,
-//     notificationMessage: rule.notificationMessage,
-//     notificationTextureUrl: rule.notificationTextureUrl,
-//     particlesTextureUrl: rule.particlesTextureUrl,
-//     popupMessage: rule.popupMessage,
-//     popupTextureUrl: rule.popupTextureUrl,
-//     rule: ruleParsed
-//   }
-//   if(event)
-//     updateEvent(event, eventForSave as any)
-//   else
-//     await processEvents([eventForSave as any], true)
-
-// }
-export const updateRulesFromDb = async (): Promise<void> =>
+export const reloadRulesFromDb = async (): Promise<void> =>
 {
+  for (const savedEvent of allEvents) {
+    savedEvent.laterTimerHandler?.clear() 
+    if (savedEvent.endTimeoutHandler) clearTimeout(savedEvent.endTimeoutHandler)
+  }
+  allEvents.splice(0)
   await init()
 }
 export const getActiveEventMultiplier = (user: GameUser): number =>

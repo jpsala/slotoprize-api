@@ -7,7 +7,7 @@ import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { format } from 'date-fns'
 import { getRandomNumber, getUrlWithoutHost, addHostToPath } from './../../../helpers'
-import { processEvents, updateRulesFromDb } from './../slot.services/events/events'
+import { processEvents } from './../slot.services/events/events'
 import { exec, query } from './../../../db'
 import { EventDTO, Event  } from './../slot.services/events/event'
 import * as eventsService from './../slot.services/events/events'
@@ -16,7 +16,7 @@ import * as eventsService from './../slot.services/events/events'
 export async function addEvent(eventRule: EventDTO): Promise<void> {
   console.log('eventRule', eventRule)
   await exec('insert into event set ?', eventRule)
-  await updateRulesFromDb()
+  await processEvents([eventRule])
 }
 export async function getEvents(eventId?: number, onlyGeneric = false): Promise<Event[]> {
   let where = eventId ? ` where id = ${eventId} ` : ' where true '
@@ -140,10 +140,10 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
 }
 
 export async function deleteEvent(id: number): Promise<boolean> {
+  console.log('eventRepo.deleteEvent id:%o', id )
   eventsService.deleteEvent(id)
   const respDelete = await exec(`
     delete from event where id = ${id}
   `)
-  await updateRulesFromDb()
   return respDelete.affectedRows === 1
 }

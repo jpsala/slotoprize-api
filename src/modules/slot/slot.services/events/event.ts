@@ -1,6 +1,6 @@
 // #region Imports
 import later from '@breejs/later'
-import { add, addSeconds, format, formatDuration, intervalToDuration } from 'date-fns'
+import { add, formatDuration, intervalToDuration } from 'date-fns'
 import { raffleTime } from '../../../meta/meta.repo/raffle.repo'
 import { isValidJSON } from '../../../../helpers'
 import { WebSocketMessage, wsServer } from './../webSocket/ws.service'
@@ -93,8 +93,9 @@ const callBackForStart = async (event: Event): Promise<void> =>
 {
   const payload = event.payload
   const dateEnd = add(new Date(), { seconds: event.duration })
-  const dur = intervalToDuration({ start: new Date(), end:dateEnd })
-  console.log('Event start, name %O, duration %o', payload.name, formatDuration(dur, { format: ['days', 'hours', 'minutes', 'seconds'] }))
+  const dur = intervalToDuration({ start: new Date(), end: dateEnd })
+  console.log('Event started, name %o, duration %o', payload.name,
+              formatDuration(dur, { format: ['days', 'hours', 'minutes', 'seconds'] }))
   if (event.eventType === 'generic')
   {
     event.isActive = true
@@ -111,7 +112,7 @@ const callBackForStart = async (event: Event): Promise<void> =>
 const callBackForStop = (event): void =>
 {
   const payload = event.payload as EventPayload
-  console.log('Event stop, name %O, notificationData %O, payload %O', payload.name, payload.notificationData.message, payload)
+  console.log('Event ended, name %O, notificationData %O, payload %O', payload.name, payload.notificationData.message, payload)
   event.isActive = false
     wsMessage.payload = event.payload
     wsServer.send(wsMessage as WebSocketMessage)

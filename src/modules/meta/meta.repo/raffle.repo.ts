@@ -17,7 +17,7 @@ import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
 
 
-import { dateToRule, deleteEvent, updateRulesFromDb } from './../../slot/slot.services/events/events'
+import { dateToRule, deleteEvent, reloadRulesFromDb } from './../../slot/slot.services/events/events'
 import { getHaveWinRaffle, getHaveProfile } from './gameUser.repo'
 
 export const rafflePurchase = async (deviceId: string, raffleId: number, amount: number): Promise<Wallet> => {
@@ -279,7 +279,7 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
       "data": JSON.stringify({ id: _raffle.id })
     }
   ])
-  await updateRulesFromDb()
+  await reloadRulesFromDb()
   _raffle.closingDate = format(new Date(_raffle.closingDate), 'yyyy-MM-dd HH:mm:ss')
   if(image)_raffle.textureUrl = addHostToPath(_raffle.textureUrl)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -316,7 +316,7 @@ export async function raffleTime(raffleId: number): Promise<any> {
     await exec(`update raffle set state = "nowinner" where id = ${raffleId}`)
     const eventData = JSON.stringify({"id": Number(raffleId)})
     await exec(`delete from event where data = '${eventData}'`)
-    await updateRulesFromDb()
+    await reloadRulesFromDb()
     console.log('no purchases, skipping')
     return false
   }
