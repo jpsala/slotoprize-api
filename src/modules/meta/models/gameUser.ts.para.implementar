@@ -40,7 +40,7 @@ export const fakeUser = (override: Partial<GameUser> = {}): GameUser => {
     createdAt: faker.date.past(),
     modifiedAt: faker.date.past(),
     password: faker.internet.password(),
-    languageCode: 'en-US',
+    languageCode: 'fr-FR',
     isMale: faker.random.boolean(),
     age: String(faker.random.number(80) + 10),
     address: faker.address.streetAddress(),

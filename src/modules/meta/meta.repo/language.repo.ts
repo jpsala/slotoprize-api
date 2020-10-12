@@ -119,7 +119,7 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
   [
   {
     "id": 1,
-    "language_code": "en-US",
+    "language_code": "fr-FR",
     "texture_url": "/localization/english.png",
     "localization_url": "/localization/localization_english.json"
   }

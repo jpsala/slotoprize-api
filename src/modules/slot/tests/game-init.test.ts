@@ -77,9 +77,9 @@ describe(`game-init new user`, () => {
       })
     })
   })
-  it('languageCode to be en-US', () => {
-      // 'languageCode to be en-US'
-    expect(fakeExpres.responseData.languageCode).toBe('en-US')
+  it('languageCode to be fr-FR', () => {
+      // 'languageCode to be fr-FR'
+    expect(fakeExpres.responseData.languageCode).toBe('fr-FR')
   })
   it('ticketPrice to be equal to the setting', async () => {
     const ticketPrice = await getSetting('ticketPrice', '2')
@@ -104,9 +104,9 @@ describe(`game-init new user`, () => {
       // 'languagesData.length to be > 0'.length
     expect(fakeExpres.responseData.languagesData.length).toBeGreaterThan(0)
   })
-  it('languagesData[0].languageCode === "en-US"', () => {
-      // 'languagesData[0].languageCode === "en-US"'
-    expect(fakeExpres.responseData.languagesData[0].languageCode).toBe('en-US')
+  it('languagesData[0].languageCode === "fr-FR"', () => {
+      // 'languagesData[0].languageCode === "fr-FR"'
+    expect(fakeExpres.responseData.languagesData[0].languageCode).toBe('fr-FR')
   })
   it(`isNew to be true`, () => {
     expect(fakeExpres.responseData.profileData.isNew).toBe(true)
@@ -148,7 +148,7 @@ describe(`game-init new user`, () => {
 {
       sessionId: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTExLCJkZXZpY2VJZCI6ImJvcnJhcjEzIiwiaWF0IjoxNTk0NDMyMzE4LCJleHAiOjE1OTQ1MzIzMTh9.piVNwgrxX4R9irf4hid6O-QZvAsyh9QL-FYffDIHUBI',
       requireProfileData: 0,
-      languageCode: 'en-US',
+      languageCode: 'fr-FR',
       hasPendingPrize: 0,
       profileData: {
         id: 111,
@@ -160,7 +160,7 @@ describe(`game-init new user`, () => {
         age: null,
         phoneCode: '',
         phoneNumber: '',
-        languageCode: 'en-US',
+        languageCode: 'fr-FR',
         countryPhoneCode: '',
         isMale: null,
         address: '',
@@ -172,7 +172,7 @@ describe(`game-init new user`, () => {
       },
       languagesData: [
         {
-          languageCode: 'en-US',
+          languageCode: 'fr-FR',
           textureUrl: 'https://assets.slotoprizes.tagadagames.com/localization/english.png',
           localizationUrl: 'https://assets.slotoprizes.tagadagames.com/localization/localization_english.json'
         },

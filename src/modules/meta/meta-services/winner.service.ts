@@ -29,7 +29,7 @@ export async function getWinnersForCrud(): Promise<any> {
         inner join raffle_history rh on rw.raffle_history_id = rh.id
         inner join raffle r on rh.raffle_id = r.id
         inner join game_user gu on r.winner = gu.id
-        left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
+        left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'fr-FR'
       where rh.closing_date
   order by 5 desc
 `

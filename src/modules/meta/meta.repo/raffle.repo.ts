@@ -94,6 +94,21 @@ export async function getRafflesForCrud(id?: number)
   const url = urlBase()
 
   const where = id ? ` where r.id = ${id} ` : ''
+  console.log(`
+  select r.id, r.state, rl.name, rl.description, gu.email, gu.device_id deviceID,
+          date_format(r.closing_date, '%Y-%m-%d %H:%i:%s') as closingDate,
+          date_format(r.live_date, '%Y-%m-%d %H:%i:%s') as liveDate,
+          concat('${url}', r.texture_url) as textureUrl, r.item_highlight itemHighlight, r.raffle_number_price price,
+          IF(CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date, true, false) as isLive,
+          concat(gu.last_name,', ',gu.first_name) as winner, gu.id as gameUserId,
+          (select sum(raffle_numbers) as sold from raffle_history where raffle_id = r.id) as sold
+  from raffle r
+      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'fr-FR'
+      left join game_user gu on r.winner = gu.id
+      left join state s on rl.name = s.name
+  ${where}
+  order by r.closing_date asc
+`, )
   const raffles = await query(`
     select r.id, r.state, rl.name, rl.description, gu.email, gu.device_id deviceID,
             date_format(r.closing_date, '%Y-%m-%d %H:%i:%s') as closingDate,
@@ -103,7 +118,7 @@ export async function getRafflesForCrud(id?: number)
             concat(gu.last_name,', ',gu.first_name) as winner, gu.id as gameUserId,
             (select sum(raffle_numbers) as sold from raffle_history where raffle_id = r.id) as sold
     from raffle r
-        inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
+        inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'fr-FR'
         left join game_user gu on r.winner = gu.id
         left join state s on rl.name = s.name
     ${where}
@@ -154,12 +169,12 @@ export async function getRaffle(id: number,
 
   const select = rawAllFields
     ? `SELECT r.*, rl.name, rl.description, (r.closing_date < current_timestamp) as closed FROM raffle r
-      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
+      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'fr-FR'
     where r.id = ${id}`
     : `SELECT r.id, closing_date, rl.name, rl.description,
       r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight
       FROM raffle r
-      left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'en-US'
+      left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = 'fr-FR'
       where r.id = ${id}`
   const raffle = await queryOne(select) as RafflePrizeData
   if (fieldsToExclude)
@@ -236,9 +251,8 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
   } else {
     respRaffle = await exec(`update raffle SET ? where id = ${raffleForDB.id}`, raffleForDB)
   }
-
   const raffleId = isNew ? respRaffle.insertId : raffle.id
-
+  console.log('raffleId', raffleId)
   for (const localizationDataRow of localizationData) {
     localizationDataRow.raffle_id = raffleId
     const localizationData = await queryOne(`
