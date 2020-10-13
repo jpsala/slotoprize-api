@@ -5,11 +5,11 @@ import { formatDistanceStrict, differenceInSeconds , parse, add, format } from '
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { GameUser } from '../../../meta/meta.types'
-import { urlBase } from './../../../../helpers'
+import { isNotebook, urlBase } from './../../../../helpers'
 import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
 import { createEvent, Event, EventDTO, EventPayload, Rule} from './event'
-
+if(isNotebook()) later.date.localTime()
 const allEvents: Event[] = []
 let log = false
 export const toggleLog = (): boolean => { return log = !log }
@@ -67,16 +67,18 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
 export function deleteEvent(eventId: number): void 
 {
   const savedEventIdx = allEvents.findIndex(_event => {
-    console.log('_event', eventId )
+    console.log('_event y eventId', _event.payload.id, eventId )
    return Number(_event.payload.id) === Number(eventId)
   })
   const savedEvent = allEvents[savedEventIdx] 
-  if (!savedEventIdx) {
+  if (savedEventIdx === -1) {
     console.log('Event not in memory')
     return
   }
   console.log('deleteEvent', savedEventIdx, savedEvent )
   savedEvent.laterTimerHandler?.clear() 
+  savedEvent.callBackForStart = undefined
+  savedEvent.callBackForStop = undefined
   if (savedEvent.endTimeoutHandler) clearTimeout(savedEvent.endTimeoutHandler)
   if (savedEventIdx >= 0) allEvents.splice(savedEventIdx, 1)
 }
