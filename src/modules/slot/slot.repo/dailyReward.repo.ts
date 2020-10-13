@@ -68,7 +68,7 @@ export const getUserPrize = async (user: GameUser): Promise<DailyRewardPrize | u
   if (lastSpin == null) return undefined
   const prizes = await getDailyRewardPrizes()
   if (lastSpin.days >= prizes.length) lastSpin.days = prizes.length
-  if(lastSpin.days === 0) lastSpin.days = 1
+  // if(lastSpin.days === 0) lastSpin.days = 1
   console.log('lastSpin.days', lastSpin.days, prizes, prizes[lastSpin.days])
   return prizes[lastSpin.days]
 }
