@@ -38,6 +38,7 @@ import { getTicketsSettingsForCrud, postTicketsSettingsForCrud } from "./slot.se
 import { getSpinSettingsForCrud, setSpinSettingsForCrud } from './slot.services/spinForCrud.service'
 import { appodealCallback } from './slot.services/appodeal'
 import { setSetting } from './slot.services/settings.service'
+import { getMiscSettingsForCrud, postMiscSettingsForCrud } from './slot.services/miscSettings'
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
   console.log('req', req)
   const resp = await getPlayerForFront(String(req.query.id))
@@ -337,6 +338,14 @@ export async function countriesForCrudPost(req: Request, res: Response): Promise
 }
 export async function countriesForCrudGet(req: Request, res: Response): Promise<any>{
   const data = await getCountriesForCrud()
+  res.status(200).json(data)
+}
+export async function miscSettingsForCrudGet(req: Request, res: Response): Promise<any>{
+  const data = await getMiscSettingsForCrud()
+  res.status(200).json(data)
+}
+export async function miscSettingsForCrudPost(req: Request, res: Response): Promise<any>{
+  const data = await postMiscSettingsForCrud(req.body)
   res.status(200).json(data)
 }
 export async function testRegSpinsUSer39(req: Request, res: Response): Promise<any>{

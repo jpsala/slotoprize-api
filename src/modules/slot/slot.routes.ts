@@ -73,6 +73,9 @@ router.route('/skins_for_crud').get(checkToken, slot.skinsForCrudGet)
 router.route('/skin_for_crud').post(formidableMiddleware(), checkToken, slot.skinForCrudPost)
 router.route('/skin_for_crud').delete(checkToken, slot.skinForCrudDelete)
 
+router.route('/misc_settings_for_crud').get(checkToken, slot.miscSettingsForCrudGet)
+router.route('/misc_settings_for_crud').post(checkToken, slot.miscSettingsForCrudPost)
+
 router.route('/countries_for_crud').get(checkToken, slot.countriesForCrudGet)
 router.route('/country_for_crud').post(formidableMiddleware(), checkToken, slot.countriesForCrudPost)
 
