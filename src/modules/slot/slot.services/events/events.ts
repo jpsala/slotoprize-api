@@ -84,6 +84,7 @@ export function deleteEvent(eventId: number): void
 {
   function splitDate(date): { year: number, month: number, day: number, hour: number, minute: number, second: number} {
     const dateAndTime = date.split(' ')
+    if(dateAndTime.length < 2) throw createHttpError(BAD_REQUEST, 'Has to be a valid Date Time')
     const [year, month, day] = dateAndTime[0].split('-')
     const {hour, minute, second} = splitHour(dateAndTime[1])
     return {year: Number(year), month: Number(month), day: Number(day), hour, minute, second}

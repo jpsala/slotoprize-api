@@ -87,6 +87,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
     delete (eventDto as any).id
   }
   if(!eventDto.active) eventDto.active = 0
+  if(!eventDto.duration) eventDto.duration = 0
   eventDto.particlesTextureUrl = getUrlWithoutHost(<string>eventDto.particlesTextureUrl)
   eventDto.notificationTextureUrl = getUrlWithoutHost(<string>eventDto.notificationTextureUrl)
   eventDto.popupTextureUrl = getUrlWithoutHost(<string>eventDto.popupTextureUrl) 
