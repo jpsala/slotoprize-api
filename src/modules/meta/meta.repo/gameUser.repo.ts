@@ -238,7 +238,7 @@ export const getPlayerForFront = async (id: string): Promise<any> =>
   select * from game_user
     where id = ${id}
 ` )
-  delete player.SendWinJackpotEventWhenProfileFilled
+  delete player.sendWinJackpotEventWhenProfileFilled
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return player
 }
