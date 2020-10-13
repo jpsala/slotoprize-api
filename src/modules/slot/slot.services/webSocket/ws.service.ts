@@ -179,9 +179,9 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       const isValid = isValidJSON(message)
       if (!isValid) throw Error(`invalid JSON on webSocket incomming message: ${message}`)
       const msg = JSON.parse(message)
+      console.log('cmd', ws)
       if (msg.command)
       {
-        console.log('cmd', ws)
         msg.client = ws
         PubSub.publish(msg.command, msg)
       }
