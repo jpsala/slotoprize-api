@@ -181,6 +181,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       const msg = JSON.parse(message)
       if (msg.command)
       {
+        console.log('cmd', ws)
         msg.client = ws
         PubSub.publish(msg.command, msg)
       }
