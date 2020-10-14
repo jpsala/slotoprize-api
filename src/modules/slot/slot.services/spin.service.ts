@@ -98,7 +98,6 @@ const getSymbolForFilling = (symbolsForFilling, allreadyFilledSymbols) => {
       const encontrado = (afSymbol.symbolName === fillingSymbolRow.symbol_name)
       // if (!encontrado)
       //   console.log('symbol', fillingSymbolRow.symbol_name)
-
       return encontrado
     })
     return !isInValid
