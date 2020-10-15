@@ -64,7 +64,7 @@ export async function getRaffles(user: GameUser, onlyLive = false): Promise<Raff
   const where = onlyLive ? ' CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date ' : ' true '
     const raffles = await query(`
     SELECT r.id, r.closing_date, r.raffle_number_price, concat('${url}', r.texture_url) as texture_url,
-    r.item_highlight, sum(coalesce(rh.tickets, 0)) as participationsPurchased
+    r.item_highlight, sum(coalesce(rh.raffle_numbers, 0)) as participationsPurchased
     FROM raffle r
       left join raffle_history rh on r.id = rh.raffle_id
     where ${where}
