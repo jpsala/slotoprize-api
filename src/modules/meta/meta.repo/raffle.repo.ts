@@ -11,7 +11,7 @@ import moment from "moment"
 import { query, queryOne, exec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
-import { addHostToPath, getRandomNumber, getUrlWithoutHost, saveFile , urlBase } from "../../../helpers"
+import { addHostToPath, getRandomNumber, getUrlWithoutHost, isNotebook, saveFile , urlBase } from "../../../helpers"
 import { updateWallet, getWallet } from '../../slot/slot.services/wallet.service'
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
@@ -61,14 +61,14 @@ async function getRaffleLocalizationData(user: GameUser,raffleId: number): Promi
 }
 export async function getRaffles(user: GameUser, onlyLive = false): Promise<RafflePrizeData[]> {
   const url = urlBase()
-
   const where = onlyLive ? ' CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date ' : ' true '
-  const raffles = await query(`
-    SELECT r.id, r.closing_date,
-      r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight
-      
+    const raffles = await query(`
+    SELECT r.id, r.closing_date, r.raffle_number_price, concat('${url}', r.texture_url) as texture_url,
+    r.item_highlight, sum(coalesce(rh.tickets, 0)) as participationsPurchased
     FROM raffle r
+      left join raffle_history rh on r.id = rh.raffle_id
     where ${where}
+    group by r.id
   `) as RafflePrizeData[]
   for (const raffle of raffles) {
     const { name, description } = await getRaffleLocalizationData(user, raffle.id)
@@ -221,9 +221,9 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
 
   const liveDateUtc = moment(raffle.liveDate)
 
-  const closingDateUtc = moment.utc(raffle.closingDate)
-  const diffLiveDate = closingDateUtc.diff(liveDateUtc.utc(), 'seconds')
-  const diffClosigDate = closingDateUtc.diff(moment.utc(), 'seconds')
+  const closingDateUtc = isNotebook() ? moment(raffle.closingDate) : moment.utc(raffle.closingDate)
+  const diffLiveDate = closingDateUtc.diff(isNotebook() ? liveDateUtc : liveDateUtc.utc(), 'seconds')
+  const diffClosigDate = closingDateUtc.diff(isNotebook() ? moment() : moment.utc(), 'seconds')
 
   raffle.textureUrl =  getUrlWithoutHost(raffle.textureUrl)
   if(diffClosigDate <= 0 && (raffle.state === 'new' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
