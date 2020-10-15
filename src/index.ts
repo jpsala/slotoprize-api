@@ -7,6 +7,7 @@ import createApp from './app'
 import './modules/slot/slot.commands'
 import { spinRegenerationInit, shutDown as spinRegenerationShutDown } from './modules/slot/slot.repo/spin.regeneration.repo'
 import { createWsServerService, wsServer } from './modules/slot/slot.services/webSocket/ws.service'
+import { test } from './test'
 //master
 let server
 const hostname = os.hostname()
@@ -42,6 +43,7 @@ void (function main() {
       console.log(`started on ${hostname} on port 3000`)
       await configInit()
       await spinRegenerationInit()
+      await test()
     })
     createWsServerService(server)
   } else {
@@ -51,6 +53,7 @@ void (function main() {
       console.info(`${name} started at port ${8888}, not encripted`)
       await configInit()
       await spinRegenerationInit()
+      await test()
     })
   }
 })()

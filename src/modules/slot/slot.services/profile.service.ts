@@ -20,7 +20,7 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   if (!userExists)
     throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
   const isDev = user.isDev ? 1 : 0
-  const birthDateParts = (String(user.birthDate) || format(new Date(), 'yyyy-MM-dd')).split('T')
+  const birthDateParts = (String(user.birthDate) || format(new Date(1900, 0, 1), 'yyyy-MM-dd')).split('T')
   const birthDate = birthDateParts[0]
   await exec(`
           update game_user set
