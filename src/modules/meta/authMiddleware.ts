@@ -4,18 +4,18 @@ import { NextFunction, Request, Response } from 'express'
 import { verifyToken } from '../../services/jwtService'
 import { getGameUserByDeviceId } from "./meta-services/meta.service"
 
-const reqUser: { deviceId?: string, user?: number } = {}
+// const reqUser: { deviceId?: string, user?: number } = {}
 
-export const getReqUser = (): any =>
-{
-  console.log('no tendría que pasar por setuser en authmiddleware',)
-  return reqUser
-}
-export const setReqUser = (deviceId: string | undefined, user: number | undefined): void =>
-{
-  if (deviceId !== undefined) reqUser.deviceId = deviceId
-  if (user !== undefined) reqUser.user = user
-}
+// export const getReqUser = (): any =>
+// {
+//   console.log('no tendría que pasar por setuser en authmiddleware',)
+//   return reqUser
+// }
+// export const setReqUser = (deviceId: string | undefined, user: number | undefined): void =>
+// {
+//   if (deviceId !== undefined) reqUser.deviceId = deviceId
+//   if (user !== undefined) reqUser.user = user
+// }
 export async function checkToken(req: Request, res: Response, next: NextFunction): Promise<any>
 {
   const { 'dev-request': dev } = req.headers
@@ -32,8 +32,8 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     }
     const _user = await getGameUserByDeviceId(deviceId as string)
     if (!_user) throw createError(createError.BadRequest, 'There is not user registered with that deviceId')
-    reqUser.deviceId = deviceId as string
-    reqUser.user = _user.id
+    // reqUser.deviceId = deviceId as string
+    // reqUser.user = _user.id
     req.user = {
       deviceId: deviceId as string,
       id: _user.id
@@ -57,7 +57,7 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     id: decodedToken.id,
     deviceId: decodedToken.devicedID
   }
-  reqUser.deviceId = decodedToken.devicedID
-  reqUser.user = decodedToken.id
+  // reqUser.deviceId = decodedToken.devicedID
+  // reqUser.user = decodedToken.id
   return next()
 }

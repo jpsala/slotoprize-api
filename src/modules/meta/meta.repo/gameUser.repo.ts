@@ -255,7 +255,6 @@ export const getPlayersForFront = async (from: number, limit: number, filter: st
           or email like '%${filter}%' or device_id like '%${filter}%'
     limit ${from}, ${limit}
 `))
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   const maxAllowedBirthYear = await getSetting('maxAllowedBirthYear', '2002')
   return { players, maxAllowedBirthYear }
 }

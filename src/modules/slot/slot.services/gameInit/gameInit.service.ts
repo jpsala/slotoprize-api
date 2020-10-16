@@ -1,8 +1,9 @@
-import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
+import createHttpError from 'http-errors'
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import {LanguageData, GameUser} from "../../../meta/meta.types"
 import * as languageRepo from "../../../meta/meta.repo/language.repo"
-import {setReqUser} from '../../../meta/authMiddleware'
+// import {setReqUser} from '../../../meta/authMiddleware'
 import {getOrSetGameUserByDeviceId} from "../../../meta/meta-services/meta.service"
 import {getNewToken} from '../../../../services/jwtService'
 import {getHaveWinRaffle, setGameUserLogin, getWinRaffle, resetPendingPrize } from '../../../meta/meta.repo/gameUser.repo'
@@ -17,7 +18,8 @@ import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaim
 export async function gameInit(deviceId: string): Promise<any> {
   try {
     const rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
-    setReqUser(deviceId, rawUser.id as number)
+    if(Number(rawUser.banned) === 1) throw createHttpError(BAD_REQUEST, 'User is banned')
+    // setReqUser(deviceId, rawUser.id as number)
     const wallet = await getWallet(rawUser as GameUser)
     const payTable = await getPayTable()
     const betPrice = Number(await getSetting('betPrice', '1'))
@@ -91,6 +93,6 @@ export async function gameInit(deviceId: string): Promise<any> {
     if(!rafflePrizeData) delete initData.rafflePrizeData
     return initData
   } catch (error) {
-    throw createError(createError.InternalServerError, error)
+    throw createHttpError(INTERNAL_SERVER_ERROR, error)
   }
 }

@@ -7,7 +7,7 @@ import { verifyToken, getNewToken } from '../../services/jwtService'
 import { GameUser, User } from "../meta/meta.types"
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
 import * as metaService from '../meta/meta-services'
-import { setReqUser } from '../meta/authMiddleware'
+// import { setReqUser } from '../meta/authMiddleware'
 import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront, getGameUser, postToggleBanForCrud } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte, getSupportRequestForCrud, supportAdminForCrud, postSupportAdminForCrud } from '../meta/meta.repo/support.repo'
 import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
@@ -161,7 +161,7 @@ export async function withTokenGet(req: Request, res: Response): Promise<any>{
     return res.status(401).send({ auth: false, message: 'The user in the token was not found in the db' })
   const token = getNewToken({ id: user.id, deviceId: undefined })
   res.setHeader('token', token)
-  setReqUser(undefined, user.id)
+  // setReqUser(undefined, user.id)
   const retUser = { name: user.name, email: user.email, id: user.id }
   res.status(200).json({ user: retUser })
   return undefined
