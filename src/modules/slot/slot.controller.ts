@@ -8,7 +8,7 @@ import { GameUser, User } from "../meta/meta.types"
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
 import * as metaService from '../meta/meta-services'
 import { setReqUser } from '../meta/authMiddleware'
-import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront, getGameUser } from '../meta/meta.repo/gameUser.repo'
+import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront, getGameUser, postToggleBanForCrud } from '../meta/meta.repo/gameUser.repo'
 import { setSoporte, getSupportRequestForCrud, supportAdminForCrud, postSupportAdminForCrud } from '../meta/meta.repo/support.repo'
 import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
 
@@ -50,6 +50,10 @@ export async function maxAllowedBirthYearPost(req: Request, res: Response): Prom
 }
 export async function playersForFrontGet(req: Request, res: Response): Promise<any>{
   const resp = await getPlayersForFront(Number(req.query.from), Number(req.query.limit), String(req.query.filter))
+  res.status(200).json(resp)
+}
+export async function toggleBanForCrudPost(req: Request, res: Response): Promise<any>{
+  const resp = await postToggleBanForCrud(Number(req.query.id))
   res.status(200).json(resp)
 }
 export async function symbolsInDBGet(req: Request, res: Response): Promise<any>{
@@ -107,8 +111,7 @@ export async function purchaseTicketsGet(req: Request, res: Response): Promise<a
   )
   res.status(200).json(resp)
 }
-export async function rafflePost(req: Request, res: Response): Promise<void>
-{
+export async function rafflePost(req: Request, res: Response): Promise<void>{
   const resp = await postRaffle(req.fields, req.files)
   res.status(200).json(resp)
 }
@@ -117,8 +120,7 @@ export async function raffleDelete(req: Request, res: Response): Promise<void>{
   const resp = await deleteRaffle(req.query.id)
   res.status(200).json(resp)
 }
-export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any>
-{
+export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any>{
   const user = await getGameUser(req.user.id)
   const resp = await raffleRepo.getRaffles(user, true)
   res.status(200).json(resp)
@@ -352,8 +354,7 @@ export async function testRegSpinsUSer39(req: Request, res: Response): Promise<a
   await testUser39(Number(req.query.spins))
   res.status(200).json({status: 'ok'})
 }
-export async function ironsource(req: Request, res: Response): Promise<any>
-{
+export async function ironsource(req: Request, res: Response): Promise<any>{
   const { 'dev-request': dev } = req.headers
   const addressParts = (req.connection.remoteAddress as string).split(':')
   let ipAddr
@@ -374,8 +375,7 @@ export async function ironsource(req: Request, res: Response): Promise<any>
   }, ipAddr, dev === 'true')
   res.status(200).send(resp)
 }
-export function appodeal(req: Request, res: Response): any
-{
+export function appodeal(req: Request, res: Response): any{
   const { 'dev-request': dev } = req.headers
   const resp = appodealCallback(<string> req.query.data1, <string> req.query.data2, dev === 'true')
   res.status(200).send(resp)

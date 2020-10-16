@@ -242,6 +242,12 @@ export const getPlayerForFront = async (id: string): Promise<any> =>
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return player
 }
+export const postToggleBanForCrud = async (userId: number): Promise<any> => {
+  const resp = await queryOne(`select banned from game_user where id = ${userId}`)
+  const banned: number = Number(resp.banned) === 1 ? 0 : 1
+  await exec(`update game_user set banned = ${banned} where id = ${userId}`)
+  return banned
+}
 export const getPlayersForFront = async (from: number, limit: number, filter: string): Promise < any > => {
   const players = (await query(`
   select * from game_user

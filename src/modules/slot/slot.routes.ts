@@ -54,6 +54,7 @@ router.route('/all_events').get(checkToken, slot.allEvents)
 
 router.route('/max_allowed_birth_year').post(checkToken, slot.maxAllowedBirthYearPost)
 router.route('/playersForFront').get(checkToken, slot.playersForFrontGet)
+router.route('/toggle_ban_for_crud').get(checkToken, slot.toggleBanForCrudPost)
 router.route('/support_request_for_crud').get(checkToken, slot.supportRequestForCrudGet)
 router.route('/symbols_for_crud').get(slot.symbolsGet)
 router.route('/raffles_for_crud').get(checkToken, slot.rafflesForCrudGet)
