@@ -28,9 +28,9 @@ export async function checkmaintenanceMode(req: Request, res: Response, next: Ne
     let user: User | GameUser = await getGameUser(decodedToken.id)
     if (!user) {
       user = await getUserById(decodedToken.id)
-      user.isDev = true
+      if(user) user.isDev = true
     }
-    if((!isDev && !user.isDev) || !user)
+    if(!user || (!isDev && !user.isDev))
       throw createHttpError(BAD_REQUEST, 'We are in maintenance, we\'ll be back up soon!')
   }
   return next()
