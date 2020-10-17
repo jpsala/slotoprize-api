@@ -9,6 +9,7 @@ export interface User {
   name: string;
   email: string;
   password?: string;
+  isDev: boolean;
 }
 export interface State {
   id: number;

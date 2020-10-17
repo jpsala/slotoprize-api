@@ -6,6 +6,7 @@ import { HttpError } from 'http-errors'
 import express, { json, Express, Request, Response, NextFunction } from 'express'
 import routes from './routes'
 import './modules/slot/slot.services/events/events'
+import { checkmaintenanceMode } from "./modules/meta/authMiddleware"
 
 const createApp = (): Express => {
 
@@ -18,6 +19,7 @@ const createApp = (): Express => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     next()
   })
+  app.use('*', checkmaintenanceMode )
   app.use(urlencoded({ extended: true }))
   app.use('/api/', routes)
   app.use((req, res) => {

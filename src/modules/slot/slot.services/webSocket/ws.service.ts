@@ -14,7 +14,7 @@ export interface WebSocketMessage
 {
   code: 200 | 400 | 500;
   message: 'OK' | string;
-  msgType: 'events' | 'webSocket' | 'eventsState' | 'spinTimer' | 'getSpinTimer' | 'adReward' | 'jackpotWin';
+  msgType: 'events' | 'webSocket' | 'eventsState' | 'spinTimer' | 'getSpinTimer' | 'adReward' | 'jackpotWin' | 'raffleWin';
   payload: EventPayload | any
   isJson?: boolean
   log?: boolean
@@ -35,8 +35,21 @@ export interface ExtWebSocket extends WebSocket {
 
 let server: WebSocket.Server
 let ws: WebSocket
-
-
+type UserConnection = {userId: number, client: ExtWebSocket}
+export const usersConnection = (): UserConnection[] | [] => {
+  const clients: UserConnection[] = []
+  wsServer.server.clients && wsServer.server.clients.forEach(_client => {
+    const client = <ExtWebSocket>_client
+    const userConnected:  UserConnection= { userId: client.userId, client }
+    clients.push(userConnected)
+  })
+  return clients as [{userId: number, client: ExtWebSocket}] | []
+}
+export const getUserConnection = (userId: number): UserConnection | undefined => {
+  const connectedUsers = usersConnection()
+  const userConnection = connectedUsers.find(_user => _user.userId === userId)
+  return userConnection
+}
 export const createWsServerService = (httpsServer?: https.Server): void =>
 {
   if (httpsServer)
@@ -198,5 +211,5 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
   }
   wsServer = { server, ws, send, sendRaw, sendToUser, shutDown }
 }
-console.log('loaded ws.service.ts')
+console.log('loaded ws.service.ts') 
 

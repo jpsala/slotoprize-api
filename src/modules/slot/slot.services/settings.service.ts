@@ -21,17 +21,16 @@ export const getSetting = async (key: string, defaultValue: string): Promise<str
 
 export const setSetting = async (key: string, value : string): Promise<void> => {
   const setting = settings.find(_setting => _setting.name === key) as Setting
+  //if (setting && setting.value === value) don't do anything
   if (setting && setting.value !== value) {
     await exec(`update setting set value = '${value}' where name = '${key}'`)
     setting.value = value
-  }
-  else {
-    const respInsert =  await exec(`insert into setting(value, name) values('${value}', '${key}')`)
-    settings.push({id: respInsert.insertId, name: key, value: value, description: ''})
+  } else if (!setting) {
+    const respInsert = await exec(`insert into setting(value, name) values('${value}', '${key}')`)
+    settings.push({ id: respInsert.insertId, name: key, value: value, description: '' })
   }
   if (['lapseForSpinRegeneration', 'maxSpinsForSpinRegeneration', 'spinsAmountForSpinRegeneration'].includes(key)) 
     await spinRegenerationInit()
-  
 }
 
 
