@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { readdirSync, readFileSync, readdir, unlinkSync, writeFileSync } from "fs"
+import { readdirSync, readFileSync, readdir, unlinkSync, writeFileSync, existsSync } from "fs"
 import path from 'path'
 import toCamelCase from 'camelcase-keys'
 
 import createError from 'http-errors'
 import { query, exec } from '../../../db'
+import { makeAtlas } from "../../meta/meta-services/atlas"
 import { urlBase , getRandomNumber, addHostToPath, getUrlWithoutHost } from './../../../helpers'
 
 export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
@@ -111,6 +112,23 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
     })
   }
 }
+export const getSymbolsAtlas = async (): Promise<void> => {
+
+  const symbols = await query(`
+    select distinct s.texture_url as image
+    from pay_table pt
+        inner join symbol s on pt.symbol_id = s.id`
+  )
+  const sprites: string[] = []
+  symbols.forEach(_symbol => {
+    const file = `/www/public/assets/${_symbol.image as string}`
+    if(existsSync(file))
+    sprites.push(file)
+  })
+  const properties = await makeAtlas(sprites, '/tmp/image.png')
+  console.log('properties', properties)
+}
+
 export const deleteSymbol = async (id: string): Promise<any> =>
 {
   const symbols = await query(
