@@ -1,5 +1,4 @@
 import { BAD_REQUEST } from 'http-status-codes'
-import createError from 'http-errors'
 import moment from 'moment'
 import createHttpError from 'http-errors'
 import { getWallet } from '../slot.services/wallet.service'
@@ -68,14 +67,11 @@ export const getUserPrize = async (user: GameUser): Promise<DailyRewardPrize | u
   if (lastSpin == null) return undefined
   const prizes = await getDailyRewardPrizes()
   if (lastSpin.days >= prizes.length) lastSpin.days = prizes.length - 1
-  // if(lastSpin.days === 0) lastSpin.days = 1
-  // TODO cuando es después del día 1
-  console.log('lastSpin.days', lastSpin.days, prizes, prizes[lastSpin.days])
   return prizes[lastSpin.days]
 }
 export const isDailyRewardClaimed = async (deviceId: string): Promise<boolean> => {
   const user = await getGameUserByDeviceId(deviceId)
-  if (user == null) throw createError(BAD_REQUEST, 'there is no user with that deviceID')
+  if (user == null) throw createHttpError(BAD_REQUEST, 'there is no user with that deviceID')
   const lastSpin = await getLastSpin(user)
   if (lastSpin == null) return false
   const lastClaimDate = moment(lastSpin?.lastClaim)
@@ -85,11 +81,11 @@ export const isDailyRewardClaimed = async (deviceId: string): Promise<boolean> =
 }
 export const dailyRewardClaim = async (deviceId: string): Promise<Partial<Wallet>> => {
   const user = await getGameUserByDeviceId(deviceId)
-  if (user == null) throw createError(BAD_REQUEST, 'there is no user with that deviceID')
+  if (user == null) throw createHttpError(BAD_REQUEST, 'there is no user with that deviceID')
   const isClaimed = await isDailyRewardClaimed(deviceId)
-  if (isClaimed) throw createError(BAD_REQUEST, 'The daily reward was allreaady claimed')
+  if (isClaimed) throw createHttpError(BAD_REQUEST, 'The daily reward was allreaady claimed')
   const userPrize = await getUserPrize(user)
-  if (!userPrize) throw createError(BAD_REQUEST, 'User have no daily reward')
+  if (!userPrize) throw createHttpError(BAD_REQUEST, 'User have no daily reward')
   const wallet = await getWallet(user)
   console.log('`${userPrize.type}s`', `${userPrize.type}s`, userPrize.amount)
   wallet[`${userPrize.type}s`] += userPrize.amount
@@ -100,9 +96,9 @@ export const dailyRewardClaim = async (deviceId: string): Promise<Partial<Wallet
 }
 export const dailyRewardInfo = async (deviceId: string): Promise<void> => {
   const user = await getGameUserByDeviceId(deviceId)
-  if (user == null) throw createError(BAD_REQUEST, 'there is no user with that deviceID')
+  if (user == null) throw createHttpError(BAD_REQUEST, 'there is no user with that deviceID')
   const isClaimed = await isDailyRewardClaimed(deviceId)
-  if (isClaimed) throw createError(BAD_REQUEST, 'The daily reward was allreaady claimed')
+  if (isClaimed) throw createHttpError(BAD_REQUEST, 'The daily reward was allreaady claimed')
   const userPrize = await getUserPrize(user)
   console.log('Claimed %o, prize %o', isClaimed, userPrize)
 }

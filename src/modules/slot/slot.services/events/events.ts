@@ -142,7 +142,7 @@ export function deleteEvent(eventId: number): void
     console.log('! scheduleEvent of %O There is not', (event.payload as any)?.name)
   event.laterTimerHandler = later.setInterval(function ()
   {
-    // @TODO Que pasa que llama 2 veces si no hago el clear?
+    // TODO Que pasa que llama 2 veces si no hago el clear?
     if (event.eventType === 'raffle' || event.rule?.type === 'unique')
       event.laterTimerHandler?.clear()
     const payload = event.payload as EventPayload

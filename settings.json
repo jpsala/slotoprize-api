@@ -1,5 +1,5 @@
 {
-  "todo-tree.general.tags": ["@TODO", "@URGENT", "@TMP", "@FIXME", "@BUG"],
+  "todo-tree.general.tags": ["TODO", "@URGENT", "@TMP", "@FIXME", "@BUG"],
   "sqltools.connections": [
     {
       "database": "iae-nuevo",

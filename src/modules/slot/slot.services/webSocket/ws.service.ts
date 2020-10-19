@@ -135,7 +135,6 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
   }
   const send = (_msg: WebSocketMessage, client: WebSocket | undefined = undefined): void =>
   {
-    // @TODO ver abajo
     const forDevOnly = _msg.payload.devOnly
     const payload = JSON.stringify(_msg.payload)
     const msgStr = Object.assign({}, _msg) as any
@@ -160,7 +159,6 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
   }
   const sendRaw = (_msg: any, client: WebSocket | undefined = undefined): void =>
   {
-    // @TODO ver abajo
     const payload = JSON.stringify(_msg.payload)
     const msgStr = Object.assign({}, _msg)
     msgStr.payload = payload

@@ -174,7 +174,7 @@ export async function delUser(deviceId: string): Promise < void > {
 }
 type WalletDTO = {coins: number, tickets: number, game_user_id: number}
 
-// @TODO ver de user class-transmormer abajo
+// TODO ver de user class-transmormer abajo
 export async function addGameUser(user: GameUser): Promise<GameUser> {
   const gameUserDto: Omit<GameUser, "isNew">  & {isNew?: boolean} = Object.assign({}, user)
 

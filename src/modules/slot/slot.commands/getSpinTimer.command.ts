@@ -19,7 +19,7 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
   let diff = nowMoment.diff(lastMoment.utc())
   if (diff > lapseForSpinRegeneration || userSpinRegenerationData.spins >= maxSpinsForSpinRegeneration)
     diff = 0
-  // @TODO usar sendEventToClient() en spin.regeneration.repo (ver que no mande spinsRegenerated en 0)
+  // TODO usar sendEventToClient() en spin.regeneration.repo (ver que no mande spinsRegenerated en 0)
   const wsMessage: WebSocketMessage = {
     code: 200,
     message: 'OK',

@@ -20,7 +20,7 @@ import { Wallet } from "../../slot/slot.types"
 import { getSetting } from '../../slot/slot.services/settings.service'
 import { getUserConnection, WebSocketMessage, wsServer } from '../../slot/slot.services/webSocket/ws.service'
 import { dateToRule, deleteEvent, reloadRulesFromDb } from './../../slot/slot.services/events/events'
-import { getHaveWinRaffle, getHaveProfile, getWinRaffle, resetPendingPrize } from './gameUser.repo'
+import { getHaveWinRaffle, getHaveProfile, getWinRaffle  } from './gameUser.repo'
 
 export const rafflePurchase = async (deviceId: string, raffleId: number, amount: number): Promise<Wallet> => {
   if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
@@ -192,7 +192,7 @@ export async function getRaffle(id: number,
   return camelCased ? camelcaseKeys(raffle) : raffle
 }
 export async function saveRaffle(raffle: RafflePrizeData, user: GameUser, tickets: number, amount: number): Promise<number> {
-  // @TODO validate parameters
+  // TODO validate parameters
   try {
     const resp = await exec(`
       insert into raffle_history(raffle_id, game_user_id, tickets, raffle_numbers) VALUES (?,?,?,?)
@@ -367,7 +367,8 @@ async function sendEventToWinner(userId: number): Promise<void> {
       code: 200,message: 'OK',msgType: 'raffleWin',payload: rafflePrizeData
     }
     wsServer.send(wsMessage, userConnection.client)
-    await resetPendingPrize(userId)
+    // URGENT uncomment the line below when get confirmation from team
+    // await resetPendingPrize(userId)
   }
 }
 async function saveWinner(raffleHistoryId: number): Promise<void> {

@@ -96,7 +96,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
       game_user_id: userSpinRegenerationData.userId,
       lastRegeneration: userSpinRegenerationData.last
     })
-    // @TODO ver si actualizar abajo o llamar a un método de wallet o gameUser
+    // TODO ver si actualizar abajo o llamar a un método de wallet o gameUser
     await exec(`update wallet set spins = ? where game_user_id = ?`, [
       String(newUserSpinAmount),
       String(userSpinRegenerationData.userId)

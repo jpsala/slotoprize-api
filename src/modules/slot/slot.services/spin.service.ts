@@ -167,8 +167,6 @@ export function getBetAndCheckFunds(multiplier: number, spins: number): { bet: n
 async function getWinData(jackpot)
 {
   const isWin = await checkWithRandomIfWins()
-  // @TODO Quitar
-  // const isWin = false
   const payTable = await getPayTable()
   let winRow
   let winType: WinType

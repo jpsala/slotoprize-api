@@ -6,7 +6,7 @@ import { HttpError } from 'http-errors'
 import express, { json, Express, Request, Response, NextFunction } from 'express'
 import routes from './routes'
 import './modules/slot/slot.services/events/events'
-import { checkmaintenanceMode } from "./modules/meta/authMiddleware"
+import { checkmaintenanceMode } from "./modules/meta/maintenanceMiddleware"
 
 const createApp = (): Express => {
 
