@@ -48,20 +48,24 @@ export async function getAtlas(name: string, padding?: number, quality?: number)
 export async function makeAtlas(images: string[], output: string, padding?: number, quality?: number): Promise < Atlas > {
   const finalOutput = join(publicPath(), 'assets', output)
   return await new Promise(done => {
-    const options: AtlasOptions = { src: images, exportOpts: {}, engineOpts: {imagemagick: true} }
+    const options: AtlasOptions =
+    {
+      src: images,
+      exportOpts: {},
+      engineOpts: { imagemagick: true },
+      engine: pixelsmith
+    }
     if (padding) options.padding = padding
-    if (quality) options.exportOpts.quality = quality
-    options.exportOpts = {quality: 1}
-    options.engineOpts = {quality:1}
-    options.quality = 1
-    options.engine = pixelsmith
+    if (quality) {
+      options.exportOpts.quality = quality
+      options.engineOpts.quality = quality
+    }
     console.log('options', options)
     Spritesmith.run(options, function handleResult (err, result) {
       // If there was an error, throw it
       if (err) 
         throw err
-      
-    
+
       // Output the image
       writeFileSync(finalOutput, result.image)
       const sprites: AtlasSprite[] = []
