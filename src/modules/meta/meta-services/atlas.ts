@@ -63,9 +63,7 @@ export async function makeAtlas(images: string[], output: string, padding?: numb
       
     
       // Output the image
-      console.log('v', finalOutput)
       writeFileSync(finalOutput, result.image)
-      console.log(result.coordinates, result.properties) // Coordinates and properties
       const sprites: AtlasSprite[] = []
 
       for (const entry of Object.entries(result.coordinates))

@@ -11,7 +11,7 @@ export const test = async (): Promise<void> => {
   // setTimeout(() => {
   //   console.log('connected', usersConnection())
   // }, 5000)
-  await getSymbolsAtlas()
+  // await getSymbolsAtlas()
 } 
 
 import { getSymbolsAtlas } from './modules/slot/slot.services/symbol.service'
