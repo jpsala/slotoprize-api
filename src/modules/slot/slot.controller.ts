@@ -17,6 +17,7 @@ import { getCountriesForCrud, postCountryForCrud, getCountries } from '../meta/m
 
 import { gameUserRepo } from '../meta/meta.repo'
 import { getWinnersForCrud, postWinnersStatusForCrud } from '../meta/meta-services/winner.service'
+import { getAtlas } from '../meta/meta-services/atlas'
 import { getPrizes, PrizeWinners } from './slot.services/prizes.service'
 import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
 import { setProfile } from './slot.services/profile.service'
@@ -378,5 +379,9 @@ export async function ironsource(req: Request, res: Response): Promise<any>{
 export function appodeal(req: Request, res: Response): any{
   const { 'dev-request': dev } = req.headers
   const resp = appodealCallback(<string> req.query.data1, <string> req.query.data2, dev === 'true')
+  res.status(200).send(resp)
+}
+export async function atlasGet(req: Request, res: Response): Promise<any>{
+  const resp = await getAtlas(<string> req.query.name, Number(req.query.padding), Number(req.query.quality))
   res.status(200).send(resp)
 }

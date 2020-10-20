@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { readdirSync, readFileSync, readdir, unlinkSync, writeFileSync, existsSync } from "fs"
-import path from 'path'
+import path, { basename, join } from 'path'
 import toCamelCase from 'camelcase-keys'
 
-import createError from 'http-errors'
+import createError, { InternalServerError } from 'http-errors'
+import createHttpError from "http-errors"
+import { INTERNAL_SERVER_ERROR } from "http-status-codes"
 import { query, exec } from '../../../db'
-import { makeAtlas } from "../../meta/meta-services/atlas"
-import { urlBase , getRandomNumber, addHostToPath, getUrlWithoutHost } from './../../../helpers'
+import { Atlas, makeAtlas } from "../../meta/meta-services/atlas"
+import { urlBase , getRandomNumber, addHostToPath, getUrlWithoutHost, publicPath } from './../../../helpers'
 
 export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
 
-
+const assetsPath = join(publicPath(), 'assets/')
 export const getReelsData = async (): Promise<any> =>
 {
   try {
@@ -112,21 +114,36 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
     })
   }
 }
-export const getSymbolsAtlas = async (): Promise<void> => {
+export const getSymbolsAtlas = async (padding?: number, quality?: number): Promise<Atlas> => {
 
-  const symbols = await query(`
-    select distinct s.texture_url as image
+  const symbols:{image: string, name: string}[] = await query(`
+    select distinct s.texture_url as image, symbol_name as name
     from pay_table pt
         inner join symbol s on pt.symbol_id = s.id`
   )
+  if(!symbols || symbols.length < 1) throw createHttpError(INTERNAL_SERVER_ERROR, 'There are no symbols in DBs')
   const sprites: string[] = []
   symbols.forEach(_symbol => {
-    const file = `/www/public/assets/${_symbol.image as string}`
+    console.log('assetsPath', assetsPath)
+    const file = `${assetsPath}${_symbol.image}`
     if(existsSync(file))
     sprites.push(file)
   })
-  const properties = await makeAtlas(sprites, '/tmp/image.png')
-  console.log('properties', properties)
+  const atlas = await makeAtlas(sprites, '/atlas/symbolsAtlas.png', padding, quality)
+  
+  let symbolIdx = 0
+  for (const symbol of atlas.sprites) {
+    const symbolInDB = symbols.find(_symbol =>
+      basename(_symbol.image) === basename(atlas.sprites[symbolIdx].name as string)
+    )
+    if(!symbolInDB) throw createHttpError(INTERNAL_SERVER_ERROR, 'Symbol not found')
+    atlas.sprites[symbolIdx]['symbolName'] = symbolInDB.name
+    atlas.sprites[symbolIdx]['coordinates'] = symbol.coordinates
+    delete atlas.sprites[symbolIdx].name
+    symbolIdx++
+  }
+  atlas.textureUrl = `${urlBase()}/atlas/symbolsAtlas.png`
+  return atlas
 }
 
 export const deleteSymbol = async (id: string): Promise<any> =>

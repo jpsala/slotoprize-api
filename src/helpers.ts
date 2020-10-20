@@ -153,3 +153,11 @@ export const addHostToPath = (path: string): string => {
     if(!path || path.toLocaleUpperCase() === 'UNDEFINED' || path === '' || path.toUpperCase() === 'NULL') return ''
     return urlBase() + path
 }
+export const publicPath = (): string => {
+    if(isNotebook()) return '/www/public/'
+    else if (hostname() === 'sloto-dev')
+        return '/var/www/html/public/'
+    else if (hostname() === 'slotoprizes')
+        return '/var/www/html/public/'
+    else throw createHttpError(INTERNAL_SERVER_ERROR, 'hostname unrecognized')
+}
