@@ -1,12 +1,13 @@
 // #region imports and types
 import { writeFileSync } from 'fs'
-import { join } from 'path'
+import { basename, extname, join } from 'path'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import Spritesmith from 'spritesmith'
 import pixelsmith from 'pixelsmith'
-import { publicPath } from '../../../helpers'
-import { getSymbolsAtlas } from '../../slot/slot.services/symbol.service'
+import { publicPath, urlBase } from '../../../helpers'
+import { buildSymbolsAtlas } from '../../slot/slot.services/symbol.service'
+import { queryOne, exec } from '../../../db'
 
 export type AtlasSpriteCoordinates = {
   height: number,
@@ -20,6 +21,7 @@ export type AtlasSprite = {
   coordinates: AtlasSpriteCoordinates
 }
 export type Atlas = {
+  name: string,
   textureUrl: string,
   sprites: AtlasSprite[]
   properties: {
@@ -38,65 +40,72 @@ type AtlasOptions = {
   engine?: 'canvassmith' | 'gmsmith'
 }
 // #endregion
-export async function getAtlas(name: string, padding?: number, quality?: number): Promise<Atlas> {
-  if (name.toLocaleLowerCase() === 'symbols') 
-    return await getSymbolsAtlas(padding, quality)
-  
-  throw createHttpError(BAD_REQUEST, `Requested atlas "${name}" not implemented`)
-} 
 
-export async function makeAtlas(images: string[], output: string, padding?: number, quality?: number): Promise < Atlas > {
-  const finalOutput = join(publicPath(), 'assets', output)
-  return await new Promise(done => {
-    const options: AtlasOptions = { src: images, exportOpts: {}, engineOpts: {imagemagick: true} }
+export async function buildAtlas(images: string[], name: string, padding?: number, quality?: number): Promise < Atlas > {
+  const finalOutput = join(publicPath(), 'assets', `atlas/${name}.png`)
+  const atlas: Atlas = await new Promise(done => {
+    const options: AtlasOptions = {
+      src: images,
+      exportOpts: {},
+      engineOpts: { imagemagick: true },
+      engine: pixelsmith
+    }
     if (padding) options.padding = padding
-    if (quality) options.exportOpts.quality = quality
-    options.exportOpts = {quality: 1}
-    options.engineOpts = {quality:1}
-    options.quality = 1
-    options.engine = pixelsmith
-    console.log('options', options)
+    if (quality) {
+      options.exportOpts.quality = quality
+      options.engineOpts.quality = quality
+    }
     Spritesmith.run(options, function handleResult (err, result) {
       // If there was an error, throw it
       if (err) 
         throw err
-      
-    
+
       // Output the image
       writeFileSync(finalOutput, result.image)
       const sprites: AtlasSprite[] = []
-
-      for (const entry of Object.entries(result.coordinates))
+      for (const entry of Object.entries(result.coordinates)) {
+        const extension = extname(basename(entry[0]))
+        const name = basename(basename(entry[0]), extension)
         sprites.push({
-          name: entry[0],
+          name,
           coordinates: entry[1] as AtlasSpriteCoordinates
         })
-      done({
-        textureUrl: '',
-        sprites,
-        properties: result.properties
-      })
+      }
+      done(
+        {
+          name,
+          textureUrl: `atlas/${name}.png`,
+          sprites,
+          properties: result.properties
+        }
+      )
     })
-
-    // spritesmith.createImages(images, function handleImages(err, images) {
-    //   if (err) throw new Error('Error in spritesmith.createImages')
-
-    //   const result = spritesmith.processImages(images)
-    //   const writeStream = createWriteStream(finalOutput)
-    //   result.image.pipe(writeStream)
-    //   const sprites: AtlasSprite[] = []
-    //   for (const entry of Object.entries(result.coordinates))
-    //     sprites.push({
-    //       name: entry[0],
-    //       coordinates: entry[1] as AtlasSpriteCoordinates
-    //     })
-    //   result.image.on('end', () => done({
-    //       textureUrl: '',
-    //       sprites,
-    //       properties: result.properties
-    //     })
-
-    //   )
-    // })
   })
+  return atlas
+}
+export async function saveAtlasToDB(data: Atlas): Promise<void> {
+  const atlasInDB = await queryOne(`select id from atlas where name = '${data.name}'`)
+  const jsonData = JSON.stringify(data)
+  let resp
+  if (atlasInDB)
+    resp = await exec(`
+      update atlas set json = ? where name = ?
+    `, [jsonData, data.name])
+  else
+    resp = await exec(`
+      insert into atlas(name, json) values(?, ?)
+    `, [data.name, jsonData])
+  console.log('atlas saved to DB', resp )
+}
+export async function getAtlas(name: string): Promise<Atlas> {
+  const atlasInDB = await queryOne(`select id, json from atlas where name = '${name}'`)
+  let jsonData: Atlas | undefined = undefined
+  if (atlasInDB) 
+    jsonData = JSON.parse(atlasInDB.json) as Atlas
+   else if (name.toLocaleLowerCase() === 'symbols') 
+    jsonData = await buildSymbolsAtlas()
+  
+  if(!jsonData)throw createHttpError(BAD_REQUEST, `Requested atlas "${name}" not implemented`)
+  jsonData.textureUrl = urlBase() + jsonData.textureUrl
+  return jsonData
 }

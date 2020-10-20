@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { readdirSync, readFileSync, readdir, unlinkSync, writeFileSync, existsSync } from "fs"
-import path, { basename, join } from 'path'
+import path, { basename, extname, join } from 'path'
 import toCamelCase from 'camelcase-keys'
-
-import createError, { InternalServerError } from 'http-errors'
 import createHttpError from "http-errors"
-import { INTERNAL_SERVER_ERROR } from "http-status-codes"
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "http-status-codes"
 import { query, exec } from '../../../db'
-import { Atlas, makeAtlas } from "../../meta/meta-services/atlas"
+import { Atlas, AtlasSprite, buildAtlas, saveAtlasToDB } from "../../meta/meta-services/atlas"
 import { urlBase , getRandomNumber, addHostToPath, getUrlWithoutHost, publicPath } from './../../../helpers'
 
 export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
@@ -24,7 +22,7 @@ export const getReelsData = async (): Promise<any> =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return reels
   } catch (error) {
-    throw createError(createError.InternalServerError, error)
+    throw createHttpError(INTERNAL_SERVER_ERROR, error)
   }
 }
 export const symbolsInFS = (): string[] =>
@@ -114,7 +112,7 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
     })
   }
 }
-export const getSymbolsAtlas = async (padding?: number, quality?: number): Promise<Atlas> => {
+export const buildSymbolsAtlas = async (padding?: number, quality?: number): Promise<Atlas> => {
 
   const symbols:{image: string, name: string}[] = await query(`
     select distinct s.texture_url as image, symbol_name as name
@@ -122,27 +120,28 @@ export const getSymbolsAtlas = async (padding?: number, quality?: number): Promi
         inner join symbol s on pt.symbol_id = s.id`
   )
   if(!symbols || symbols.length < 1) throw createHttpError(INTERNAL_SERVER_ERROR, 'There are no symbols in DBs')
+
   const sprites: string[] = []
   symbols.forEach(_symbol => {
-    console.log('assetsPath', assetsPath)
     const file = `${assetsPath}${_symbol.image}`
-    if(existsSync(file))
+    if(!existsSync(file)) throw createHttpError(BAD_REQUEST, `buildSymbolsAtlas: ${file} does not exists`)
     sprites.push(file)
   })
-  const atlas = await makeAtlas(sprites, '/atlas/symbolsAtlas.png', padding, quality)
+
+  const atlas = await buildAtlas(sprites, 'symbols', padding, quality)
   
-  let symbolIdx = 0
   for (const symbol of atlas.sprites) {
-    const symbolInDB = symbols.find(_symbol =>
-      basename(_symbol.image) === basename(atlas.sprites[symbolIdx].name as string)
-    )
-    if(!symbolInDB) throw createHttpError(INTERNAL_SERVER_ERROR, 'Symbol not found')
-    atlas.sprites[symbolIdx]['symbolName'] = symbolInDB.name
-    atlas.sprites[symbolIdx]['coordinates'] = symbol.coordinates
-    delete atlas.sprites[symbolIdx].name
-    symbolIdx++
+
+    const symbolInDB = getSymbolInDB(symbols, symbol)
+
+    if (!symbolInDB) throw createHttpError(INTERNAL_SERVER_ERROR, 'Symbol not found')
+    
+    symbol['symbolName'] = symbolInDB.name
+    delete symbol.name
   }
-  atlas.textureUrl = `${urlBase()}/atlas/symbolsAtlas.png`
+
+  await saveAtlasToDB(atlas)
+
   return atlas
 }
 
@@ -163,3 +162,11 @@ export const getSymbols = async (): Promise<any> =>
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return symbols
 }
+function getSymbolInDB(symbols: { image: string; name: string }[], symbol: AtlasSprite) {
+  return symbols.find(_symbol => {
+    const extension = extname(basename(_symbol.image))
+    const name = basename(basename(_symbol.image), extension)
+    return name === symbol.name
+  })
+}
+

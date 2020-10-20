@@ -14,6 +14,6 @@ export const test = async (): Promise<void> => {
   // await getSymbolsAtlas()
 } 
 
-import { getSymbolsAtlas } from './modules/slot/slot.services/symbol.service'
+// import { getSymbolsAtlas } from './modules/slot/slot.services/symbol.service'
 
 

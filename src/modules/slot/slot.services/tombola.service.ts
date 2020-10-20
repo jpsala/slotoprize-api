@@ -5,7 +5,7 @@ import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { urlBase } from './../../../helpers'
 import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
-import { getSymbols, SymbolDTO } from './symbol.service'
+import { buildSymbolsAtlas, getSymbols, SymbolDTO } from './symbol.service'
 
 type PayTableDTO = {id: number, symbol_id: number, symbol_amount: number, probability: number, points: number, symbol: SymbolDTO}
 export const getPayTableForCrud = async (): Promise<any> => {
@@ -52,6 +52,7 @@ export const postTombolaForCrud = async (body: any): Promise<any> =>
       }])
     }
     await conn.commit()
+    await buildSymbolsAtlas()
   }catch (err) {
     await conn.rollback()
     throw err

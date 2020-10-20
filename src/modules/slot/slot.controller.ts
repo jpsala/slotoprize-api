@@ -382,6 +382,6 @@ export function appodeal(req: Request, res: Response): any{
   res.status(200).send(resp)
 }
 export async function atlasGet(req: Request, res: Response): Promise<any>{
-  const resp = await getAtlas(<string> req.query.name, Number(req.query.padding), Number(req.query.quality))
+  const resp = await getAtlas(<string> req.query.name)
   res.status(200).send(resp)
 }
