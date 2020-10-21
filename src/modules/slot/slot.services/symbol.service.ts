@@ -136,8 +136,7 @@ export const buildSymbolsAtlas = async (padding?: number, quality?: number): Pro
 
     if (!symbolInDB) throw createHttpError(INTERNAL_SERVER_ERROR, 'Symbol not found')
     
-    symbol['symbolName'] = symbolInDB.name
-    delete symbol.name
+    symbol.name = symbolInDB.name
   }
 
   await saveAtlasToDB(atlas)
