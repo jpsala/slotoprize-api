@@ -126,9 +126,9 @@ export const urlBase = (): string => {
 
     if (isNotebook()) return 'http://localhost/public/assets/'
     else if (_hostname === 'sloto-dev')
-        return 'https://assets.dev.slotoprizes.tagadagames.com'
+        return 'https://assets.dev.slotoprizes.tagadagames.com/'
     else if (_hostname === 'slotoprizes')
-        return 'https://assets.slotoprizes.tagadagames.com'
+        return 'https://assets.slotoprizes.tagadagames.com/'
     else throw createHttpError(INTERNAL_SERVER_ERROR, 'hostname unrecognized')
 }
 export const sleep = async (time: number): Promise<void> => {
