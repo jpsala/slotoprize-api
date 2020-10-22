@@ -7,9 +7,9 @@ export async function getMiscSettingsForCrud(): Promise<any> {
   const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10')),
   const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10')),
   const wallet = {
-    spins: await getSetting('initialWalletTickets', '10'),
+    tickets: await getSetting('initialWalletTickets', '10'),
     coins: await getSetting('initialWalletCoins', '10'),
-    tickets: await getSetting('initialWalletSpins', '10'),
+    spins: await getSetting('initialWalletSpins', '10'),
   }
   console.log('maintenanceMode', maintenanceMode, maintenanceMode === '1')
   return {gameVersion, maintenanceMode: maintenanceMode === '1', wallet, interstitialsRatio, lapseForSpinRegeneration, maxSpinsForSpinRegeneration}
@@ -18,6 +18,13 @@ export async function getMiscSettingsForCrud(): Promise<any> {
 export async function postMiscSettingsForCrud(settings: any): Promise<any> {
   console.log('settings', settings)
   await setSetting('gameVersion', settings.gameVersion)
-  await setSetting('maintenanceMode', settings.maintenanceMode ? '1':'0')
+  await setSetting('maintenanceMode', settings.maintenanceMode ? '1' : '0')
+  await setSetting('interstitialsRatio', settings.interstitialsRatio)
+  if(settings.lapseForSpinRegeneration) await setSetting('lapseForSpinRegeneration', settings.lapseForSpinRegeneration)
+  if(settings.maxSpinsForSpinRegeneration) await setSetting('maxSpinsForSpinRegeneration', settings.maxSpinsForSpinRegeneration)
+  // wallet: state.wallet,
+  await setSetting('initialWalletTickets', settings.wallet.tickets)
+  await setSetting('initialWalletCoins', settings.wallet.coins)
+  await setSetting('initialWalletSpins', settings.wallet.spins)
   return { status: 'ok'}
 }
