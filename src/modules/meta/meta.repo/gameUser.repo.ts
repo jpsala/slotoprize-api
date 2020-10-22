@@ -253,6 +253,7 @@ export const getPlayersForFront = async (from: number, limit: number, filter: st
   select * from game_user
     where first_name like '%${filter}%' or last_name like '%${filter}%'
           or email like '%${filter}%' or device_id like '%${filter}%'
+    order by id desc
     limit ${from}, ${limit}
 `))
   const maxAllowedBirthYear = await getSetting('maxAllowedBirthYear', '2002')
