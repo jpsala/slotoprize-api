@@ -44,7 +44,6 @@ export interface GameUser {
   isDev: boolean;
   title: string;
   birthDate: Date;
-  advertisingId?: string;
   // wallet?: Partial<Wallet>;
   wallet?: Wallet;
   sendWinJackpotEventWhenProfileFilled?: boolean;

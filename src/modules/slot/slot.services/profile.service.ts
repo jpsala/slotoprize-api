@@ -37,8 +37,7 @@ export const setProfile = async (user: GameUser): Promise<any> => {
               title = '${user.title || ""}',
               birth_date = "${String(birthDate)}",
               isDev = '${isDev}',
-              country = '${user.country || ""}',
-              advertisingId = '${user.advertisingId || ""}'
+              country = '${user.country || ""}'
           where device_id = '${user.deviceId}'
       `)
       // select id, first_name, last_name, email, device_id from game_user where device_id = '${user.deviceId}'
