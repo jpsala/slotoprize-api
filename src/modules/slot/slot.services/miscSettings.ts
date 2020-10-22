@@ -4,8 +4,8 @@ export async function getMiscSettingsForCrud(): Promise<any> {
   const gameVersion = await getSetting('gameVersion', '0.0.10')
   const maintenanceMode = await getSetting('maintenanceMode', '0')
   const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
-  const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10')),
-  const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10')),
+  const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10'))
+  const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10'))
   const wallet = {
     tickets: await getSetting('initialWalletTickets', '10'),
     coins: await getSetting('initialWalletCoins', '10'),
