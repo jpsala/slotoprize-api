@@ -16,7 +16,7 @@ export async function postSupportAdminForCrud(body: any): Promise<any>
 export async function supportAdminForCrud(): Promise<any>
 {
   const email = await getSetting('emailSupport', 'support@slotoprize.com')
-  const requests = await query(`select * from support_request`)
+  const requests = await query(`select * from support_request order by id desc`)
   return {email, requests}
 }
 export async function getSupportRequestForCrud(userId: string): Promise<any>
