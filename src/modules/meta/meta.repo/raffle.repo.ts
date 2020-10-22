@@ -110,7 +110,7 @@ export async function getRafflesForCrud(id?: number)
       left join game_user gu on r.winner = gu.id
       left join state s on rl.name = s.name
   ${where}
-  order by r.closing_date asc
+  order by r.closing_date desc
 `, )
   
   const raffles = await query(`
