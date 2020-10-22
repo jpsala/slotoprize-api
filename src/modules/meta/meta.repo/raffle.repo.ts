@@ -97,22 +97,7 @@ export async function getRafflesForCrud(id?: number)
   const languageCode = await getSetting('languageCode', 'fr-FR')
 
   const where = id ? ` where r.id = ${id} ` : ''
-  console.log(`
-  select r.id, r.state, rl.name, rl.description, gu.email, gu.device_id deviceID,
-          date_format(r.closing_date, '%Y-%m-%d %H:%i:%s') as closingDate,
-          date_format(r.live_date, '%Y-%m-%d %H:%i:%s') as liveDate,
-          concat('${url}', r.texture_url) as textureUrl, r.item_highlight itemHighlight, r.raffle_number_price price,
-          IF(CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date, true, false) as isLive,
-          concat(gu.last_name,', ',gu.first_name) as winner, gu.id as gameUserId,
-          (select sum(raffle_numbers) as sold from raffle_history where raffle_id = r.id) as sold
-  from raffle r
-      inner join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = '${languageCode}'
-      left join game_user gu on r.winner = gu.id
-      left join state s on rl.name = s.name
-  ${where}
-  order by r.closing_date desc
-`, )
-  
+ 
   const raffles = await query(`
     select r.id, r.state, rl.name, rl.description, gu.email, gu.device_id deviceID,
             date_format(r.closing_date, '%Y-%m-%d %H:%i:%s') as closingDate,
@@ -126,7 +111,7 @@ export async function getRafflesForCrud(id?: number)
         left join game_user gu on r.winner = gu.id
         left join state s on rl.name = s.name
     ${where}
-    order by r.closing_date asc
+    order by r.closing_date desc
   `)
   for (const raffle of raffles) {
     const closingDate = moment.utc(raffle.closingDate)
