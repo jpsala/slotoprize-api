@@ -1,2 +1,2 @@
  - [ ] create atlas table in DB
-
+ - [ ] isDev en user table

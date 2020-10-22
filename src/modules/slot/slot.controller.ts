@@ -163,7 +163,7 @@ export async function withTokenGet(req: Request, res: Response): Promise<any>{
   const token = getNewToken({ id: user.id, deviceId: undefined })
   res.setHeader('token', token)
   // setReqUser(undefined, user.id)
-  const retUser = { name: user.name, email: user.email, id: user.id }
+  const retUser = { name: user.name, email: user.email, id: user.id, isDev: user.isDev }
   res.status(200).json({ user: retUser })
   return undefined
 }

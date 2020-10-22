@@ -29,11 +29,12 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
       if (savedEvent.endTimeoutHandler) clearTimeout(savedEvent.endTimeoutHandler)  
       savedEvent.laterTimerHandler?.clear()
       allEvents.splice(savedEventIdx, 1)
-    }
-    if (Number(ruleFromDb.active) === 0)  
+    }  
+    if (Number(ruleFromDb.active) === 0)   
       continue
    
-    ruleFromDb.skin = await getSkin(ruleFromDb.skinId)
+    console.log('ruleFromDb', ruleFromDb.skinId)
+    ruleFromDb.skin = ruleFromDb.skinId ? await getSkin(ruleFromDb.skinId) : undefined
     ruleFromDb.popupTextureUrl = ruleFromDb.popupTextureUrl ? url + ruleFromDb.popupTextureUrl : ''
     ruleFromDb.notificationTextureUrl = ruleFromDb.notificationTextureUrl ? url + ruleFromDb.notificationTextureUrl : ''
     ruleFromDb.particlesTextureUrl = ruleFromDb.particlesTextureUrl ? url + ruleFromDb.particlesTextureUrl : ''
