@@ -1,3 +1,4 @@
  - [ ] create atlas table in DB
  - [ ] isDev en user table
  - [ ] remove advertisingId from game_user
+ - [ ] deleted field in language table in DB

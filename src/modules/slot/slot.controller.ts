@@ -12,7 +12,7 @@ import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront,
 import { setSoporte, getSupportRequestForCrud, supportAdminForCrud, postSupportAdminForCrud } from '../meta/meta.repo/support.repo'
 import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
 
-import { getLanguagesForCrud, postLanguageForCrud, deleteLanguageForCrud } from '../meta/meta.repo/language.repo'
+import { getLanguagesForCrud, postLanguageForCrud, toggleDeleteLanguageForCrud } from '../meta/meta.repo/language.repo'
 import { getCountriesForCrud, postCountryForCrud, getCountries } from '../meta/meta.repo/country.repo'
 
 import { gameUserRepo } from '../meta/meta.repo'
@@ -327,8 +327,8 @@ export async function supportAdminForCrudGet(req: Request, res: Response): Promi
   const data = await supportAdminForCrud()
   res.status(200).json(data)
 }
-export async function languageForCrudDelete(req: Request, res: Response): Promise<any>{
-  const data = await deleteLanguageForCrud(req.query.languageId as string)
+export async function languageForCrudToggleDelete(req: Request, res: Response): Promise<any>{
+  const data = await toggleDeleteLanguageForCrud(req.query.languageId as string)
   res.status(200).json(data)
 }
 export async function languageForCrudPost(req: Request, res: Response): Promise<any>{

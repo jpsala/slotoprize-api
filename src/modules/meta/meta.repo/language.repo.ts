@@ -19,7 +19,7 @@ export async function getLanguages(): Promise<LanguageData[]> {
     select id, language_code,
       concat('${url}', texture_url) as texture_url,
       concat('${url}', localization_url) as localization_url
-    from  language
+    from  language where deleted = 0
   `,
         undefined,
         true
@@ -27,8 +27,8 @@ export async function getLanguages(): Promise<LanguageData[]> {
     return localizationData
 }
 
-export async function deleteLanguageForCrud(languageId: string): Promise<any> {
-    const data = await exec(`delete from language where id = ${languageId}`)
+export async function toggleDeleteLanguageForCrud(languageId: string): Promise<any> {
+    const data = await exec(`update language set deleted = if(deleted = 1, 0, 1) where id = ${languageId}`)
     return data.affectedRows
 }
 export async function getLanguagesForCrud(): Promise<any> {
@@ -38,7 +38,7 @@ export async function getLanguagesForCrud(): Promise<any> {
         `
     select id, language_code,
     concat('${url}', texture_url) as texture_url,
-    concat('${url}', localization_url) as localization_url
+    concat('${url}', localization_url) as localization_url, deleted
      from  language
   `,
         undefined,
