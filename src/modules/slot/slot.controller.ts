@@ -22,7 +22,7 @@ import { getPrizes, PrizeWinners } from './slot.services/prizes.service'
 import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
 import { setProfile } from './slot.services/profile.service'
 import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
-import { getTombolaForCrud, postTombolaForCrud, postWinLoseForTombolaCrudPost } from './slot.services/tombola.service'
+import { getSlotData, getTombolaForCrud, postTombolaForCrud, postWinLoseForTombolaCrudPost } from './slot.services/tombola.service'
 
 import { getSkinsForCrud, postSkinForCrud, deleteSkinForCrud } from './slot.repo/skin.repo'
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
@@ -383,5 +383,9 @@ export function appodeal(req: Request, res: Response): any{
 }
 export async function atlasGet(req: Request, res: Response): Promise<any>{
   const resp = await getAtlas(<string> req.query.name)
+  res.status(200).send(resp)
+}
+export async function slotDataGet(req: Request, res: Response): Promise<any>{
+  const resp = await getSlotData()
   res.status(200).send(resp)
 }

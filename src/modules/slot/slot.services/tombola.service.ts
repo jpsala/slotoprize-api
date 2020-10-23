@@ -5,7 +5,8 @@ import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { urlBase } from './../../../helpers'
 import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
-import { buildSymbolsAtlas, getSymbols, SymbolDTO } from './symbol.service'
+import { buildSymbolsAtlas, getReelsData, getSymbols, SymbolDTO } from './symbol.service'
+import { getLooseSpin } from './spinLoose/spinLoose'
 
 type PayTableDTO = {id: number, symbol_id: number, symbol_amount: number, probability: number, points: number, symbol: SymbolDTO}
 export const getPayTableForCrud = async (): Promise<any> => {
@@ -61,6 +62,13 @@ export const postTombolaForCrud = async (body: any): Promise<any> =>
   }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {status: 'ok'}
+}
+export const getSlotData = async (): Promise<any> => {
+  const defaultSpinData = await getLooseSpin()
+    const maxMultiplier = Number(await getSetting('maxMultiplier', '3'))
+    const reelsData = await getReelsData()
+
+    return {defaultSpinData, maxMultiplier, reelsData}
 }
 export const getTombolaForCrud = async (): Promise<any> =>
 {
