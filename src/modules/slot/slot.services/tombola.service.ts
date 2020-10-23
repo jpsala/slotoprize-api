@@ -7,6 +7,7 @@ import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
 import { buildSymbolsAtlas, getReelsData, getSymbols, SymbolDTO } from './symbol.service'
 import { getLooseSpin } from './spinLoose/spinLoose'
+import { getPayTable } from './spin.service'
 
 type PayTableDTO = {id: number, symbol_id: number, symbol_amount: number, probability: number, points: number, symbol: SymbolDTO}
 export const getPayTableForCrud = async (): Promise<any> => {
@@ -66,8 +67,22 @@ export const postTombolaForCrud = async (body: any): Promise<any> =>
 export const getSlotData = async (): Promise<any> => {
   const defaultSpinData = await getLooseSpin()
     const maxMultiplier = Number(await getSetting('maxMultiplier', '3'))
-    const reelsData = await getReelsData()
-
+  const reelsData = await getReelsData()
+  const payTable = await getPayTable()
+    reelsData.forEach((reel) => {
+      reel.symbolsData.forEach((reelSymbol) => {
+        const symbolPays: any[] = []
+        payTable.filter((payTableSymbol) => payTableSymbol.symbol_name === reelSymbol.symbolName)
+          .forEach((_symbol) => symbolPays.push(_symbol))
+        const symbolAllPays: any[] = []
+        for (let index = 1; index < 4; index++) {
+          const row = symbolPays.find((_symbol) => _symbol.symbol_amount === index)
+          if (row) symbolAllPays.push(row.points)
+          else symbolAllPays.push(0)
+        }
+        reelSymbol.pays = symbolAllPays
+      })
+    })
     return {defaultSpinData, maxMultiplier, reelsData}
 }
 export const getTombolaForCrud = async (): Promise<any> =>
