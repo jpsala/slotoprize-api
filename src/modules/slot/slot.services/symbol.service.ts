@@ -14,8 +14,7 @@ const assetsPath = join(publicPath(), 'assets/')
 export const getReelsData = async (): Promise<any> =>
 {
   try {
-    const url = urlBase()
-    const symbolsData = await query(`SELECT concat('${url}',s.texture_url) as texture_url, s.payment_type, s.symbol_name FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)`)
+    const symbolsData = await query(`SELECT s.payment_type, s.symbol_name FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)`)
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++)
       reels.push({ symbolsData: toCamelCase(symbolsData) })
