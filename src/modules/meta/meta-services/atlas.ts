@@ -74,7 +74,7 @@ export async function buildAtlas(images: string[], name: string, padding?: numbe
       done(
         {
           name,
-          textureUrl: `atlas/${name}.png`,
+          textureUrl: `/atlas/${name}.png`,
           sprites,
           properties: result.properties
         }
