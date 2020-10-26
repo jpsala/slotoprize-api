@@ -2,6 +2,7 @@ import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
 import createHttpError from 'http-errors'
 import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
+import { getAtlas } from '../../meta/meta-services/atlas'
 import { urlBase } from './../../../helpers'
 import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
@@ -66,7 +67,8 @@ export const postTombolaForCrud = async (body: any): Promise<any> =>
 }
 export const getSlotData = async (): Promise<any> => {
   const defaultSpinData = await getLooseSpin()
-    const maxMultiplier = Number(await getSetting('maxMultiplier', '3'))
+  const maxMultiplier = Number(await getSetting('maxMultiplier', '3'))
+  const atlasData = await getAtlas(<string> 'symbols')
   const reelsData = await getReelsData()
   const payTable = await getPayTable()
     reelsData.forEach((reel) => {
@@ -83,12 +85,12 @@ export const getSlotData = async (): Promise<any> => {
         reelSymbol.pays = symbolAllPays
       })
     })
-    return {defaultSpinData, maxMultiplier, reelsData}
+    return {defaultSpinData, maxMultiplier, reelsData, atlasData}
 }
 export const getTombolaForCrud = async (): Promise<any> =>
 {
   const symbols = camelcaseKeys(await getSymbols())
   const paytable = await getPayTableForCrud()
   const spinLosePercent = Number(await getSetting('spinLosePercent', '20'))
-  return {paytable, symbols, spinLosePercent}
+  return {paytable, symbols, spinLosePercent }
 }
