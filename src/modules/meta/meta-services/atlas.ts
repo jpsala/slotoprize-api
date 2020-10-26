@@ -62,11 +62,11 @@ export async function buildAtlas(images: string[], name: string, padding?: numbe
 
       // Output the image
       writeFileSync(finalOutput, result.image)
-      const sprites: AtlasSprite[] = []
+      const spritesData: AtlasSprite[] = []
       for (const entry of Object.entries(result.coordinates)) {
         const extension = extname(basename(entry[0]))
         const name = basename(basename(entry[0]), extension)
-        sprites.push({
+        spritesData.push({
           name,
           coordinates: entry[1] as AtlasSpriteCoordinates
         })
@@ -75,7 +75,7 @@ export async function buildAtlas(images: string[], name: string, padding?: numbe
         {
           name,
           textureUrl: `/atlas/${name}.png`,
-          spritesData: sprites,
+          spritesData,
           properties: result.properties
         }
       )
