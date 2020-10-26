@@ -7,7 +7,6 @@ import { urlBase } from './../../../helpers'
 import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
 import { buildSymbolsAtlas, getReelsData, getSymbols, SymbolDTO } from './symbol.service'
-import { getLooseSpin } from './spinLoose/spinLoose'
 import { getPayTable } from './spin.service'
 
 type PayTableDTO = {id: number, symbol_id: number, symbol_amount: number, probability: number, points: number, symbol: SymbolDTO}
@@ -66,7 +65,6 @@ export const postTombolaForCrud = async (body: any): Promise<any> =>
   return {status: 'ok'}
 }
 export const getSlotData = async (): Promise<any> => {
-  const defaultSpinData = await getLooseSpin()
   const maxMultiplier = Number(await getSetting('maxMultiplier', '3'))
   const atlasData = await getAtlas(<string> 'symbols')
   const reelsData = await getReelsData()
@@ -85,7 +83,7 @@ export const getSlotData = async (): Promise<any> => {
         reelSymbol.pays = symbolAllPays
       })
     })
-    return {defaultSpinData, maxMultiplier, reelsData, atlasData}
+    return {maxMultiplier, reelsData, atlasData}
 }
 export const getTombolaForCrud = async (): Promise<any> =>
 {

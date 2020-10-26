@@ -11,7 +11,6 @@ import {getWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import {getReelsData} from "../symbol.service"
 import {getPayTable} from "../spin.service"
-import { getLooseSpin } from './../spinLoose/spinLoose'
 import { getLastSpinDays } from './dailyReward.spin'
 import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaimed } from './../../slot.repo/dailyReward.repo'
 
@@ -63,7 +62,6 @@ export async function gameInit(deviceId: string): Promise<any> {
     const consecutiveDailyLogs = await getLastSpinDays(rawUser as GameUser)
     const dailyRewardClaimed = await isDailyRewardClaimed(deviceId)
     const languageCode = rawUser.languageCode
-    const defaultSpinData = await getLooseSpin()
     delete rawUser.languageCode
     const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
     const maxAllowedBirthYear = Number(await getSetting('maxAllowedBirthYear', '2002'))
@@ -74,7 +72,6 @@ export async function gameInit(deviceId: string): Promise<any> {
       gameIdentifier: await getSetting('gameIdentifier', 'this is the gameIdentifier'),
       // requireProfileData: requireProfileData ? 1 : 0,
       languageCode,
-      defaultSpinData,
       interstitialsRatio,
       hasPendingPrize,
       rafflePrizeData,
