@@ -23,7 +23,7 @@ export type AtlasSprite = {
 export type Atlas = {
   name: string,
   textureUrl: string,
-  sprites: AtlasSprite[]
+  spritesData: AtlasSprite[]
   properties: {
     width: number,
     height: number
@@ -75,7 +75,7 @@ export async function buildAtlas(images: string[], name: string, padding?: numbe
         {
           name,
           textureUrl: `/atlas/${name}.png`,
-          sprites,
+          spritesData: sprites,
           properties: result.properties
         }
       )

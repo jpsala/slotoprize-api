@@ -120,16 +120,16 @@ export const buildSymbolsAtlas = async (padding?: number, quality?: number): Pro
   )
   if(!symbols || symbols.length < 1) throw createHttpError(INTERNAL_SERVER_ERROR, 'There are no symbols in DBs')
 
-  const sprites: string[] = []
+  const spritesData: string[] = []
   symbols.forEach(_symbol => {
     const file = `${assetsPath}${_symbol.image}`
     if(!existsSync(file)) throw createHttpError(BAD_REQUEST, `buildSymbolsAtlas: ${file} does not exists`)
-    sprites.push(file)
+    spritesData.push(file)
   })
 
-  const atlas = await buildAtlas(sprites, 'symbols', padding, quality)
+  const atlas = await buildAtlas(spritesData, 'symbols', padding, quality)
   
-  for (const symbol of atlas.sprites) {
+  for (const symbol of atlas.spritesData) {
 
     const symbolInDB = getSymbolInDB(symbols, symbol)
 
