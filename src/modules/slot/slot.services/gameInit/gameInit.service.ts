@@ -59,7 +59,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     })
     const dailyRewards: DailyRewardPrize[] = await getDailyRewardPrizes()
     await setSpinData(rawUser as GameUser)
-    const consecutiveDailyLogs = await getLastSpinDays(rawUser as GameUser)
+    const consecutiveLogsIdx = await getLastSpinDays(rawUser as GameUser)
     const dailyRewardClaimed = await isDailyRewardClaimed(deviceId)
     const languageCode = rawUser.languageCode
     delete rawUser.languageCode
@@ -77,7 +77,7 @@ export async function gameInit(deviceId: string): Promise<any> {
       rafflePrizeData,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
-      consecutiveDailyLogs,
+      consecutiveLogsIdx,
       dailyRewardsData: dailyRewards,
       dailyRewardClaimed,
       ticketPrice,
