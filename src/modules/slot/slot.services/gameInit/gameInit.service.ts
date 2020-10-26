@@ -9,8 +9,6 @@ import {getNewToken} from '../../../../services/jwtService'
 import {getHaveWinRaffle, setGameUserLogin, getWinRaffle, resetPendingPrize } from '../../../meta/meta.repo/gameUser.repo'
 import {getWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
-import {getReelsData} from "../symbol.service"
-import {getPayTable} from "../spin.service"
 import { getLastSpinDays } from './dailyReward.spin'
 import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaimed } from './../../slot.repo/dailyReward.repo'
 
@@ -20,10 +18,8 @@ export async function gameInit(deviceId: string): Promise<any> {
     if(Number(rawUser.banned) === 1) throw createHttpError(BAD_REQUEST, 'User is banned')
     // setReqUser(deviceId, rawUser.id as number)
     const wallet = await getWallet(rawUser as GameUser)
-    const payTable = await getPayTable()
-    const betPrice = Number(await getSetting('betPrice', '1'))
+    // const betPrice = Number(await getSetting('betPrice', '1'))
     const ticketPrice = Number(await getSetting('ticketPrice', '1')) 
-    const maxMultiplier = Number(await getSetting('maxMultiplier', '3'))
     const languages = (await languageRepo.getLanguages()) as Array<Partial<LanguageData>>
     // const requireProfileData = Number(await settingGet('requireProfileData', 0))
     // const languageData = (await metaRepo.getLanguageData(rawUser.id + 3)) as Partial<LanguageData>
@@ -42,21 +38,6 @@ export async function gameInit(deviceId: string): Promise<any> {
     delete rawUser.modifiedAt
     delete rawUser.password
     delete rawUser.sendWinJackpotEventWhenProfileFilled
-    const reelsData = await getReelsData()
-    reelsData.forEach((reel) => {
-      reel.symbolsData.forEach((reelSymbol) => {
-        const symbolPays: any[] = []
-        payTable.filter((payTableSymbol) => payTableSymbol.symbol_name === reelSymbol.symbolName)
-          .forEach((_symbol) => symbolPays.push(_symbol))
-        const symbolAllPays: any[] = []
-        for (let index = 1; index < 4; index++) {
-          const row = symbolPays.find((_symbol) => _symbol.symbol_amount === index)
-          if (row) symbolAllPays.push(row.points)
-          else symbolAllPays.push(0)
-        }
-        reelSymbol.pays = symbolAllPays
-      })
-    })
     const dailyRewards: DailyRewardPrize[] = await getDailyRewardPrizes()
     await setSpinData(rawUser as GameUser)
     const consecutiveLogsIdx = await getLastSpinDays(rawUser as GameUser)
@@ -81,9 +62,6 @@ export async function gameInit(deviceId: string): Promise<any> {
       dailyRewardsData: dailyRewards,
       dailyRewardClaimed,
       ticketPrice,
-      betPrice,
-      maxMultiplier,
-      reelsData,
       walletData: wallet,
       maxAllowedBirthYear
     }
