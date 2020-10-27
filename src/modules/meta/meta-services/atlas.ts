@@ -76,9 +76,9 @@ export async function buildAtlas(images: string[], name: string, padding?: numbe
         {
           name,
           textureUrl: `/atlas/${name}.png`,
+          padding: padding ?? 0,
           spritesData,
           properties: result.properties,
-          padding: padding ?? 0
         }
       )
     })
