@@ -14,7 +14,6 @@ import * as eventsService from './../slot.services/events/events'
 // #endregion
 
 export async function addEvent(eventRule: EventDTO): Promise<void> {
-  console.log('eventRule', eventRule)
   await exec('insert into event set ?', eventRule)
   await processEvents([eventRule])
 }
@@ -86,11 +85,14 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
     delete (eventDto as any).id
   }
   if(!eventDto.active) eventDto.active = 0
-  if(!eventDto.duration) eventDto.duration = 0
+  if (!eventDto.duration) eventDto.duration = 0
+  
   eventDto.particlesTextureUrl = getUrlWithoutHost(<string>eventDto.particlesTextureUrl)
   eventDto.notificationTextureUrl = getUrlWithoutHost(<string>eventDto.notificationTextureUrl)
   eventDto.popupTextureUrl = getUrlWithoutHost(<string>eventDto.popupTextureUrl) 
+
   const resp = await exec(`REPLACE into event set ?`, <any>eventDto)
+  
   removeActualImage(files?.notificationFile, resp.insertId, 'notification')
   removeActualImage(files?.popupFile, resp.insertId, 'popup')
   removeActualImage(files?.particlesFile, resp.insertId, 'particles')
