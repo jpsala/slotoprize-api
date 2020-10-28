@@ -143,7 +143,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
 
 export async function deleteEvent(id: number): Promise<boolean> {
   console.log('eventRepo.deleteEvent id:%o', id )
-  eventsService.deleteEvent(id)
+  eventsService.removeEvent(id)
   const respDelete = await exec(`
     delete from event where id = ${id}
   `)

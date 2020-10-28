@@ -31,6 +31,17 @@ export async function toggleDeleteLanguageForCrud(languageId: string): Promise<a
     const data = await exec(`update language set deleted = if(deleted = 1, 0, 1) where id = ${languageId}`)
     return data.affectedRows
 }
+export async function deleteLanguageForCrud(languageId: string): Promise<any> {
+    let data
+    try {
+        data = await exec(`delete from language where id = ${languageId}`)
+    } catch (err) {
+        if (err.message.includes('game_user_language_language_code_fk'))
+            throw createHttpError(BAD_REQUEST, 'Language can not be deleted, it is assigned to one or more users')
+        console.log('err', err)
+    }
+    return data?.affectedRows
+}
 export async function getLanguagesForCrud(): Promise<any> {
     const url = urlBase()
 
@@ -115,21 +126,11 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
             languageId
         ])
     }
-    /*
-  [
-  {
-    "id": 1,
-    "language_code": "fr-FR",
-    "texture_url": "/localization/english.png",
-    "localization_url": "/localization/localization_english.json"
-  }
-]
-  */
     const url = urlBase()
     return camelcaseKeys(
         await queryOne(
             `select
-              id, language_code, concat('${url}', texture_url) as texture_url,
+              id, language_code, concat('${url}', texture_url) as texture_url, deleted,
               concat('${url}', localization_url) as localization_url
             from language where id = ?`,
             [languageId]

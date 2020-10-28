@@ -12,7 +12,7 @@ import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront,
 import { setSoporte, getSupportRequestForCrud, supportAdminForCrud, postSupportAdminForCrud } from '../meta/meta.repo/support.repo'
 import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
 
-import { getLanguagesForCrud, postLanguageForCrud, toggleDeleteLanguageForCrud } from '../meta/meta.repo/language.repo'
+import { getLanguagesForCrud, postLanguageForCrud, toggleDeleteLanguageForCrud, deleteLanguageForCrud } from '../meta/meta.repo/language.repo'
 import { getCountriesForCrud, postCountryForCrud, getCountries } from '../meta/meta.repo/country.repo'
 
 import { gameUserRepo } from '../meta/meta.repo'
@@ -38,7 +38,7 @@ import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/a
 import { getTicketsSettingsForCrud, postTicketsSettingsForCrud } from "./slot.services/ticketsSettings.service"
 import { getSpinSettingsForCrud, setSpinSettingsForCrud } from './slot.services/spinForCrud.service'
 import { appodealCallback } from './slot.services/appodeal'
-import { setSetting } from './slot.services/settings.service'
+import { resetSettings, setSetting } from './slot.services/settings.service'
 import { getMiscSettingsForCrud, postMiscSettingsForCrud } from './slot.services/miscSettings'
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
   console.log('req', req)
@@ -328,7 +328,13 @@ export async function supportAdminForCrudGet(req: Request, res: Response): Promi
   res.status(200).json(data)
 }
 export async function languageForCrudToggleDelete(req: Request, res: Response): Promise<any>{
-  const data = await toggleDeleteLanguageForCrud(req.query.languageId as string)
+  const remove = req.query.remove === 'true'
+  console.log('requ.queary', req.query)
+  let data
+  if(remove)
+    data = await deleteLanguageForCrud(req.query.languageId as string)
+  else
+    data = await toggleDeleteLanguageForCrud(req.query.languageId as string)
   res.status(200).json(data)
 }
 export async function languageForCrudPost(req: Request, res: Response): Promise<any>{
@@ -388,4 +394,8 @@ export async function atlasGet(req: Request, res: Response): Promise<any>{
 export async function slotDataGet(req: Request, res: Response): Promise<any>{
   const resp = await getSlotData()
   res.status(200).send(resp)
+}
+export  function resetSettingsPost(req: Request, res: Response): void{
+  resetSettings()
+  res.status(200).send({status: 'ok'})
 }

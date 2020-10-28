@@ -85,4 +85,5 @@ router.route('/ironsource').get(slot.ironsource)
 router.route('/appodeal').get(slot.appodeal)
 router.route('/atlas').get(slot.atlasGet)
 router.route('/slot-data').get(slot.slotDataGet)
+router.route('/reset-settings').post(slot.resetSettingsPost)
 export default router

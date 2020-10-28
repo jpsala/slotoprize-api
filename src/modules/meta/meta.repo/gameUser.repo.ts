@@ -1,9 +1,10 @@
-import createError from 'http-errors'
 import * as httpStatusCodes from 'http-status-codes'
 import snakeCaseKeys from 'snakecase-keys'
 import camelcaseKeys from 'camelcase-keys'
 import { classToPlain } from "class-transformer"
 import { RowDataPacket } from 'mysql2'
+import createHttpError from 'http-errors'
+import { BAD_REQUEST } from 'http-status-codes'
 import * as metaService from '../../meta/meta-services/meta.service'
 import getConnection, {queryOne, exec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
@@ -35,14 +36,14 @@ export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: D
   return {last: resp.last}
 }
 export const purchaseTickets = async (deviceId: string,ticketAmount: number): Promise<Wallet> => {
-  if (!deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
+  if (!deviceId) throw createHttpError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
 
   const user = await metaService.getGameUserByDeviceId(deviceId)
   const wallet = await getWallet(user)
   const ticketValue = Number(await getSetting('ticketPrice', '1'))
   const coinsRequired = ticketAmount * ticketValue
   if (wallet.coins < coinsRequired)
-    throw createError(400, 'There are no sufficient funds')
+    throw createHttpError(400, 'There are no sufficient funds')
   wallet.coins-=coinsRequired
   wallet.tickets += ticketAmount
   await updateWallet(user, wallet)
@@ -117,12 +118,15 @@ export async function getWinRaffle(userId: number): Promise<Partial<RafflePrizeD
     where win = 1 and rh.game_user_id = ${userId} and notified = 0
     order by rh.id desc limit 1
   `)
+
+  if(!winData) throw createHttpError(BAD_REQUEST, 'getWinRaffle, winData not found')
+
   const rafflePrizeData: Partial <RafflePrizeData> = {
     id: winData.id, name: winData.name, description: winData.description,
     closingDate: winData.closingDate, raffleNumberPrice: winData.raffleNumberPrize,
     itemHighlight: winData.itemHighlight === 1, textureUrl: addHostToPath(winData.textureUrl)
   }
-  console.log('rafflePrizeData', rafflePrizeData)
+  console.log('getWinRaffle ', rafflePrizeData)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return rafflePrizeData
 }

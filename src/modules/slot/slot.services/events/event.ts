@@ -4,7 +4,7 @@ import { add, formatDuration, intervalToDuration } from 'date-fns'
 import { raffleTime } from '../../../meta/meta.repo/raffle.repo'
 import { isValidJSON } from '../../../../helpers'
 import { WebSocketMessage, wsServer } from './../webSocket/ws.service'
-import { Skin } from './../../slot.repo/skin.repo'
+import { getSkin, Skin } from './../../slot.repo/skin.repo'
 // #endregion
 //#region interface
 export type EventType = 'raffle' | 'generic'
@@ -59,6 +59,7 @@ export interface EventPayload
   multiplier: number;
   // betPrice: number;
   skinData?: Skin;
+  skinId?: number;
   devOnly: boolean;
 }
 export interface EventDTO
@@ -74,7 +75,7 @@ export interface EventDTO
   notificationTextureUrl: string;
   notificationMessage: string;
   particlesTextureUrl: string;
-  skinId: number;
+  skinId?: number;
   devOnly: number;
   skin?: Skin;
   data: string;
@@ -94,6 +95,7 @@ const callBackForStart = async (event: Event): Promise<void> =>
   const payload = event.payload
   const dateEnd = add(new Date(), { seconds: event.duration })
   const dur = intervalToDuration({ start: new Date(), end: dateEnd })
+  if(event.payload.skinId) event.payload.skinData = await getSkin(event.payload.skinId)
   console.log('Event started, name %o, duration %o', payload.name,
               formatDuration(dur, { format: ['days', 'hours', 'minutes', 'seconds'] }))
   if (event.eventType === 'generic')
@@ -149,7 +151,7 @@ export function createEvent(eventDto: EventDTO): Event
         textureUrl: eventDto.particlesTextureUrl,
       },
       name: eventDto.name,
-      skinData: eventDto.skin,
+      skinId: eventDto.skinId,
       devOnly: eventDto.devOnly === 1,
       multiplier: eventDto.multiplier,
       // betPrice: eventDto.betPrice

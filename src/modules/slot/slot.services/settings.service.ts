@@ -33,7 +33,7 @@ export const setSetting = async (key: string, value : string): Promise<void> => 
     await spinRegenerationInit()
 }
 
-
+export const resetSettings = (): void => { settings.splice(0) }
 
 // export const getSetting = async (key: string, defaultValue: string | number | undefined = undefined): Promise<string> => {
 //   if (typeof defaultValue === 'number' && isNaN(defaultValue)) throw new Error('SetttingGet defaultValue is NaN')

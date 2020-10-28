@@ -6,7 +6,6 @@ import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { GameUser } from '../../../meta/meta.types'
 import { isNotebook, urlBase } from './../../../../helpers'
-import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
 import { createEvent, Event, EventDTO, EventPayload, Rule} from './event'
 if(isNotebook()) later.date.localTime()
@@ -16,9 +15,9 @@ export const toggleLog = (): boolean => { return log = !log }
 export const init = async (): Promise<void> =>
 {
   const rulesFromDB = await query('select * from event where active = 1')
-  await processEvents(rulesFromDB)
+  processEvents(rulesFromDB)
 }
-export async function processEvents(eventsFromDB: EventDTO[]): Promise<void> 
+export  function processEvents(eventsFromDB: EventDTO[]): void 
 { 
   const url = urlBase()
   for (const ruleFromDb of eventsFromDB) {
@@ -34,7 +33,7 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
       continue
    
     console.log('ruleFromDb', ruleFromDb.skinId)
-    ruleFromDb.skin = ruleFromDb.skinId ? await getSkin(ruleFromDb.skinId) : undefined
+    ruleFromDb.skinId = ruleFromDb.skinId ?? undefined
     ruleFromDb.popupTextureUrl = ruleFromDb.popupTextureUrl ? url + ruleFromDb.popupTextureUrl : ''
     ruleFromDb.notificationTextureUrl = ruleFromDb.notificationTextureUrl ? url + ruleFromDb.notificationTextureUrl : ''
     ruleFromDb.particlesTextureUrl = ruleFromDb.particlesTextureUrl ? url + ruleFromDb.particlesTextureUrl : ''
@@ -65,10 +64,9 @@ export async function processEvents(eventsFromDB: EventDTO[]): Promise<void>
 
 }
 
-export function deleteEvent(eventId: number): void 
+export function removeEvent(eventId: number): void 
 {
   const savedEventIdx = allEvents.findIndex(_event => {
-    console.log('_event y eventId', _event.payload.id, eventId )
    return Number(_event.payload.id) === Number(eventId)
   })
   const savedEvent = allEvents[savedEventIdx] 
@@ -76,15 +74,14 @@ export function deleteEvent(eventId: number): void
     console.log('Event not in memory')
     return
   }
-  console.log('deleteEvent', savedEventIdx, savedEvent )
+  console.log('deletedEvent from memory', savedEvent.payload.id )
   savedEvent.laterTimerHandler?.clear() 
   savedEvent.callBackForStart = undefined
   savedEvent.callBackForStop = undefined
   if (savedEvent.endTimeoutHandler) clearTimeout(savedEvent.endTimeoutHandler)
   if (savedEventIdx >= 0) allEvents.splice(savedEventIdx, 1)
 }
- export function scheduleEvent(event: Partial<Event>): Event
-{
+ export function scheduleEvent(event: Partial<Event>): Event{
   function splitDate(date): { year: number, month: number, day: number, hour: number, minute: number, second: number} {
     const dateAndTime = date.split(' ')
     if(dateAndTime.length < 2) throw createHttpError(BAD_REQUEST, 'Has to be a valid Date Time')
@@ -186,8 +183,7 @@ export function deleteEvent(eventId: number): void
 
   return event as Event
 }
-export function dateToRule(date: Date): string
-{
+export function dateToRule(date: Date): string{
   const day = date.getDate()
   const month = date.getMonth()
   const monthName = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][month]
@@ -197,8 +193,7 @@ export function dateToRule(date: Date): string
   // console.log('dateToRule', date, `* ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`)
   return `0 ${minutes} ${hours} ${day} ${monthName.substr(0, 3)} ? ${year}`
 }
-export const reloadRulesFromDb = async (): Promise<void> =>
-{
+export const reloadRulesFromDb = async (): Promise<void> =>{
   for (const savedEvent of allEvents) {
     savedEvent.laterTimerHandler?.clear() 
     if (savedEvent.endTimeoutHandler) clearTimeout(savedEvent.endTimeoutHandler)
@@ -206,8 +201,7 @@ export const reloadRulesFromDb = async (): Promise<void> =>
   allEvents.splice(0)
   await init()
 }
-export const getActiveEventMultiplier = (user: GameUser): number =>
-{
+export const getActiveEventMultiplier = (user: GameUser): number =>{
   return allEvents.filter(event => event.isActive).reduce((multiplierAcumulator, event) =>
   {
     {
@@ -217,16 +211,13 @@ export const getActiveEventMultiplier = (user: GameUser): number =>
     }
   }, 1)
 }
-export const getActiveBetPrice = (): number =>
-{
+export const getActiveBetPrice = (): number =>{
   return 1
 }
-export const getActiveEvents = (): Event[] =>
-{
+export const getActiveEvents = (): Event[] =>{
   return allEvents.filter(event => event.isActive)
 }
-export const getEvents = (): Event[] =>
-{
+export const getEvents = (): Event[] =>{
   return allEvents.filter(event => event)
 }
 export function getAllEvents(): any[] {

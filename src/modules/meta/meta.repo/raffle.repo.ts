@@ -19,8 +19,9 @@ import { Wallet } from "../../slot/slot.types"
 
 import { getSetting } from '../../slot/slot.services/settings.service'
 import { getUserConnection, WebSocketMessage, wsServer } from '../../slot/slot.services/webSocket/ws.service'
-import { dateToRule, deleteEvent, reloadRulesFromDb } from './../../slot/slot.services/events/events'
-import { getHaveWinRaffle, getHaveProfile, getWinRaffle  } from './gameUser.repo'
+import { deleteEvent } from '../../slot/slot.repo/event.repo'
+import { dateToRule, reloadRulesFromDb } from './../../slot/slot.services/events/events'
+import { getHaveWinRaffle, getHaveProfile, getWinRaffle, resetPendingPrize  } from './gameUser.repo'
 
 export const rafflePurchase = async (deviceId: string, raffleId: number, amount: number): Promise<Wallet> => {
   if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
@@ -310,7 +311,9 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
   return camelcaseKeys(raffleHistory) as RaffleRecordData[]
 }
 export async function raffleTime(raffleId: number): Promise<any> {
-  console.log('reffleTime', raffleId)
+
+  console.log('reffleTime!!! raffleId', raffleId)
+
   const purchases: { id: number, numbers: number, game_user_id: number }[] = await query(`
     select id, raffle_numbers as numbers, game_user_id, raffle_id
     from raffle_history
@@ -324,25 +327,34 @@ export async function raffleTime(raffleId: number): Promise<any> {
     console.log('no purchases, skipping')
     return false
   }
+  console.log('raffleTime, purchases ', purchases.length)
+
   const totalNumbers = purchases.reduce((ant: number, current) => ant + current.numbers, 0)
   let floor = 0
   const randomNumber = getRandomNumber(1, totalNumbers)
-  const winnerRaffleHistory = purchases.find((purchase) => {
+  const raffleWinner = purchases.find((purchase) => {
     const isWin = ((randomNumber > floor) && (randomNumber <= floor + Number(purchase.numbers)))
     floor += Number(purchase.numbers)
     return isWin
   })
-  console.log('winner', raffleId, winnerRaffleHistory)
-  if (!winnerRaffleHistory) throw new Error('There was a problem in raffle time')
-  await saveWinner(winnerRaffleHistory.id)
-  const eventData = JSON.stringify({"id": Number(raffleId)})
-  const event = await queryOne(`select id from event where data = '${eventData}'`)
-  deleteEvent(Number(event.id))
-  await exec(`delete from event where data = '${eventData}'`)
-  await exec(`update raffle set winner = ${winnerRaffleHistory.game_user_id}, state = "won" where id = ${raffleId}`)
-  await exec(`update raffle_history set win = 1 where id = ${winnerRaffleHistory.id}`)
-  await sendEventToWinner(winnerRaffleHistory.game_user_id)
-  return winnerRaffleHistory
+
+  if (!raffleWinner) throw new Error(`Someghing was wrong with this raffle ${raffleId}` ) 
+
+  await saveWinner(raffleWinner.id)
+
+  const eventDataForDb = JSON.stringify({"id": Number(raffleId)})
+  const eventForDeletion = await queryOne(`select id from event where data = '${eventDataForDb}'`)
+  
+  await exec(`update raffle set winner = ${raffleWinner.game_user_id}, state = "won" where id = ${raffleId}`)
+  await exec(`update raffle_history set win = 1 where id = ${raffleWinner.id}`)
+  
+  console.log('raffleTime, raffle# %O have a winner!!! %O', raffleId, raffleWinner)
+  
+  await sendEventToWinner(raffleWinner.game_user_id)
+
+  await deleteEvent(eventForDeletion.id)
+
+  return raffleWinner
 }
 async function sendEventToWinner(userId: number): Promise<void> {
   const rafflePrizeData = await getWinRaffle(userId)
@@ -352,9 +364,9 @@ async function sendEventToWinner(userId: number): Promise<void> {
       code: 200,message: 'OK',msgType: 'raffleWin',payload: rafflePrizeData
     }
     wsServer.send(wsMessage, userConnection.client)
-    // URGENT uncomment the line below when get confirmation from team
-    // await resetPendingPrize(userId)
-  }
+    console.log('raffleTime', 'Sended event to winner %O', wsMessage)
+    await resetPendingPrize(userId)
+  } else {console.log('raffleTime, user is not connected for the event to be send' )}
 }
 async function saveWinner(raffleHistoryId: number): Promise<void> {
   await exec(`
