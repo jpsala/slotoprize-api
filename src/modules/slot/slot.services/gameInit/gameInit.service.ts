@@ -1,6 +1,6 @@
 import toCamelCase from 'camelcase-keys'
 import createHttpError from 'http-errors'
-import { INTERNAL_SERVER_ERROR } from 'http-status-codes'
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import {LanguageData, GameUser} from "../../../meta/meta.types"
 import * as languageRepo from "../../../meta/meta.repo/language.repo"
 // import {setReqUser} from '../../../meta/authMiddleware'E
@@ -15,6 +15,8 @@ import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaim
 export async function gameInit(deviceId: string): Promise<any> {
   try {
     const rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
+    const maintenanceMode = (await getSetting('maintenanceMode', '0')) === '1'
+    if(maintenanceMode && !rawUser.isDev) throw createHttpError(BAD_REQUEST, 'We are in maintenance, we\'ll be back up soon!')
     if(Number(rawUser.banned) === 1) throw createHttpError(403, 'Forbidden Error')
     // setReqUser(deviceId, rawUser.id as number)
     const wallet = await getWallet(rawUser as GameUser)
