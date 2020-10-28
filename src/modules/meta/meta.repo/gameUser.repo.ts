@@ -256,7 +256,7 @@ export const getPlayersForFront = async (from: number, limit: number, filter: st
   const players = (await query(`
   select * from game_user
     where first_name like '%${filter}%' or last_name like '%${filter}%'
-          or email like '%${filter}%' or device_id like '%${filter}%'
+          or email like '%${filter}%' or device_id like '%${filter}%' or id = '${filter}'
     order by id desc
     limit ${from}, ${limit}
 `))
