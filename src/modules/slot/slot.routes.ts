@@ -86,5 +86,5 @@ router.route('/appodeal').get(slot.appodeal)
 router.route('/atlas').get(slot.atlasGet)
 router.route('/slot-data').get(slot.slotDataGet)
 router.route('/reset-settings').post(slot.resetSettingsPost)
-router.route('/iap').post(checkToken, slot.iaep)
+router.route('/iap').get(checkToken, slot.iaep)
 export default router

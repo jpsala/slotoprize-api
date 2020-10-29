@@ -2,3 +2,4 @@
  - [ ] isDev en user table
  - [ ] remove advertisingId from game_user
  - [ ] deleted field in language table in DB
+ - [ ] adsFree boolean default 0 not null in DB
