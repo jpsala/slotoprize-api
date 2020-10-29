@@ -1,15 +1,15 @@
-import { unlinkSync, existsSync } from 'fs'
+import { existsSync, unlinkSync } from 'fs'
 import { basename, join } from 'path'
-import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
-
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 // import createError from 'http-errors'
 import createHttpError from 'http-errors'
-import { query, queryOne, exec } from '../../../db'
-import { LanguageData } from '../meta.types'
+import { BAD_REQUEST } from 'http-status-codes'
+import { exec, query, queryOne } from '../../../db'
 import { getUrlWithoutHost, saveFile, urlBase } from '../../../helpers'
+import { LanguageData } from '../meta.types'
+
 
 export async function getLanguages(): Promise<LanguageData[]> {
     const url = urlBase()
@@ -26,7 +26,6 @@ export async function getLanguages(): Promise<LanguageData[]> {
     )
     return localizationData
 }
-
 export async function toggleDeleteLanguageForCrud(languageId: string): Promise<any> {
     const data = await exec(`update language set deleted = if(deleted = 1, 0, 1) where id = ${languageId}`)
     return data.affectedRows
@@ -130,7 +129,7 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
     return camelcaseKeys(
         await queryOne(
             `select
-              id, language_code, concat('${url}', texture_url) as texture_url, deleted,
+              id, language_code, concat('${url}', texture_url) as texture_url, deleted,1
               concat('${url}', localization_url) as localization_url
             from language where id = ?`,
             [languageId]

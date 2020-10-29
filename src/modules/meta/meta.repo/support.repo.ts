@@ -1,11 +1,13 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+// #region imports
 import createError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { exec, query } from '../../../db'
 import { getSetting, setSetting } from './../../slot/slot.services/settings.service'
 
+// #endregion
 
-export async function postSupportAdminForCrud(body: any): Promise<any>
-{
+export async function postSupportAdminForCrud(body: any): Promise<any>{
   console.log('body', body)
   if(body.email) await setSetting('emailSupport', body.email)
   if(body.request) delete body.request.createdAt
@@ -13,14 +15,12 @@ export async function postSupportAdminForCrud(body: any): Promise<any>
   if(body.request) await exec(`update support_request set ? where id = ${body.request.id}`, body.request)
   return {status: 'ok'}
 }
-export async function supportAdminForCrud(): Promise<any>
-{
+export async function supportAdminForCrud(): Promise<any>{
   const email = await getSetting('emailSupport', 'support@slotoprize.com')
   const requests = await query(`select * from support_request order by id desc`)
   return {email, requests}
 }
-export async function getSupportRequestForCrud(userId: string): Promise<any>
-{
+export async function getSupportRequestForCrud(userId: string): Promise<any>{
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return await query(`select * from support_request where userId = ${userId} order by id desc`)
 }

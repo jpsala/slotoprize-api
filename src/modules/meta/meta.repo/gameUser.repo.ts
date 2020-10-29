@@ -260,6 +260,10 @@ export const getPlayersForFront = async (from: number, limit: number, filter: st
     order by id desc
     limit ${from}, ${limit}
 `))
+for (const user of players) 
+  user.adsFree = user.adsFree === 1
+  
+
   const maxAllowedBirthYear = await getSetting('maxAllowedBirthYear', '2002')
   return { players, maxAllowedBirthYear }
 }

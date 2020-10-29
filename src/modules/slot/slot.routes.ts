@@ -1,9 +1,9 @@
-import formidableMiddleware from 'express-formidable'
 import { Router } from 'express'
+import formidableMiddleware from 'express-formidable'
 import { checkToken } from '../meta/authMiddleware'
+import * as slot from './slot.controller'
 import { toggleLog } from './slot.services/events/events'
 
-import * as slot from './slot.controller'
 
 const router = Router()
 router.route('/auth').post(slot.authPost)
@@ -86,4 +86,5 @@ router.route('/appodeal').get(slot.appodeal)
 router.route('/atlas').get(slot.atlasGet)
 router.route('/slot-data').get(slot.slotDataGet)
 router.route('/reset-settings').post(slot.resetSettingsPost)
+router.route('/iap').post(checkToken, slot.iaep)
 export default router

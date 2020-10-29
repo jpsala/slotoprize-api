@@ -48,6 +48,7 @@ export interface GameUser {
   wallet?: Wallet;
   sendWinJackpotEventWhenProfileFilled?: boolean;
   banned: boolean;
+  adsFree: boolean;
 }
 export const  fakeUser = async (override: Partial<GameUser> = {}): Promise<GameUser> => {
   const languageCode = await getSetting('languageCode', 'fr-FR')
@@ -74,6 +75,7 @@ export const  fakeUser = async (override: Partial<GameUser> = {}): Promise<GameU
     birthDate: faker.date.past(),
     title: faker.name.title(),
     banned: false,
+    adsFree: false,
     wallet: {
       id: -1,
       coins: faker.random.number(100),

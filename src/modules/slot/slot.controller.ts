@@ -1,45 +1,46 @@
-import { BAD_REQUEST } from 'http-status-codes'
-import formidable from 'formidable'
-import createError from 'http-errors'
 import toCamelCase from 'camelcase-keys'
 import { Request, Response } from 'express'
-import { verifyToken, getNewToken } from '../../services/jwtService'
-import { GameUser, User } from "../meta/meta.types"
-import * as raffleRepo from '../meta/meta.repo/raffle.repo'
+import formidable from 'formidable'
+import createError from 'http-errors'
+import { BAD_REQUEST } from 'http-status-codes'
+import { getNewToken, verifyToken } from '../../services/jwtService'
 import * as metaService from '../meta/meta-services'
-// import { setReqUser } from '../meta/authMiddleware'
-import { setLanguageCode , getPlayersForFront, getLoginData , getPlayerForFront, getGameUser, postToggleBanForCrud } from '../meta/meta.repo/gameUser.repo'
-import { setSoporte, getSupportRequestForCrud, supportAdminForCrud, postSupportAdminForCrud } from '../meta/meta.repo/support.repo'
-import { getRafflesForCrud, postRaffle, deleteRaffle } from '../meta/meta.repo/raffle.repo'
-
-import { getLanguagesForCrud, postLanguageForCrud, toggleDeleteLanguageForCrud, deleteLanguageForCrud } from '../meta/meta.repo/language.repo'
-import { getCountriesForCrud, postCountryForCrud, getCountries } from '../meta/meta.repo/country.repo'
-
-import { gameUserRepo } from '../meta/meta.repo'
-import { getWinnersForCrud, postWinnersStatusForCrud } from '../meta/meta-services/winner.service'
 import { getAtlas } from '../meta/meta-services/atlas'
-import { getPrizes, PrizeWinners } from './slot.services/prizes.service'
+import { getWinnersForCrud, postWinnersStatusForCrud } from '../meta/meta-services/winner.service'
+import { gameUserRepo } from '../meta/meta.repo'
+import { getCountries, getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/country.repo'
+// import { setReqUser } from '../meta/authMiddleware'
+import { getGameUser, getLoginData, getPlayerForFront, getPlayersForFront, postToggleBanForCrud, setLanguageCode } from '../meta/meta.repo/gameUser.repo'
+import { iap } from '../meta/meta.repo/iap.service'
+import { deleteLanguageForCrud, getLanguagesForCrud, postLanguageForCrud, toggleDeleteLanguageForCrud } from '../meta/meta.repo/language.repo'
+import * as raffleRepo from '../meta/meta.repo/raffle.repo'
+import { deleteRaffle, getRafflesForCrud, postRaffle } from '../meta/meta.repo/raffle.repo'
+import { getSupportRequestForCrud, postSupportAdminForCrud, setSoporte, supportAdminForCrud } from '../meta/meta.repo/support.repo'
+import { GameUser, User } from "../meta/meta.types"
 import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
-import { setProfile } from './slot.services/profile.service'
-import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
-import { getSlotData, getTombolaForCrud, postTombolaForCrud, postWinLoseForTombolaCrudPost } from './slot.services/tombola.service'
-
-import { getSkinsForCrud, postSkinForCrud, deleteSkinForCrud } from './slot.repo/skin.repo'
-import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
-import { setDailyRewardPrize, dailyRewardClaim, dailyRewardInfo, getDailyRewardPrizesForCrud, deleteDailyRewardPrize } from './slot.repo/dailyReward.repo'
-import * as slotService from './slot.services'
-import * as walletService from "./slot.services/wallet.service"
-// import {spin} from './slot.services/spin.service'
-import { symbolsInDB, getSymbols, setSymbol, deleteSymbol } from './slot.services/symbol.service'
-import { setEvent, getEventsForCrud, deleteEvent} from './slot.repo/event.repo'
+import { dailyRewardClaim, dailyRewardInfo, deleteDailyRewardPrize, getDailyRewardPrizesForCrud, setDailyRewardPrize } from './slot.repo/dailyReward.repo'
+import { deleteEvent, getEventsForCrud, setEvent } from './slot.repo/event.repo'
+import { deleteSkinForCrud, getSkinsForCrud, postSkinForCrud } from './slot.repo/skin.repo'
 import { testUser39 } from './slot.repo/spin.regeneration.repo'
-import { callback, getVideoAdsViewCountForCrud } from './slot.services/ironsource'
+import * as slotService from './slot.services'
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
-import { getTicketsSettingsForCrud, postTicketsSettingsForCrud } from "./slot.services/ticketsSettings.service"
-import { getSpinSettingsForCrud, setSpinSettingsForCrud } from './slot.services/spinForCrud.service'
 import { appodealCallback } from './slot.services/appodeal'
-import { resetSettings, setSetting } from './slot.services/settings.service'
+import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
+import { callback, getVideoAdsViewCountForCrud } from './slot.services/ironsource'
+import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
 import { getMiscSettingsForCrud, postMiscSettingsForCrud } from './slot.services/miscSettings'
+import { getPrizes, PrizeWinners } from './slot.services/prizes.service'
+import { setProfile } from './slot.services/profile.service'
+import { resetSettings, setSetting } from './slot.services/settings.service'
+import { getSpinSettingsForCrud, setSpinSettingsForCrud } from './slot.services/spinForCrud.service'
+// import {spin} from './slot.services/spin.service'
+import { deleteSymbol, getSymbols, setSymbol, symbolsInDB } from './slot.services/symbol.service'
+import { getTicketsSettingsForCrud, postTicketsSettingsForCrud } from "./slot.services/ticketsSettings.service"
+import { getSlotData, getTombolaForCrud, postTombolaForCrud, postWinLoseForTombolaCrudPost } from './slot.services/tombola.service'
+import * as walletService from "./slot.services/wallet.service"
+
+
+
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
   console.log('req', req)
   const resp = await getPlayerForFront(String(req.query.id))
@@ -397,5 +398,14 @@ export async function slotDataGet(req: Request, res: Response): Promise<any>{
 }
 export  function resetSettingsPost(req: Request, res: Response): void{
   resetSettings()
+  res.status(200).send({status: 'ok'})
+}
+export async function iaep(req: Request, res: Response): Promise<void>{
+  console.log('req', req)
+  let adsFree = '0'
+  if (req.body.adsFree === 1 || req.body.adsFree === '1' || req.body.adsFree === 'true' || req.body.adsFree === true)
+    adsFree = '1'
+  const user = await getGameUserByDeviceId(req.body.deviceId as string)
+  await iap(user, adsFree)
   res.status(200).send({status: 'ok'})
 }
