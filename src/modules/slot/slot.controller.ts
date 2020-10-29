@@ -403,7 +403,7 @@ export  function resetSettingsPost(req: Request, res: Response): void{
 export async function iaep(req: Request, res: Response): Promise<void>{
   console.log('req', req)
   let adsFree = '1'
-  if (req.query.adsFree === 0 || req.query.adsFree === '0' || req.query.adsFree === 'false' || req.query.adsFree === false)
+  if (req.query.adsFree === '0' || req.query.adsFree === 'false')
     adsFree = '0'
   const user = await getGameUserByDeviceId(req.query.deviceId as string)
   await iap(user, adsFree)
