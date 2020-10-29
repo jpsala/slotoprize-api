@@ -3,3 +3,4 @@
  - [ ] remove advertisingId from game_user
  - [ ] deleted field in language table in DB
  - [ ] adsFree boolean default 0 not null in DB
+ - [ ] devicePlataform vaarchar default '' not null in DB (va debajo de los otro 2 campos con device en el nombre del campo)

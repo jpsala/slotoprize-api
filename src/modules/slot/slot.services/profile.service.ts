@@ -35,9 +35,12 @@ export const setProfile = async (user: GameUser): Promise<any> => {
               zip_code = '${user.zipCode || ""}',
               state = '${user.state || ""}',
               title = '${user.title || ""}',
+              adsFree = '${user.adsFree ? 1 : 0}',
               birth_date = "${String(birthDate)}",
               isDev = '${isDev}',
-              country = '${user.country || ""}'
+              country = '${user.country || ""}',
+              devicePlataform = '${user.devicePlataform || ""}'
+              
           where device_id = '${user.deviceId}'
       `)
       // select id, first_name, last_name, email, device_id from game_user where device_id = '${user.deviceId}'
