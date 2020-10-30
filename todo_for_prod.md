@@ -1,6 +1,7 @@
  - [ ] create atlas table in DB
- - [ ] isDev en user table
- - [ ] remove advertisingId from game_user
- - [ ] deleted field in language table in DB
- - [ ] adsFree boolean default 0 not null in DB
- - [ ] devicePlataform vaarchar default '' not null in DB (va debajo de los otro 2 campos con device en el nombre del campo)
+ - [ ] add isDev en user table
+ - [ ] remove advertisingId field from game_user
+ - [ ] add deleted field in language table in DB
+ - [ ] add adsFree boolean default 0 not null in DB
+ - [ ] add devicePlataform varchar default '' not null in DB (va debajo de los otro 2 campos con device en el nombre del campo)
+ - [ ] execute yarn to refresh dependencies (nodemailer)r

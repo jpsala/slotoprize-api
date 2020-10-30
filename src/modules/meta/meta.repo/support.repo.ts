@@ -29,9 +29,7 @@ export async function setSoporte(userId: number, body: any): Promise<any> {
   if(body?.email === "" || body?.message === "" || body?.name === "") throw createError(BAD_REQUEST, 'Missing or empty fields')
   body.userId = userId
   delete body.sessionToken
-  await exec(`
-    insert into support_request set ?
-  `, body)
+  await exec(`insert into support_request set ?`, body)
   const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   const subject = `Support request from user with id ${userId}, and email ${body.email}`
