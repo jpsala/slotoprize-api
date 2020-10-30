@@ -2,6 +2,7 @@
  - [ ] add isDev en user table
  - [ ] remove advertisingId field from game_user
  - [ ] add deleted field in language table in DB
- - [ ] add adsFree boolean default 0 not null in DB
- - [ ] add devicePlataform varchar default '' not null in DB (va debajo de los otro 2 campos con device en el nombre del campo)
- - [ ] execute yarn to refresh dependencies (nodemailer)r
+ - [ ] add adsFree boolean in game_user default 0 not null in DB
+ - [ ] add devicePlataform in game_user varchar default '' not null in DB (va debajo de los otro 2 campos con device en el nombre del campo)
+ - [ ] in settings support email has to be support@tagadagames.com
+ - [ ] execute yarn to refresh dependencies (nodemailer)
