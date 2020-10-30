@@ -6,6 +6,7 @@ import { BAD_REQUEST } from 'http-status-codes'
 import { getNewToken, verifyToken } from '../../services/jwtService'
 import * as metaService from '../meta/meta-services'
 import { getAtlas } from '../meta/meta-services/atlas'
+import { sendMail } from '../meta/meta-services/email.service'
 import { getWinnersForCrud, postWinnersStatusForCrud } from '../meta/meta-services/winner.service'
 import { gameUserRepo } from '../meta/meta.repo'
 import { getCountries, getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/country.repo'
@@ -407,5 +408,12 @@ export async function iaep(req: Request, res: Response): Promise<void>{
     adsFree = '0'
   const user = await getGameUserByDeviceId(req.query.deviceId as string)
   await iap(user, adsFree)
+  res.status(200).send({status: 'ok'})
+}
+export async function sendmail(req: Request, res: Response): Promise<void>{
+  const {to, subject, html} = req.body
+  console.log('to, subject, html', to, subject, html)
+  const sended = await sendMail(to, subject, html)
+  console.log('sended', sended)
   res.status(200).send({status: 'ok'})
 }

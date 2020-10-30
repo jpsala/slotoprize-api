@@ -87,4 +87,5 @@ router.route('/atlas').get(slot.atlasGet)
 router.route('/slot-data').get(slot.slotDataGet)
 router.route('/reset-settings').post(slot.resetSettingsPost)
 router.route('/iap').get(checkToken, slot.iaep)
+router.route('/sendmail').post(checkToken, slot.sendmail)
 export default router

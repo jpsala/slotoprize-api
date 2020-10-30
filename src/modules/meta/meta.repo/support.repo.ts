@@ -3,6 +3,7 @@
 import createError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { exec, query } from '../../../db'
+import { sendMail } from '../meta-services/email.service'
 import { getSetting, setSetting } from './../../slot/slot.services/settings.service'
 
 // #endregion
@@ -31,8 +32,13 @@ export async function setSoporte(userId: number, body: any): Promise<any> {
   await exec(`
     insert into support_request set ?
   `, body)
-  delete body.message
+  const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  const subject = `Support request from user with id ${userId}, and email ${body.email}`
+  console.log('body', body)
+  const mail = await sendMail(emailSupport, subject, body.message )
+  console.log('mail', mail)
+  delete body.message
   return body
 }
 
