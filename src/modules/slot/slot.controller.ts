@@ -52,7 +52,7 @@ export async function maxAllowedBirthYearPost(req: Request, res: Response): Prom
   res.status(200).json({status: 'ok'})
 }
 export async function playersForFrontGet(req: Request, res: Response): Promise<any>{
-  const resp = await getPlayersForFront(Number(req.query.from), Number(req.query.limit), String(req.query.filter))
+  const resp = await getPlayersForFront(String(req.query.filter))
   res.status(200).json(resp)
 }
 export async function toggleBanForCrudPost(req: Request, res: Response): Promise<any>{
