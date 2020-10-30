@@ -14,7 +14,7 @@ export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<Game
     user = await getGameUserByDeviceId(deviceId)
     await insertWallet(user)
     user.isNew = true
-    user.adsFree = (user.adsFree  === 1)
+    user.adsFree = false
 
   } else {user.isNew = false}
   return user

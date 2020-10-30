@@ -252,13 +252,12 @@ export const postToggleBanForCrud = async (userId: number): Promise<any> => {
   await exec(`update game_user set banned = ${banned} where id = ${userId}`)
   return banned
 }
-export const getPlayersForFront = async (from: number, limit: number, filter: string): Promise < any > => {
+export const getPlayersForFront = async (filter: string): Promise < any > => {
   const players = (await query(`
   select * from game_user
     where first_name like '%${filter}%' or last_name like '%${filter}%'
           or email like '%${filter}%' or device_id like '%${filter}%' or id = '${filter}'
     order by id desc
-    limit ${from}, ${limit}
 `))
 for (const user of players) 
   user.adsFree = user.adsFree === 1
