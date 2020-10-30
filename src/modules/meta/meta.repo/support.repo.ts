@@ -17,7 +17,7 @@ export async function postSupportAdminForCrud(body: any): Promise<any>{
   return {status: 'ok'}
 }
 export async function supportAdminForCrud(): Promise<any>{
-  const email = await getSetting('emailSupport', 'support@slotoprize.com')
+  const email = await getSetting('emailSupport', 'support@tagadagame.com')
   const requests = await query(`select * from support_request order by id desc`)
   return {email, requests}
 }
