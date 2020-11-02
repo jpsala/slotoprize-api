@@ -43,7 +43,6 @@ export async function deleteLanguageForCrud(languageId: string): Promise<any> {
 }
 export async function getLanguagesForCrud(): Promise<any> {
     const url = urlBase()
-
     const data = await query(
         `
     select id, language_code,
@@ -129,7 +128,7 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
     return camelcaseKeys(
         await queryOne(
             `select
-              id, language_code, concat('${url}', texture_url) as texture_url, deleted,1
+              id, language_code, concat('${url}', texture_url) as texture_url, deleted,
               concat('${url}', localization_url) as localization_url
             from language where id = ?`,
             [languageId]
