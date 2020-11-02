@@ -15,7 +15,7 @@ import * as eventsService from './../slot.services/events/events'
 
 export async function addEvent(eventRule: EventDTO): Promise<void> {
   await exec('insert into event set ?', eventRule)
-  await processEvents([eventRule])
+  processEvents([eventRule])
 }
 export async function getEvents(eventId?: number, onlyGeneric = false): Promise<Event[]> {
   let where = eventId ? ` where id = ${eventId} ` : ' where true '
@@ -107,7 +107,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   if (isNew) eventDto.id = resp.insertId
   await exec(`REPLACE into event set ?`, <any>eventDto)
   const rulesFromDB = await query('select * from event where id = '+eventDto.id)
-  await processEvents(rulesFromDB)
+  processEvents(rulesFromDB)
 
   function removeActualImage(file: any, eventId: number, whichFile: 'notification' | 'popup' | 'particles'): void {
     if (!file) return undefined
