@@ -6,3 +6,10 @@
  - [ ] add devicePlataform in game_user varchar default '' not null in DB (va debajo de los otro 2 campos con device en el nombre del campo)
  - [ ] in settings support email has to be support@tagadagames.com
  - [ ] execute yarn to refresh dependencies (nodemailer)
+
+
+
+
+
+ skin no se actuaza el skin
+ 

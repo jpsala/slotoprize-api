@@ -24,7 +24,7 @@ export async function checkmaintenanceMode(req: Request, res: Response, next: Ne
   const { decodedToken, error } = verifyToken(sessionToken as string)
 
   if ((error || !decodedToken.id) && maintenanceMode)
-    throw createHttpError(BAD_REQUEST, 'We are in maintenance, we\'ll be back up soon!')
+    throw createHttpError(503, 'We are in maintenance, we\'ll be back up soon!')
   
   if (maintenanceMode) {
     let user: User | GameUser = await getGameUser(decodedToken.id)
@@ -33,7 +33,7 @@ export async function checkmaintenanceMode(req: Request, res: Response, next: Ne
       if(user) user.isDev = true
     }
     if(!user || (!isDev && !user.isDev))
-      throw createHttpError(BAD_REQUEST, 'We are in maintenance, we\'ll be back up soon!')
+      throw createHttpError(503, 'We are in maintenance, we\'ll be back up soon!')
   }
   return next()
 }

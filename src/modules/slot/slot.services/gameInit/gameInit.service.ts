@@ -16,8 +16,8 @@ export async function gameInit(deviceId: string): Promise<any> {
   try {
     const rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
     const maintenanceMode = (await getSetting('maintenanceMode', '0')) === '1'
-    if(maintenanceMode && !rawUser.isDev) throw createHttpError(BAD_REQUEST, 'We are in maintenance, we\'ll be back up soon!')
-    if(Number(rawUser.banned) === 1) throw createHttpError(403, 'Forbidden Error')
+    if(maintenanceMode && !rawUser.isDev) throw createHttpError(503, 'We are in maintenance, we\'ll be back up soon!')
+    if(Number(rawUser.banned) === 1) throw createHttpError(BAD_REQUEST, 'Forbidden Error')
     // setReqUser(deviceId, rawUser.id as number)
     const wallet = await getWallet(rawUser as GameUser)
     // const betPrice = Number(await getSetting('betPrice', '1'))

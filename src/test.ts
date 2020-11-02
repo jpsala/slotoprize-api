@@ -1,4 +1,4 @@
-import { sendMail } from "./modules/meta/meta-services/email.service"
+// import { sendMail } from "./modules/meta/meta-services/email.service"
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export const test = async (): Promise<void> => { 

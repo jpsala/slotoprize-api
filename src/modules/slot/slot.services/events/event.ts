@@ -96,8 +96,7 @@ const callBackForStart = async (event: Event): Promise<void> =>
   const dateEnd = add(new Date(), { seconds: event.duration })
   const dur = intervalToDuration({ start: new Date(), end: dateEnd })
   if(event.payload.skinId) event.payload.skinData = await getSkin(event.payload.skinId)
-  console.log('Event started, name %o, duration %o', payload.name,
-              formatDuration(dur, { format: ['days', 'hours', 'minutes', 'seconds'] }))
+  console.log('Event started, name %o, duration %o', payload.name, formatDuration(dur, { format: ['days', 'hours', 'minutes', 'seconds'] }))
   if (event.eventType === 'generic')
   {
     event.isActive = true
