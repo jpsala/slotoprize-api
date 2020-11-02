@@ -12,7 +12,6 @@ export const runCommand = (cmd: string, data: any): void => {
     try {
       // wsServer.sendRaw(data?.payload)
       wsServer.sendRaw(data?.payload, data.client)
-
     } catch (error) {
       wsServer.sendRaw(data, client)
 
