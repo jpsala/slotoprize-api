@@ -11,6 +11,7 @@ export const runCommand = (cmd: string, data: any): void => {
     delete data.client
     try {
       // wsServer.sendRaw(data?.payload)
+      console.log('echo command', data?.payload)
       wsServer.sendRaw(data?.payload, data.client)
     } catch (error) {
       wsServer.sendRaw(data, client)
