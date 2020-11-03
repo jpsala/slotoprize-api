@@ -386,9 +386,7 @@ export async function ironsource(req: Request, res: Response): Promise<any>{
 }
 export async function appodeal(req: Request, res: Response): Promise<void>{
   // const { 'dev-request': dev } = req.headers
-  console.log('req.body', req.body)
   let resp
-  console.log('req.query.queryParams', req.query.queryParams)
   if(req.body['user_id'])
     resp = await appodealCallbackPlain(req.body as QueryParams)
   else
@@ -408,7 +406,6 @@ export  function resetSettingsPost(req: Request, res: Response): void{
   res.status(200).send({status: 'ok'})
 }
 export async function iaep(req: Request, res: Response): Promise<void>{
-  console.log('req', req)
   let adsFree = '1'
   if (req.query.adsFree === '0' || req.query.adsFree === 'false')
     adsFree = '0'
