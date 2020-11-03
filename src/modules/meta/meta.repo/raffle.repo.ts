@@ -64,20 +64,13 @@ async function getRaffleLocalizationData(user: GameUser,raffleId: number): Promi
 export async function getRaffles(user: GameUser, onlyLive = false): Promise<RafflePrizeData[]> {
   const url = urlBase()
   const where = onlyLive ? ' CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date ' : ' true '
-  console.log('select', `
-    SELECT r.id, r.closing_date, r.raffle_number_price, concat('${url}', r.texture_url) as texture_url,
-          r.item_highlight, sum(coalesce(rh.raffle_numbers, 0)) as participationsPurchased
-    FROM raffle r
-      left join raffle_history rh on r.id = rh.raffle_id
-    where ${where} and rh.game_user_id = ${user.id}
-    group by r.id
-  `)
+    
     const raffles = await query(`
-      SELECT r.id, r.closing_date, r.raffle_number_price, concat('${url}', r.texture_url) as texture_url,
-            r.item_highlight, sum(coalesce(rh.raffle_numbers, 0)) as participationsPurchased
+      SELECT r.id, r.closing_date, r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight, 
+            coalesce((select sum(coalesce(rh2.raffle_numbers, 0)) from raffle_history rh2 where rh2.game_user_id = ${user.id} and rh2.raffle_id = r.id), 0) as participationsPurchased
       FROM raffle r
         left join raffle_history rh on r.id = rh.raffle_id
-      where ${where} and rh.game_user_id = ${user.id}
+      where ${where}
       group by r.id
   `) as RafflePrizeData[]
   for (const raffle of raffles) {
