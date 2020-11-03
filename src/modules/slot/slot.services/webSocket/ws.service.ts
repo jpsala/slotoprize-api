@@ -166,6 +166,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     console.log('msg', msg)
     if (client)
     {
+      console.log('client', client.CLOSED)
       client.send(msg)
       console.log('sended to specific client')
     }
