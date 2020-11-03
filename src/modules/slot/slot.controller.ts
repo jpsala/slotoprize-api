@@ -25,7 +25,7 @@ import { deleteSkinForCrud, getSkinsForCrud, postSkinForCrud } from './slot.repo
 import { testUser39 } from './slot.repo/spin.regeneration.repo'
 import * as slotService from './slot.services'
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
-import { appodealCallback } from './slot.services/appodeal'
+import { appodealCallback, appodealCallbackPlain, QueryParams } from './slot.services/appodeal'
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
 import { callback, getVideoAdsViewCountForCrud } from './slot.services/ironsource'
 import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
@@ -384,9 +384,15 @@ export async function ironsource(req: Request, res: Response): Promise<any>{
   }, ipAddr, dev === 'true')
   res.status(200).send(resp)
 }
-export function appodeal(req: Request, res: Response): any{
-  const { 'dev-request': dev } = req.headers
-  const resp = appodealCallback(<string> req.query.data1, <string> req.query.data2, dev === 'true')
+export async function appodeal(req: Request, res: Response): Promise<void>{
+  // const { 'dev-request': dev } = req.headers
+  console.log('req.body', req.body)
+  let resp
+  console.log('req.query.queryParams', req.query.queryParams)
+  if(req.body['user_id'])
+    resp = await appodealCallbackPlain(req.body as QueryParams)
+  else
+    resp = await appodealCallback(<string> req.query.data1, <string> req.query.data2)
   res.status(200).send(resp)
 }
 export async function atlasGet(req: Request, res: Response): Promise<any>{
