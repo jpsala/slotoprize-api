@@ -2,6 +2,7 @@
 import crypto, { Utf8AsciiLatin1Encoding } from 'crypto'
 import queryString from 'querystring'
 import { format } from 'util'
+import { exec } from '../../../db'
 import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 import { getWallet, updateWallet } from './wallet.service'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
@@ -47,13 +48,11 @@ export async function appodealCallback(data1: string, data2: string, dev: boolea
   // const userIsDev = user.isDev
     const wallet = await getWallet(user)
     const paymentType = String(currency).toLocaleLowerCase()
-    console.log('wallet', wallet, paymentType, wallet[paymentType])
     const walletAmount = Number(wallet[paymentType])
     const newAmount = walletAmount + Number(amount)
     wallet[paymentType] = newAmount
-    console.log('walletAmount', walletAmount)
     await updateWallet(user, wallet)
-    console.log('wallet', wallet)
+
     const wsMessage: WebSocketMessage = {
       code: 200,
       message: 'OK',
@@ -65,11 +64,16 @@ export async function appodealCallback(data1: string, data2: string, dev: boolea
     }
   
     try {
-      wsServer.sendToUser(wsMessage, Number(userId))
-      console.log('sended to user', userId)
+      await exec(`
+        insert into user_on_connect(game_user_id, jsonMsg) values(?, ?)
+      `, [userId, JSON.stringify(wsMessage)])
+      // wsServer.sendToUser(wsMessage, Number(userId))
+      // console.log('sended to user', userId)
     } catch (error) {
       wsServer.sendToUser(error, userId)
     }
+
+
     //Validate amount and currency
     //Check impression_id for uniqueness
     //Add funds to user balance

@@ -12,7 +12,9 @@ export const runCommand = (cmd: string, data: any): void => {
     try {
       // wsServer.sendRaw(data?.payload)
       console.log('echo command', data)
-      wsServer.sendRaw(data?.payload, data.client)
+      setTimeout(() => {
+        wsServer.sendRaw(data?.payload, data.client)
+      }, 3000)
     } catch (error) {
       wsServer.sendRaw(data, client)
 
