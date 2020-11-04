@@ -10,14 +10,15 @@ import { getWallet, updateWallet } from './wallet.service'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 export type QueryParams = {user_id: number,  amount: number, paymentType: 'coins' | 'spins' | 'tickets' }
 
-export async function appodealCallbackPlain(queryParams: QueryParams): Promise<void> {
+export async function appodealCallbackPlain(queryParams: QueryParams): Promise<any> {
   if (!queryParams || !queryParams['user_id'] || !queryParams['paymentType'] || !queryParams['amount'])
     throw createHttpError(BAD_REQUEST, 'You have an error in the body')
   queryParams['currency'] = queryParams['paymentType']
   await appodealCallback(undefined, undefined, queryParams)
+  return {status: 'ok'}
 }
 
-export async function appodealCallback(data1?: string, data2?: string, queryParams?: QueryParams): Promise<void> {
+export async function appodealCallback(data1?: string, data2?: string, queryParams?: QueryParams): Promise<any> {
   if (data1 && data2) {
     const encryptionKey = "encryptionKeyForAppodeal9405"
     const keyBytes = crypto.createHash('sha256').update(encryptionKey, 'utf-8' as Utf8AsciiLatin1Encoding).digest()
@@ -77,6 +78,6 @@ export async function appodealCallback(data1?: string, data2?: string, queryPara
     // @TODO Validate amount and currency
     // @TODO Check impression_id for uniqueness
     console.log(`appodeal user ${user.id}/${user.deviceId}, ${currency} ${amount}`)
-
+    return {status: 'ok'}
   }
 }
