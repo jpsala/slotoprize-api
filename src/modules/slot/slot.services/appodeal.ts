@@ -9,6 +9,7 @@ import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 export type QueryParams = {user_id: number,  amount: number, paymentType: 'coins' | 'spins' | 'tickets' }
 
 export async function appodealCallbackPlain(queryParams: QueryParams): Promise<void> {
+  queryParams['currency'] = queryParams['paymentType'] 
   await appodealCallback(undefined, undefined, queryParams)
 }
 
