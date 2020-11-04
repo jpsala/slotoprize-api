@@ -2,6 +2,8 @@
 import crypto, { Utf8AsciiLatin1Encoding } from 'crypto'
 import queryString from 'querystring'
 import { format } from 'util'
+import createHttpError from 'http-errors'
+import { BAD_REQUEST } from 'http-status-codes'
 import { exec } from '../../../db'
 import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 import { getWallet, updateWallet } from './wallet.service'
@@ -9,7 +11,9 @@ import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 export type QueryParams = {user_id: number,  amount: number, paymentType: 'coins' | 'spins' | 'tickets' }
 
 export async function appodealCallbackPlain(queryParams: QueryParams): Promise<void> {
-  queryParams['currency'] = queryParams['paymentType'] 
+  if (!queryParams || !queryParams['user_id'] || !queryParams['paymentType'] || !queryParams['amount'])
+    throw createHttpError(BAD_REQUEST, 'You have an error in the body')
+  queryParams['currency'] = queryParams['paymentType']
   await appodealCallback(undefined, undefined, queryParams)
 }
 
@@ -42,6 +46,7 @@ export async function appodealCallback(data1?: string, data2?: string, queryPara
   if (queryParams || (hashString && (<string>hash).toUpperCase() === hashString.toUpperCase())){
     console.log('userId', userId)
     const user = await getGameUser(Number(userId))
+    if(!user) throw createHttpError(BAD_REQUEST, 'User not found')
     const wallet = await getWallet(user)
     const paymentType = String(currency).toLocaleLowerCase()
     const walletAmount = Number(wallet[paymentType])

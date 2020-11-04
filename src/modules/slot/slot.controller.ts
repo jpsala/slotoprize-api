@@ -387,10 +387,12 @@ export async function ironsource(req: Request, res: Response): Promise<any>{
 export async function appodeal(req: Request, res: Response): Promise<void>{
   // const { 'dev-request': dev } = req.headers
   let resp
-  if(req.body['user_id'])
+  console.log('req.query.dev', req.query.dev)
+  if (req.query.dev === 'true') {
+    console.log('ok')
     resp = await appodealCallbackPlain(req.body as QueryParams)
-  else
-    resp = await appodealCallback(<string> req.query.data1, <string> req.query.data2)
+  } else
+    {resp = await appodealCallback(<string> req.query.data1, <string> req.query.data2)}
   res.status(200).send(resp)
 }
 export async function atlasGet(req: Request, res: Response): Promise<any>{
