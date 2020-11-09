@@ -11,8 +11,11 @@ import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 export type QueryParams = {user_id: number,  amount: number, paymentType: 'coins' | 'spins' | 'tickets' }
 
 export async function appodealCallbackPlain(queryParams: QueryParams): Promise<any> {
+  console.log('queryParams', queryParams)
   if (!queryParams || !queryParams['user_id'] || !queryParams['paymentType'] || !queryParams['amount'])
     throw createHttpError(BAD_REQUEST, 'You have an error in the body')
+  if (!['spins', 'coins', 'tickets'].includes(queryParams['paymentType']))
+    throw createHttpError(BAD_REQUEST, 'paymentType is incorrect')
   queryParams['currency'] = queryParams['paymentType']
   await appodealCallback(undefined, undefined, queryParams)
   return {status: 'ok'}
