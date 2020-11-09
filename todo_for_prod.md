@@ -7,7 +7,7 @@
  - [x] in settings support email has to be support@tagadagames.com
  - [x] execute yarn to refresh dependencies (nodemailer)
 
-
+ - [ ] tutorialComplete new field on game_user, defaults to 0
 
 
 

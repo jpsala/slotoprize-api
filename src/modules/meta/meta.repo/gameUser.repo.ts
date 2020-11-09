@@ -246,6 +246,10 @@ export const getPlayerForFront = async (id: string): Promise<any> =>
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return player
 }
+// export const getPlayerIsNewOrTutorialNotCompleted = async (user: GameUser): boolean => {
+//   if(!user || !user.id) throw createHttpError(BAD_REQUEST, 'Invalid user')
+//   return user.isNew
+// }
 export const postToggleBanForCrud = async (userId: number): Promise<any> => {
   const resp = await queryOne(`select banned from game_user where id = ${userId}`)
   const banned: number = Number(resp.banned) === 1 ? 0 : 1

@@ -3,6 +3,7 @@
         "transpileOnly": true
     },
     "compilerOptions": {
+        "downlevelIteration": true,
         "module": "commonjs",
         "noImplicitAny": false,
         "strict": true,

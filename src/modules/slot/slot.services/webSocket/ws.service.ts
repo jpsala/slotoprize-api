@@ -8,6 +8,7 @@ import { isValidJSON } from '../../../../helpers'
 import { EventPayload } from '../events/event'
 import { getGameUser } from '../../../meta/meta.repo/gameUser.repo'
 import { verifyToken } from '../../../../services/jwtService'
+import { GameUser } from '../../../meta/meta.types'
 //#region types
 export let wsServer: WsServerService
 export interface WebSocketMessage
@@ -28,8 +29,7 @@ type WsServerService = {
   shutDown(): void
 }
 export interface ExtWebSocket extends WebSocket {
-  userId: number; // your custom property
-  isDev: boolean; // your custom property
+  user: GameUser
 }
 //#endregion
 
@@ -40,7 +40,7 @@ export const usersConnection = (): UserConnection[] | [] => {
   const clients: UserConnection[] = []
   wsServer.server.clients && wsServer.server.clients.forEach(_client => {
     const client = <ExtWebSocket>_client
-    const userConnected:  UserConnection= { userId: client.userId, client }
+    const userConnected:  UserConnection= { userId: client.user.id, client }
     clients.push(userConnected)
   })
   return clients as [{userId: number, client: ExtWebSocket}] | []
@@ -103,8 +103,8 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
         }
       }
     }
-    ws.userId = Number(query.userId)
-    ws.isDev = Number(user.isDev) === 1
+    ws.user = user
+    console.log('ws.service user', user)
 
     ws.on('message', (msg) => onMessage(msg, ws))
   })
@@ -113,7 +113,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     server.clients.forEach(_client =>
     {
       const client = <ExtWebSocket> _client
-      if (client.userId === userId) {
+      if (client.user.id === userId) {
         console.log('sended to specific client %O', userId, _msg.message)
         send(_msg, client as WebSocket)
       }
@@ -148,7 +148,8 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     else
     {
       server.clients.forEach((client) => {
-        const isDev = Number((client as any).isDev) === 1
+        // const userId = Number((client as ExtWebSocket).user.id)
+        const isDev = Number((client as ExtWebSocket).user.isDev) === 1
         if (!(forDevOnly && !isDev)) {
           console.log('sended to specific client inside send to all')
           client.send(msg)

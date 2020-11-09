@@ -33,7 +33,7 @@ export const runCommand = async (cmd: string, data: any): Promise<void> => {
   delete data.command
   delete data.client
     try {
-      wsServer.sendToUser(wsMessage, client.userId)
+      wsServer.sendToUser(wsMessage, client.user.id)
     } catch (error) {
       wsServer.sendToUser(error, client)
 
