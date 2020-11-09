@@ -6,7 +6,9 @@ import snakecaseKeys from 'snakecase-keys'
 import {getGameUserByDeviceId, toTest} from '../../meta/meta.repo/gameUser.repo'
 import {queryOne, exec} from '../../../db'
 import {GameUser} from "../../meta/meta.types"
+import { toBoolean } from '../../../helpers'
 import { sendJackpotWinEvent } from './jackpot.service'
+import { wsServer } from './webSocket/ws.service'
 
 export const getProfile = async (deviceId: string): Promise<GameUser | Partial<GameUser>> => {
   toTest()
@@ -16,7 +18,9 @@ export const getProfile = async (deviceId: string): Promise<GameUser | Partial<G
   return gameUser
 }
 export const setProfile = async (user: GameUser): Promise<any> => { 
+
   console.log('setProfile for user %O', user)
+
   if (!user.deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
 
   const userExists = await queryOne(`select * from game_user where device_id = '${user.deviceId}'`)
@@ -36,49 +40,33 @@ export const setProfile = async (user: GameUser): Promise<any> => {
 
   userForSave.birth_date = birthDate
 
-  if(userForSave.is_dev !== undefined) userForSave.isDev = (userForSave.is_dev === 'true' ? 1 : 0)
+  if (userForSave.is_dev !== undefined) userForSave.isDev = toBoolean(userForSave.is_dev)
+  if(userForSave.tutorial_complete !== undefined) userForSave.tutorial_complete = toBoolean(userForSave.tutorial_complete)
 
   delete userForSave.is_dev
   delete userForSave.session_token
-  console.log('userForSave', userForSave)
-  await exec(`
-          update game_user set ?
-              
-          where device_id = '${user.deviceId}'
-      `, userForSave)
-  // await exec(`
-  //         update game_user set
-  //             email = '${user.email || ""}',
-  //             first_name = '${user?.firstName || ""}',
-  //             last_name = '${user.lastName || ""}',
-  //             device_name = '${user.deviceName || ""}',
-  //             device_model = '${user.deviceModel || ""}',
-  //             phone_number = '${user.phoneNumber || ""}',
-  //             address = '${user.address || ""}',
-  //             city = '${user.city || ""}',
-  //             zip_code = '${user.zipCode || ""}',
-  //             state = '${user.state || ""}',
-  //             title = '${user.title || ""}',
-  //             adsFree = '${user.adsFree ? 1 : 0}',
-  //             birth_date = "${String(birthDate)}",
-  //             isDev = '${isDev}',
-  //             country = '${user.country || ""}',
-  //             devicePlataform = '${user.devicePlataform || ""}'
-              
-  //         where device_id = '${user.deviceId}'
-  //     `)
-      // select id, first_name, last_name, email, device_id from game_user where device_id = '${user.deviceId}'
-  const updatedUser = await queryOne(`
-          select * from game_user where device_id = '${user.deviceId}'
-      `)
-  delete updatedUser.createdAt
-  delete updatedUser.updatedAt
-  delete updatedUser.password
-  delete updatedUser.sendWinJackpotEventWhenProfileFilled
-  await sendWinJackpotEventIfCorrespond(updatedUser)
-  return camelcaseKeys(updatedUser) as GameUser
-}
 
+  await exec(`update game_user set ? where device_id = '${user.deviceId}'`, userForSave)
+
+  const updatedUser = gameUserToProfile(await getGameUserByDeviceId(user.deviceId)) as any
+  await sendWinJackpotEventIfCorrespond(updatedUser)
+  wsServer.updateUser(updatedUser)
+  return updatedUser as GameUser
+}
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const gameUserToProfile = (rawUser: any): GameUser => {
+  const user = camelcaseKeys(rawUser)
+  delete user.createdAt
+  delete user.updatedAt
+  delete user.modifiedAt
+  delete user.password
+  delete user.sendWinJackpotEventWhenProfileFilled
+  user.banned = toBoolean(user.banned)
+  user.isDev = toBoolean(user.isDev)
+  user.adsFree = toBoolean(user.adsFree)
+  user.tutorialComplete = toBoolean(user.tutorialComplete)
+  return user as GameUser
+}
 const sendWinJackpotEventIfCorrespond = async (user: GameUser): Promise<void> => {
   const respPendingEvent = await queryOne(`
     select sendWinJackpotEventWhenProfileFilled from game_user where id = '${user.id}'

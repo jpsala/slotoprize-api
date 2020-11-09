@@ -9,7 +9,7 @@ import * as metaService from '../../meta/meta-services/meta.service'
 import getConnection, {queryOne, exec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
-import { addHostToPath } from './../../../helpers'
+import { addHostToPath, toBoolean } from './../../../helpers'
 import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
 
@@ -77,6 +77,7 @@ export async function getGameUser(userId: number): Promise<GameUser> {
     from game_user
     where id =${userId}`
   const user = camelcaseKeys(await queryOne(userSelect)) as GameUser
+  user.tutorialComplete = Number(user.tutorialComplete) === 1
   if(user)
     user.wallet = await getWallet(user)
   return user

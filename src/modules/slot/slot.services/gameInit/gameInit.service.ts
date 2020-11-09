@@ -9,12 +9,12 @@ import {getNewToken} from '../../../../services/jwtService'
 import {getHaveWinRaffle, setGameUserLogin, getWinRaffle, resetPendingPrize } from '../../../meta/meta.repo/gameUser.repo'
 import {getWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
+import { gameUserToProfile } from "../profile.service"
 import { getLastSpinDays } from './dailyReward.spin'
 import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaimed } from './../../slot.repo/dailyReward.repo'
-
 export async function gameInit(deviceId: string): Promise<any> {
   try {
-    const rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
+    let rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
     const maintenanceMode = (await getSetting('maintenanceMode', '0')) === '1'
     if(maintenanceMode && !rawUser.isDev) throw createHttpError(503, 'We are in maintenance, we\'ll be back up soon!')
     if(Number(rawUser.banned) === 1) throw createHttpError(BAD_REQUEST, 'Forbidden Error')
@@ -35,20 +35,20 @@ export async function gameInit(deviceId: string): Promise<any> {
     await resetPendingPrize(rawUser.id as number)
     const token = getNewToken({id: rawUser.id, deviceId})
     await setGameUserLogin(deviceId)
-    delete rawUser.deviceId
-    delete rawUser.createdAt
-    delete rawUser.modifiedAt
-    delete rawUser.password
-    delete rawUser.sendWinJackpotEventWhenProfileFilled
+
+    
     const dailyRewards: DailyRewardPrize[] = await getDailyRewardPrizes()
     await setSpinData(rawUser as GameUser)
     const consecutiveLogsIdx = await getLastSpinDays(rawUser as GameUser)
     const dailyRewardClaimed = await isDailyRewardClaimed(deviceId)
     const languageCode = rawUser.languageCode
-    delete rawUser.languageCode
     const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
     const maxAllowedBirthYear = Number(await getSetting('maxAllowedBirthYear', '2002'))
     const gameVersion = String(await getSetting('gameVersion', '0.1'))
+
+    rawUser = gameUserToProfile(rawUser)
+    delete rawUser.deviceId
+    delete rawUser.languageCode
     const initData = {
       sessionId: token,
       gameVersion,

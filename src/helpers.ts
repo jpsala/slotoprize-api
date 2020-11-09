@@ -10,7 +10,7 @@ export const toBoolean = (value: string | number | boolean): boolean => {
         return value.toUpperCase() === 'TRUE' || value.toUpperCase() === '1'
     if (typeof value === 'number') return value === 1
     if (typeof value === 'boolean') return value
-    throw createHttpError(statusCodes.BAD_REQUEST, 'Value type not supported')
+    throw createHttpError(statusCodes.BAD_REQUEST, 'Value type not supported ' + typeof value)
 }
 export function pickProps<T>(obj: T, props: string[]): Partial<T> {
     return props.reduce((a, e) => ((a[e] = obj[e]), a), {})

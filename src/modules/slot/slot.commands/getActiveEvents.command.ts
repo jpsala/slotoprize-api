@@ -11,7 +11,7 @@ type Message = { payload: any, client: WebSocket }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const runCommand = async (cmd: string, data: Message): Promise<void> => {
   const userIsDev = (data.client as any).isDev
-  const userId: string = (data.client as any).userId
+  const userId: string = (data.client as any).user.id
 
   const pendingMessagesRow = await queryOne(
   `select jsonMsg from user_on_connect where game_user_id = ${userId}`

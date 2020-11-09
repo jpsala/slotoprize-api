@@ -44,6 +44,7 @@ export interface GameUser {
   isDev: boolean;
   title: string;
   birthDate: Date;
+  tutorialComplete: boolean;
   // wallet?: Partial<Wallet>;
   wallet?: Wallet;
   sendWinJackpotEventWhenProfileFilled?: boolean;
@@ -78,6 +79,7 @@ export const  fakeUser = async (override: Partial<GameUser> = {}): Promise<GameU
     banned: false,
     adsFree: false,
     devicePlataform: 'devicePlataform',
+    tutorialComplete: false,
     wallet: {
       id: -1,
       coins: faker.random.number(100),

@@ -12,7 +12,7 @@ import { gameUserRepo } from '../meta/meta.repo'
 import { getCountries, getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/country.repo'
 // import { setReqUser } from '../meta/authMiddleware'
 import { getGameUser, getLoginData, getPlayerForFront, getPlayersForFront, postToggleBanForCrud, setLanguageCode } from '../meta/meta.repo/gameUser.repo'
-import { iap } from '../meta/meta.repo/iap.service'
+import { iap, setIap } from '../meta/meta.repo/iap.service'
 import { deleteLanguageForCrud, getLanguagesForCrud, postLanguageForCrud, toggleDeleteLanguageForCrud } from '../meta/meta.repo/language.repo'
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
 import { deleteRaffle, getRafflesForCrud, postRaffle } from '../meta/meta.repo/raffle.repo'
@@ -407,12 +407,12 @@ export  function resetSettingsPost(req: Request, res: Response): void{
   resetSettings()
   res.status(200).send({status: 'ok'})
 }
-export async function iaep(req: Request, res: Response): Promise<void>{
+export async function iapGet(req: Request, res: Response): Promise<void>{
   let adsFree = '1'
   if (req.query.adsFree === '0' || req.query.adsFree === 'false')
     adsFree = '0'
   const user = await getGameUserByDeviceId(req.query.deviceId as string)
-  await iap(user, adsFree)
+  await setIap(user, adsFree)
   res.status(200).send({status: 'ok'})
 }
 export async function sendmail(req: Request, res: Response): Promise<void>{

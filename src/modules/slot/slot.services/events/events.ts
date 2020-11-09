@@ -126,9 +126,11 @@ export function removeEvent(eventId: number): void
     const payload = event.payload as EventPayload
     event.sched = later.schedule(scheduleData)
     event.next = event.sched.next(1, new Date()) as Date | 0
-    const nextsDates = event.sched.next(3, new Date()) as Date[] 
-    for (const next of (nextsDates))
-      if (next) nexts += `${(formatDistanceStrict(new Date(), next))} `        
+    const nextsDates = event.sched.next(3, new Date()) as Date[]
+    console.log('nextsDates', nextsDates)
+    if(Number(nextsDates) !== 0)
+      for (const next of (nextsDates))
+        if (next) nexts += `${(formatDistanceStrict(new Date(), next))} `        
     event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next) : ''
     log && console.log('scheduling', event.rule, 'name', payload.name, ' distance:', event.distance)
   } catch (error) {

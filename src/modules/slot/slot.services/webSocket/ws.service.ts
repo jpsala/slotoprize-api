@@ -27,6 +27,7 @@ type WsServerService = {
   sendRaw(_msg: any, client?: WebSocket | undefined): void
   sendToUser(_msg: WebSocketMessage, userId): void
   shutDown(): void
+  updateUser(user: GameUser): void
 }
 export interface ExtWebSocket extends WebSocket {
   user: GameUser
@@ -80,6 +81,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       throw createHttpError(BAD_REQUEST, 'User does not exists')
     }
     const isDev = user.isDev
+    console.log('iseDev', isDev)
     console.log(`[SERVER] connection()`, 'userId:', query.userId)
     if(!isDev){
       if(!query.sessionToken){
@@ -142,14 +144,19 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     const msg = JSON.stringify(_msg.isJson ? _msg : msgStr)
     if (_msg.log) console.log('ws send with log', _msg, _msg.payload) 
     if (client) {
-      console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
+      const tutorialComplete = (client as ExtWebSocket).user.tutorialComplete
+      console.log('(client as ExtWebSocket).user', tutorialComplete)
+    console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
       client.send(msg)
     }
     else
     {
       server.clients.forEach((client) => {
         // const userId = Number((client as ExtWebSocket).user.id)
+        const tutorialComplete = (client as ExtWebSocket).user.tutorialComplete
+        console.log('(client as ExtWebSocket).user', (client as ExtWebSocket).user)
         const isDev = Number((client as ExtWebSocket).user.isDev) === 1
+        if((client as ExtWebSocket).user.isNew)
         if (!(forDevOnly && !isDev)) {
           console.log('sended to specific client inside send to all')
           client.send(msg)
@@ -157,6 +164,11 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       })
     }
 
+  }
+  const updateUser = (user: GameUser): void => {
+    server.clients.forEach((client) => {
+      if((client as ExtWebSocket).user.id === user.id) (client as ExtWebSocket).user = user
+    })
   }
   const sendRaw = (_msg: any, client: WebSocket | undefined = undefined): void =>
   {
@@ -209,7 +221,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     server.close()
     console.log('websocket shutdown')
   }
-  wsServer = { server, ws, send, sendRaw, sendToUser, shutDown }
+  wsServer = { server, ws, send, sendRaw, sendToUser, shutDown, updateUser }
 }
 console.log('loaded ws.service.ts') 
 
