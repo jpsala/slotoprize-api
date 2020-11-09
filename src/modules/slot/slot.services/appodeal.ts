@@ -22,6 +22,8 @@ export async function appodealCallbackPlain(queryParams: QueryParams): Promise<a
 }
 
 export async function appodealCallback(data1?: string, data2?: string, queryParams?: QueryParams): Promise<any> {
+  if ((!data1 || !data2) && !queryParams)
+    throw createHttpError(BAD_REQUEST, 'Please check the parámeters')
   if (data1 && data2) {
     const encryptionKey = "encryptionKeyForAppodeal9405"
     const keyBytes = crypto.createHash('sha256').update(encryptionKey, 'utf-8' as Utf8AsciiLatin1Encoding).digest()
