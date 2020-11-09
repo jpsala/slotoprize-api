@@ -40,7 +40,6 @@ export const getGameUserByDeviceId = async (deviceId: string): Promise<GameUser>
           from game_user
         where device_id = '${deviceId}'`
   const user = await queryOne(userSelect)
-  user.tutorialComplete = Number(user.tutorialComplete) === 1
   return camelcaseKeys(user) as GameUser
 }
 export const auth = async (user: User): Promise<User> => {

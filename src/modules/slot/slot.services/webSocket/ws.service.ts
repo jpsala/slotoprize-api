@@ -146,7 +146,8 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     if (client) {
       const tutorialComplete = (client as ExtWebSocket).user.tutorialComplete
       console.log('(client as ExtWebSocket).user', tutorialComplete)
-    console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
+      console.log('sending to specific client', _msg)
+      // console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
       client.send(msg)
     }
     else

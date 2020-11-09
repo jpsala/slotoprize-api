@@ -7,7 +7,8 @@
  - [x] in settings support email has to be support@tagadagames.com
  - [x] execute yarn to refresh dependencies (nodemailer)
 
- - [ ] tutorialComplete new field on game_user, defaults to 0
+ - [ ] tutorialComplete new field on game_init, defaults to 0 y va con los booleans abajo
+ - [ ] move isDev arriba de banned en game_init
 
 
 
