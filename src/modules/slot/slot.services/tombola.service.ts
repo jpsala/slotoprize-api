@@ -3,6 +3,8 @@ import camelcaseKeys from 'camelcase-keys'
 import createHttpError from 'http-errors'
 import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { getAtlas } from '../../meta/meta-services/atlas'
+import { getGameUserSpinData } from '../../meta/meta.repo/gameUser.repo'
+import { GameUser } from '../../meta/meta.types'
 import { urlBase } from './../../../helpers'
 import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
@@ -64,9 +66,9 @@ export const postTombolaForCrud = async (body: any): Promise<any> =>
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {status: 'ok'}
 }
-export const getSlotData = async (): Promise<any> => {
+export const getSlotData = async (user: GameUser): Promise<any> => {
   const maxMultiplier = Number(await getSetting('maxMultiplier', '3'))
-  const signupCount = Number(await getSetting('signupCount', '3'))
+  const spinCount = Number(await getGameUserSpinData(user.id))
   const atlasData = await getAtlas(<string> 'symbols')
   const reelsData = await getReelsData()
   const payTable = await getPayTable()
@@ -84,7 +86,7 @@ export const getSlotData = async (): Promise<any> => {
         reelSymbol.pays = symbolAllPays
       })
     })
-    return {maxMultiplier, reelsData, atlasData, signupCount}
+    return {maxMultiplier, reelsData, atlasData, spinCount}
 }
 export const getTombolaForCrud = async (): Promise<any> =>
 {

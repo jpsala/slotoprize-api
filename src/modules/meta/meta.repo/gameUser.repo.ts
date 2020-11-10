@@ -82,6 +82,15 @@ export async function getGameUser(userId: number): Promise<GameUser> {
     user.wallet = await getWallet(user)
   return user
 }
+export async function getGameUserSpinData(userId: number): Promise<number>
+{
+  let spinCountResp = await queryOne(`select id, spinCount from game_user_spin where game_user_id = ${userId}`)
+  if(!spinCountResp) spinCountResp = {
+      "game_user_id": userId,
+      "spinCount": 0
+    }
+  return Number(spinCountResp.spinCount) 
+}
 export async function setGameUserSpinData(userId: number): Promise<number>
 {
   let spinCountResp = await queryOne(`select id, spinCount from game_user_spin where game_user_id = ${userId}`)

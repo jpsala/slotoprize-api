@@ -400,7 +400,8 @@ export async function atlasGet(req: Request, res: Response): Promise<any>{
   res.status(200).send(resp)
 }
 export async function slotDataGet(req: Request, res: Response): Promise<any>{
-  const resp = await getSlotData()
+  const user = await getGameUserByDeviceId(req.query.deviceId as string)
+  const resp = await getSlotData(user)
   res.status(200).send(resp)
 }
 export  function resetSettingsPost(req: Request, res: Response): void{

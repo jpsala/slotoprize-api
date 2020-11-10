@@ -55,7 +55,8 @@ export async function gameInit(deviceId: string): Promise<any> {
     const maxAllowedBirthYear = Number(await getSetting('maxAllowedBirthYear', '2002'))
     const gameVersion = String(await getSetting('gameVersion', '0.1'))
     const gameIdentifier = await getSetting('gameIdentifier', 'this is the gameIdentifier')
-    rawUser = gameUserToProfile(rawUser)
+    const signupCount = Number(await getSetting('signupCount', '10'))
+  rawUser = gameUserToProfile(rawUser)
     
     delete rawUser.deviceId
     delete rawUser.languageCode
@@ -66,6 +67,7 @@ export async function gameInit(deviceId: string): Promise<any> {
       gameIdentifier,
       languageCode,
       interstitialsRatio,
+      signupCount,
       hasPendingPrize,
       rafflePrizeData,
       profileData: toCamelCase(rawUser),
