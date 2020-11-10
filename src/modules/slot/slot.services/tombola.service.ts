@@ -66,6 +66,7 @@ export const postTombolaForCrud = async (body: any): Promise<any> =>
 }
 export const getSlotData = async (): Promise<any> => {
   const maxMultiplier = Number(await getSetting('maxMultiplier', '3'))
+  const signupCount = Number(await getSetting('signupCount', '3'))
   const atlasData = await getAtlas(<string> 'symbols')
   const reelsData = await getReelsData()
   const payTable = await getPayTable()
@@ -83,7 +84,7 @@ export const getSlotData = async (): Promise<any> => {
         reelSymbol.pays = symbolAllPays
       })
     })
-    return {maxMultiplier, reelsData, atlasData}
+    return {maxMultiplier, reelsData, atlasData, signupCount}
 }
 export const getTombolaForCrud = async (): Promise<any> =>
 {
