@@ -40,10 +40,13 @@ export const setProfile = async (user: GameUser): Promise<any> => {
 
   userForSave.birth_date = birthDate
 
-  if (userForSave.is_dev !== undefined) userForSave.isDev = toBoolean(userForSave.is_dev)
+  if (userForSave.ads_free !== undefined) userForSave.adsFree = toBoolean(userForSave.ads_free)
   if(userForSave.tutorial_complete !== undefined) userForSave.tutorial_complete = toBoolean(userForSave.tutorial_complete)
 
   delete userForSave.is_dev
+  delete userForSave.ads_free
+  delete userForSave.isDev
+  delete userForSave.banned
   delete userForSave.session_token
 
   await exec(`update game_user set ? where device_id = '${user.deviceId}'`, userForSave)
