@@ -71,6 +71,7 @@ const getSpinDataForIncompleteTutorial = async (): Promise<any> => {
     ],
     "isWin": true,
     "walletData": { coins, tickets, spins },
+    "spinCounter": 1,
     "winData": { "type": "coin", "amount": coins }
 }
 }
