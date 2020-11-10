@@ -97,7 +97,7 @@ export async function setGameUserSpinData(userId: number): Promise<number>
         "spinCount": spinCountResp?.spinCount >= 0 ? (Number(spinCountResp.spinCount )+1) : 0
       }
     )
-  return Number(spinCountResp.spinCount)
+  return Number(spinCountResp.spinCount) + 1
 }
 export async function getLoginData(userId: number): Promise<{count: number, lastLogin: Date}> {
   const response = await queryOne(`
