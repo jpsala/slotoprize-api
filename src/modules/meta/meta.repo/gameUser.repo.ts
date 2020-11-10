@@ -85,7 +85,6 @@ export async function getGameUser(userId: number): Promise<GameUser> {
 export async function setGameUserSpinData(userId: number): Promise<number>
 {
   let spinCountResp = await queryOne(`select id, spinCount from game_user_spin where game_user_id = ${userId}`)
-  console.log('changing game_user_spin')
   if(!spinCountResp) spinCountResp = {
       "game_user_id": userId,
       "spinCount": 0
