@@ -52,12 +52,12 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
     winAmount = winAmount * eventMultiplier
     wallet[`${winType}s`] += (winAmount)
   }
-  await setGameUserSpinData(user.id)
+  const spinNumber = await setGameUserSpinData(user.id)
+  console.log('spinNumber', spinNumber)
   await updateWallet(user, wallet)
-  const returnData: SpinData = { symbolsData, isWin, walletData: wallet }
+  const returnData: SpinData = { symbolsData, isWin, walletData: wallet, spinNumber }
 
   if (isWin) returnData.winData = { type: winType, amount: winAmount }
-
   return returnData
 }
 const getSpinDataForIncompleteTutorial = async (): Promise<any> => {
