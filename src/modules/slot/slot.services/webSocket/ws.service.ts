@@ -145,23 +145,25 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     if (_msg.log) console.log('ws send with log', _msg, _msg.payload) 
     if (client) {
       const tutorialComplete = (client as ExtWebSocket).user.tutorialComplete
-      console.log('(client as ExtWebSocket).user', tutorialComplete)
-      console.log('sending to specific client', _msg)
-      // console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
-      client.send(msg)
+      if (tutorialComplete) {
+        console.log('sending to specific client', _msg)
+        // console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
+        client.send(msg)
+      } else {console.log('not sending ws event, tutorial not copleted')}
     }
     else
     {
       server.clients.forEach((client) => {
         // const userId = Number((client as ExtWebSocket).user.id)
         const tutorialComplete = (client as ExtWebSocket).user.tutorialComplete
-        console.log('(client as ExtWebSocket).user', (client as ExtWebSocket).user)
-        const isDev = Number((client as ExtWebSocket).user.isDev) === 1
-        if((client as ExtWebSocket).user.isNew)
-        if (!(forDevOnly && !isDev)) {
-          console.log('sended to specific client inside send to all')
-          client.send(msg)
-        }
+        if (tutorialComplete) {
+          const isDev = Number((client as ExtWebSocket).user.isDev) === 1
+          // if((client as ExtWebSocket).user.isNew)
+          if (!(forDevOnly && !isDev)) {
+            console.log('sended to specific client inside send to all')
+            client.send(msg)
+          } else {console.log('not sending ws event, is for dev only and user is not dev')}
+        } else {console.log('not sending ws event, tutorial not copleted')}
       })
     }
 

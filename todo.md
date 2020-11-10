@@ -16,7 +16,7 @@ TODO:
 tutorialComplete = false {
  - [x]  todo lo que devuelve es prearmado
  - [x]  en el spin coincide el spin ganador con la billetera de settings
- - [ ]  no va ninguna recompensa
+ - [x]  no va ninguna recompensa
  - [x]  en game-init Devuelvo dailyRewardClaimed en true
  - [x]  en game-init devuevo  0 0 y 1 spin
 }

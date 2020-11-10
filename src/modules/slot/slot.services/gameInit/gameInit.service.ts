@@ -35,33 +35,35 @@ export async function gameInit(deviceId: string): Promise<any> {
       await getHaveWinRaffle(rawUser.id as number) :
       false
     
-    // const hasPendingJackpot = await getHaveWinJackpot(rawUser.id as number)
-    // const pendingPrizeIsJackpot = hasPendingJackpot
-    let rafflePrizeData = hasPendingRaffle ? await getWinRaffle(rawUser.id as number) : undefined
-    if(!tutorialComplete) rafflePrizeData = undefined
-    const hasPendingPrize = tutorialComplete ? hasPendingRaffle : false
-    if(tutorialComplete) await resetPendingPrize(rawUser.id as number)
     const token = getNewToken({id: rawUser.id, deviceId})
+    const rafflePrizeData = hasPendingRaffle ? await getWinRaffle(rawUser.id as number) : undefined
+
+    const hasPendingPrize = tutorialComplete ? hasPendingRaffle : false
+
+    if (tutorialComplete) await resetPendingPrize(rawUser.id as number)
+
+
     await setGameUserLogin(deviceId)
+    await setSpinData(rawUser as GameUser)
 
     
     const dailyRewards: DailyRewardPrize[] = await getDailyRewardPrizes()
-    await setSpinData(rawUser as GameUser)
     const consecutiveLogsIdx = await getLastSpinDays(rawUser as GameUser)
     const dailyRewardClaimed = tutorialComplete ? (await isDailyRewardClaimed(deviceId)) : true
     const languageCode = rawUser.languageCode
     const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
     const maxAllowedBirthYear = Number(await getSetting('maxAllowedBirthYear', '2002'))
     const gameVersion = String(await getSetting('gameVersion', '0.1'))
-
+    const gameIdentifier = await getSetting('gameIdentifier', 'this is the gameIdentifier')
     rawUser = gameUserToProfile(rawUser)
+    
     delete rawUser.deviceId
     delete rawUser.languageCode
+
     const initData = {
       sessionId: token,
       gameVersion,
-      gameIdentifier: await getSetting('gameIdentifier', 'this is the gameIdentifier'),
-      // requireProfileData: requireProfileData ? 1 : 0,
+      gameIdentifier,
       languageCode,
       interstitialsRatio,
       hasPendingPrize,
