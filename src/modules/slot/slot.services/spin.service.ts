@@ -24,6 +24,9 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
 
   const user = await getOrSetGameUserByDeviceId(deviceId)
 
+  const tutorialComplete = (user.tutorialComplete || 0 as number) === 1
+  if (!tutorialComplete) return await getSpinDataForIncompleteTutorial()
+  
   if(!userIsDev && await spinWasToQuickly(user)) throw createError(BAD_REQUEST, 'Spin was to quickly')
 
   const wallet = await getWallet(user)
@@ -56,6 +59,21 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   if (isWin) returnData.winData = { type: winType, amount: winAmount }
 
   return returnData
+}
+const getSpinDataForIncompleteTutorial = async (): Promise<any> => {
+  const coins = Number(await getSetting('initialWalletCoins', '10'))
+  const spins = Number(await getSetting('initialWalletSpins', '10'))
+  const tickets = Number(await getSetting('initialWallettickets', '10'))
+  return {
+    "symbolsData": [
+        {"paymentType": "coin", "symbolName": "coin", "isPaying": true},
+        {"paymentType": "ticket", "symbolName": "ticket", "isPaying": false},
+        {"paymentType": "coin", "symbolName": "blueberry", "isPaying": false}
+    ],
+    "isWin": true,
+    "walletData": { coins, tickets, spins },
+    "winData": { "type": "coin", "amount": coins }
+}
 }
 const spinWasToQuickly = async (user: GameUser): Promise<boolean> =>
 {

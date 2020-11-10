@@ -11,13 +11,12 @@ cuando completa el turotial puede ir 'tutorialComplete = true' en este caso se r
 
 daily eventos y notificaciones en general y en game-init daily reward vacio
 
-
-
 TODO:
 
-en el primer gameInit va una billetera false, con 0 coins y 0 tickets y 1 spin
-
 tutorialComplete = false {
-  todo lo que devuelve es prearmado
-  1 - devuelvo un spin ganador barato
+ - [x]  todo lo que devuelve es prearmado
+ - [x]  en el spin coincide el spin ganador con la billetera de settings
+ - [ ]  no va ninguna recompensa
+ - [x]  en game-init Devuelvo dailyRewardClaimed en true
+ - [x]  en game-init devuevo  0 0 y 1 spin
 }

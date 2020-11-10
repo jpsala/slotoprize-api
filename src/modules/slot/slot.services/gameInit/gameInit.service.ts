@@ -15,11 +15,14 @@ import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaim
 export async function gameInit(deviceId: string): Promise<any> {
   try {
     let rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
+    const tutorialComplete = (rawUser.tutorialComplete || 0 as number) === 1
     const maintenanceMode = (await getSetting('maintenanceMode', '0')) === '1'
     if(maintenanceMode && !rawUser.isDev) throw createHttpError(503, 'We are in maintenance, we\'ll be back up soon!')
     if(Number(rawUser.banned) === 1) throw createHttpError(BAD_REQUEST, 'Forbidden Error')
     // setReqUser(deviceId, rawUser.id as number)
-    const wallet = await getWallet(rawUser as GameUser)
+    const wallet = tutorialComplete ?
+      await getWallet(rawUser as GameUser) :
+      {spins: 1, coins: 0, tickets: 0}
     // const betPrice = Number(await getSetting('betPrice', '1'))
     const ticketPrice = Number(await getSetting('ticketPrice', '1')) 
     const languages = (await languageRepo.getLanguages()) as Array<Partial<LanguageData>>
@@ -27,12 +30,17 @@ export async function gameInit(deviceId: string): Promise<any> {
     // const languageData = (await metaRepo.getLanguageData(rawUser.id + 3)) as Partial<LanguageData>
     // @URGENT crear savelogin
     // const rawUser = {id: 1, first_name: 'first', last_name: 'last', email: 'email'}
-    const hasPendingRaffle = await getHaveWinRaffle(rawUser.id as number)
+
+    const hasPendingRaffle = tutorialComplete ?
+      await getHaveWinRaffle(rawUser.id as number) :
+      false
+    
     // const hasPendingJackpot = await getHaveWinJackpot(rawUser.id as number)
     // const pendingPrizeIsJackpot = hasPendingJackpot
-    const rafflePrizeData = hasPendingRaffle ? await getWinRaffle(rawUser.id as number) : undefined
-    const hasPendingPrize = hasPendingRaffle
-    await resetPendingPrize(rawUser.id as number)
+    let rafflePrizeData = hasPendingRaffle ? await getWinRaffle(rawUser.id as number) : undefined
+    if(!tutorialComplete) rafflePrizeData = undefined
+    const hasPendingPrize = tutorialComplete ? hasPendingRaffle : false
+    if(tutorialComplete) await resetPendingPrize(rawUser.id as number)
     const token = getNewToken({id: rawUser.id, deviceId})
     await setGameUserLogin(deviceId)
 
@@ -40,7 +48,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     const dailyRewards: DailyRewardPrize[] = await getDailyRewardPrizes()
     await setSpinData(rawUser as GameUser)
     const consecutiveLogsIdx = await getLastSpinDays(rawUser as GameUser)
-    const dailyRewardClaimed = await isDailyRewardClaimed(deviceId)
+    const dailyRewardClaimed = tutorialComplete ? (await isDailyRewardClaimed(deviceId)) : true
     const languageCode = rawUser.languageCode
     const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
     const maxAllowedBirthYear = Number(await getSetting('maxAllowedBirthYear', '2002'))
