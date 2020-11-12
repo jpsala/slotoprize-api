@@ -25,7 +25,7 @@ export const setSetting = async (key: string, value : string): Promise<void> => 
   if (setting && setting.value !== value) {
     await exec(`update setting set value = '${value}' where name = '${key}'`)
     setting.value = value
-  } else if (!setting) {
+  } else if (setting === undefined) {
     const respInsert = await exec(`insert into setting(value, name) values('${value}', '${key}')`)
     settings.push({ id: respInsert.insertId, name: key, value: value, description: '' })
   }

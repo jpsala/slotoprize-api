@@ -2,9 +2,9 @@
 
 import { NextFunction, Request, Response } from 'express'
 import createHttpError from 'http-errors'
-import { BAD_REQUEST } from 'http-status-codes'
 import { verifyToken } from '../../services/jwtService'
 import { getSetting } from '../slot/slot.services/settings.service'
+import { getLocalization } from './meta-services/localization.service'
 import { getUserById } from "./meta-services/meta.service"
 import { getGameUser } from './meta.repo/gameUser.repo'
 import { GameUser, User } from './meta.types'
@@ -24,7 +24,7 @@ export async function checkmaintenanceMode(req: Request, res: Response, next: Ne
   const { decodedToken, error } = verifyToken(sessionToken as string)
 
   if ((error || !decodedToken.id) && maintenanceMode)
-    throw createHttpError(503, 'We are in maintenance, we\'ll be back up soon!')
+    throw createHttpError(503, await getLocalization('maintenanceMode', undefined, 'We are in maintenance, we\'ll be back up soon!'))
   
   if (maintenanceMode) {
     let user: User | GameUser = await getGameUser(decodedToken.id)
@@ -33,7 +33,7 @@ export async function checkmaintenanceMode(req: Request, res: Response, next: Ne
       if(user) user.isDev = true
     }
     if(!user || (!isDev && !user.isDev))
-      throw createHttpError(503, 'We are in maintenance, we\'ll be back up soon!')
+    throw createHttpError(503, await getLocalization('maintenanceMode', user.id, 'We are in maintenance, we\'ll be back up soon!'))
   }
   return next()
 }

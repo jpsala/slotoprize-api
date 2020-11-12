@@ -81,7 +81,6 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       throw createHttpError(BAD_REQUEST, 'User does not exists')
     }
     const isDev = user.isDev
-    console.log('iseDev', isDev)
     console.log(`[SERVER] connection()`, 'userId:', query.userId)
     if(!isDev){
       if(!query.sessionToken){
@@ -106,8 +105,6 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       }
     }
     ws.user = user
-    console.log('ws.service user', user)
-
     ws.on('message', (msg) => onMessage(msg, ws))
   })
   const sendToUser = (_msg: WebSocketMessage, userId): void =>

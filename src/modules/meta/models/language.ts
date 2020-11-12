@@ -4,4 +4,5 @@ export interface Language {
   textureUrl: string;
   localizationUrl: string;
   deleted: boolean;
+  default: boolean;
 }

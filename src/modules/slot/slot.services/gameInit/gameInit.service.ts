@@ -10,6 +10,7 @@ import {getHaveWinRaffle, setGameUserLogin, getWinRaffle, resetPendingPrize } fr
 import {getWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import { gameUserToProfile } from "../profile.service"
+import { getLocalization } from '../../../meta/meta-services/localization.service'
 import { getLastSpinDays } from './dailyReward.spin'
 import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaimed } from './../../slot.repo/dailyReward.repo'
 export async function gameInit(deviceId: string): Promise<any> {
@@ -17,7 +18,8 @@ export async function gameInit(deviceId: string): Promise<any> {
     let rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
     const tutorialComplete = (rawUser.tutorialComplete || 0 as number) === 1
     const maintenanceMode = (await getSetting('maintenanceMode', '0')) === '1'
-    if(maintenanceMode && !rawUser.isDev) throw createHttpError(503, 'We are in maintenance, we\'ll be back up soon!')
+    if (maintenanceMode && !rawUser.isDev)
+    throw createHttpError(503, await getLocalization('maintenanceMode', rawUser.id, 'We are in maintenance, we\'ll be back up soon!'))
     if(Number(rawUser.banned) === 1) throw createHttpError(BAD_REQUEST, 'Forbidden Error')
     // setReqUser(deviceId, rawUser.id as number)
     const wallet = tutorialComplete ?

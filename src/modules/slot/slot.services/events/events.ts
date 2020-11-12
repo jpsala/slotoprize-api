@@ -32,13 +32,14 @@ export  function processEvents(eventsFromDB: EventDTO[]): void
     if (Number(ruleFromDb.active) === 0)   
       continue
    
-    console.log('ruleFromDb', ruleFromDb.skinId)
     ruleFromDb.skinId = ruleFromDb.skinId ?? undefined
     ruleFromDb.popupTextureUrl = ruleFromDb.popupTextureUrl ? url + ruleFromDb.popupTextureUrl : ''
     ruleFromDb.notificationTextureUrl = ruleFromDb.notificationTextureUrl ? url + ruleFromDb.notificationTextureUrl : ''
     ruleFromDb.particlesTextureUrl = ruleFromDb.particlesTextureUrl ? url + ruleFromDb.particlesTextureUrl : ''
     ruleFromDb.rule = <Rule>JSON.parse(ruleFromDb.rule as any)
+
     console.log('processEvents event', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
+
     if (ruleFromDb.rule.type === 'unique') {
       const ruleDateStart = parse(ruleFromDb.rule.start, 'yyyy-MM-dd HH:mm:ss', new Date())
       let dateStart = ruleDateStart
@@ -54,7 +55,10 @@ export  function processEvents(eventsFromDB: EventDTO[]): void
   for (const eventFromDB of eventsFromDB)
   {  
     if (Number(eventFromDB.active) === 0) continue
-    if(eventFromDB.duration < 0) continue
+    if (eventFromDB.duration < 0) {
+      console.warn('event in the past %O, skipping %O', eventFromDB.name, eventFromDB)
+      continue
+    }
     const newEvent: Partial<Event> = createEvent(eventFromDB)
     const event = scheduleEvent(newEvent) 
     allEvents.push(event)
@@ -127,19 +131,19 @@ export function removeEvent(eventId: number): void
     event.sched = later.schedule(scheduleData)
     event.next = event.sched.next(1, new Date()) as Date | 0
     const nextsDates = event.sched.next(3, new Date()) as Date[]
-    console.log('nextsDates', nextsDates)
     if(Number(nextsDates) !== 0)
       for (const next of (nextsDates))
         if (next) nexts += `${(formatDistanceStrict(new Date(), next))} `        
     event.distance = event.next !== 0 ? formatDistanceStrict(new Date(), event.next) : ''
     log && console.log('scheduling', event.rule, 'name', payload.name, ' distance:', event.distance)
   } catch (error) {
-    console.log('error in events, later.schedule', error, scheduleData)
+    console.log('error in events, later.schedule', error, scheduleData) 
   }
-  if(event.distance)
-    console.log('scheduleEvent of %O in %O ', (event.payload as any)?.name,  nexts)
-  else
-    console.log('! scheduleEvent of %O There is not', (event.payload as any)?.name)
+   if (event.distance)
+     console.log('scheduleEvent of %O distance %O ', (event.payload as any)?.name, nexts)
+   else 
+     console.warn('! scheduleEvent of %O There is no distance %O', (event.payload as any)?.name, event)
+   
   event.laterTimerHandler = later.setInterval(function ()
   {
     // TODO Que pasa que llama 2 veces si no hago el clear?

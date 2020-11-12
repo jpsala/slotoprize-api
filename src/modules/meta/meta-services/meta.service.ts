@@ -5,12 +5,14 @@ import ParamRequiredException from '../../../error'
 import {queryOne, query} from '../../../db'
 import {GameUser, User} from '../meta.types'
 import { insertWallet } from '../../slot/slot.repo/wallet.repo'
+import { getDefaultLanguage } from '../meta.repo/language.repo'
 
 export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<GameUser> => {
   if (!deviceId) throw createError(400, 'Parameter deviceId missing in getGameUserByDeviceId')
   let user = await getGameUserByDeviceId(deviceId)
   if (!user) {
-    await query(`insert into game_user(device_id) value('${deviceId}')`)
+    const languageCode = await getDefaultLanguage()
+    await query(`insert into game_user(device_id, language_code) value('${deviceId}', '${languageCode.languageCode}')`)
     user = await getGameUserByDeviceId(deviceId)
     await insertWallet(user)
     user.isNew = true

@@ -27,18 +27,13 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   if (!userExists)
     throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
 
-  // let birthDateParts = (String(user.birthDate) || format(new Date(1900, 0, 1), 'yyyy-MM-dd')).split('T')
-  let birthDateParts
-  if (user.birthDate)
-    birthDateParts = String(user.birthDate).split('T')
-  else
-    birthDateParts = format(new Date(1900, 0, 1), 'yyyy-MM-dd').split('T')
-    
-  const birthDate = birthDateParts[0]
-
   const userForSave = <any> snakecaseKeys(user)
-
-  userForSave.birth_date = birthDate
+  
+  if (user.birthDate) {
+    const birthDateParts = String(user.birthDate).split('T')
+    const birthDate = birthDateParts[0]
+    userForSave.birth_date = birthDate
+  }
 
   if (userForSave.ads_free !== undefined) userForSave.adsFree = toBoolean(userForSave.ads_free)
   if(userForSave.tutorial_complete !== undefined) userForSave.tutorial_complete = toBoolean(userForSave.tutorial_complete)

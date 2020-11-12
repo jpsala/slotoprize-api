@@ -88,4 +88,6 @@ router.route('/slot-data').get(slot.slotDataGet)
 router.route('/reset-settings').post(slot.resetSettingsPost)
 router.route('/iap').get(checkToken, slot.iapGet)
 router.route('/sendmail').post(checkToken, slot.sendmail)
+router.route('/localizations_for_crud').get(checkToken, slot.localizationsForCrudGet)
+router.route('/localizations_for_crud').post(checkToken, slot.localizationsForCrudPost)
 export default router

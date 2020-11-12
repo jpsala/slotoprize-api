@@ -7,6 +7,7 @@ import { getNewToken, verifyToken } from '../../services/jwtService'
 import * as metaService from '../meta/meta-services'
 import { getAtlas } from '../meta/meta-services/atlas'
 import { sendMail } from '../meta/meta-services/email.service'
+import { getLocalization, getLocalizations, postLocalizations } from '../meta/meta-services/localization.service'
 import { getWinnersForCrud, postWinnersStatusForCrud } from '../meta/meta-services/winner.service'
 import { gameUserRepo } from '../meta/meta.repo'
 import { getCountries, getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/country.repo'
@@ -415,6 +416,14 @@ export async function iapGet(req: Request, res: Response): Promise<void>{
   const user = await getGameUserByDeviceId(req.query.deviceId as string)
   await setIap(user, adsFree)
   res.status(200).send({status: 'ok'})
+}
+export async function localizationsForCrudGet(req: Request, res: Response): Promise<void>{
+  const localizations = await getLocalizations(req.query.item as string)
+  res.status(200).send(localizations)
+}
+export async function localizationsForCrudPost(req: Request, res: Response): Promise<void>{
+  const localizations = await postLocalizations(req.body.item as string)
+  res.status(200).send(localizations)
 }
 export async function sendmail(req: Request, res: Response): Promise<void>{
   const {to, subject, html} = req.body

@@ -93,6 +93,7 @@ export interface LanguageData {
   languageCode: string;
   textureUrl: string;
   localizationUrl: string;
+  default: boolean;
 }
 export interface RafflePrizeData {
   id: number;

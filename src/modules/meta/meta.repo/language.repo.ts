@@ -10,7 +10,15 @@ import { exec, query, queryOne } from '../../../db'
 import { getUrlWithoutHost, saveFile, urlBase } from '../../../helpers'
 import { LanguageData } from '../meta.types'
 
-
+export const getDefaultLanguage = async (): Promise<LanguageData> => {
+    const row = await queryOne(`
+        select
+            id, language_code as languageCode, texture_url as textureUrl,
+            localization_url as localizationUrl, is_default as 'default'
+        from language where is_default = 1`) as LanguageData
+    if(!row) throw createHttpError(BAD_REQUEST, 'There is no default language')
+    return row
+  }
 export async function getLanguages(): Promise<LanguageData[]> {
     const url = urlBase()
 
