@@ -12,6 +12,7 @@
  - [ ] tutorialComplete new field on game_init, defaults to 0 y va con los booleans abajo
  - [ ] move isDev arriba de banned en game_init
  - [ ] add is_default boolean field to language with default 0 and set to 1 to the default one
+ - [ ] copy localization table
 
 
  
