@@ -36,7 +36,7 @@ export async function tapjoyCallback(
   const verifier = options.verifier
   const stringToHash = `${id}:${userId}:${currency}:${SECRET_KEY}`
   const md5 = crypto.createHash('md5').update(stringToHash).digest("hex")
-
+  if(!['spins', 'coins', 'tickets'].includes(paymentType.toLowerCase())) throw createHttpError(BAD_REQUEST, 'paymentType has to be coins, spins or tickets')
   console.log('log md5 is', md5)
 
   if (!isDev && md5 !== verifier) throw createHttpError(BAD_REQUEST, 'IronSource callback: MD5 does not match')
