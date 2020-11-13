@@ -27,7 +27,7 @@ export async function checkmaintenanceMode(req: Request, res: Response, next: Ne
     throw createHttpError(503, await getLocalization('maintenanceMode', undefined, 'We are in maintenance, we\'ll be back up soon!'))
   
   if (maintenanceMode) {
-    let user: User | GameUser = await getGameUser(decodedToken.id)
+    let user: User | GameUser | undefined = await getGameUser(decodedToken.id)
     if (!user) {
       user = await getUserById(decodedToken.id)
       if(user) user.isDev = true

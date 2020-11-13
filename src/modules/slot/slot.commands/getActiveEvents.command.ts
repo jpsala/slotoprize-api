@@ -1,5 +1,7 @@
 import PubSub from 'pubsub-js'
 import WebSocket from 'ws'
+import createHttpError from 'http-errors'
+import { BAD_REQUEST } from 'http-status-codes'
 import { getActiveEvents } from '../slot.services/events/events'
 import { EventPayload } from '../slot.services/events/event'
 import { getSkin } from '../slot.repo/skin.repo'
@@ -25,6 +27,7 @@ export const runCommand = async (cmd: string, data: Message): Promise<void> => {
     if (pendingMessage) {
       log.yellow('pendingMessage', pendingMessage)
       const user = await getGameUser(Number(userId))
+      if(!user) throw createHttpError(BAD_REQUEST, 'User not found in getActiveEvents command')
       const wallet = await getWallet(user)
       const paymentType = String(pendingMessage.payload.type.toLocaleLowerCase()) + 's'
       const walletAmount = Number(wallet[paymentType])

@@ -1,7 +1,7 @@
 import toCamelCase from 'camelcase-keys'
 import { Request, Response } from 'express'
 import formidable from 'formidable'
-import createError from 'http-errors'
+import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { log } from '../../log'
 import { getNewToken, verifyToken } from '../../services/jwtService'
@@ -122,12 +122,13 @@ export async function rafflePost(req: Request, res: Response): Promise<void>{
   res.status(200).json(resp)
 }
 export async function raffleDelete(req: Request, res: Response): Promise<void>{
-  if(typeof req.query?.id !== 'string') throw createError(BAD_REQUEST, 'Raffle ID is required')
+  if(typeof req.query?.id !== 'string') throw createHttpError(BAD_REQUEST, 'Raffle ID is required')
   const resp = await deleteRaffle(req.query.id)
   res.status(200).json(resp)
 }
 export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any>{
   const user = await getGameUser(req.user.id)
+  if(!user) throw createHttpError(BAD_REQUEST, 'User not found in rafflesPrizeDataGet')
   const resp = await raffleRepo.getRaffles(user, true)
   res.status(200).json(resp)
 }
@@ -176,7 +177,7 @@ export async function authPost(req: Request, res: Response): Promise<any>{
   try
   {
     const user = await metaService.auth(req.body)
-    if (!user) throw createError(createError.BadRequest, 'Email and/or Password not found')
+    if (!user) throw createHttpError(createHttpError.BadRequest, 'Email and/or Password not found')
     // const user = rows.length > 0 ? rows[0] : undefined
     // if (!user) {
     //   return res.status(401).send({auth: false, message: 'Error de credenciales, revise los datos'})

@@ -10,7 +10,7 @@ import getConnection, {queryOne, exec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
 import { log } from '../../../log'
-import { addHostToPath, toBoolean } from './../../../helpers'
+import { addHostToPath } from './../../../helpers'
 import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
 
@@ -72,7 +72,7 @@ export async function getGameUserByDeviceId(deviceId: string): Promise<Partial <
   const user = await queryOne(userSelect, undefined, false) as GameUser
   return user
 }
-export async function getGameUser(userId: number): Promise<GameUser> {
+export async function getGameUser(userId: number): Promise<GameUser | undefined> {
   const userSelect = `
     select *
     from game_user
@@ -86,6 +86,9 @@ export async function getGameUser(userId: number): Promise<GameUser> {
     
   } catch (error) {
     log.error('error en getGameUser', error)
+    return undefined
+    // throw createHttpError(BAD_REQUEST, 'Error en getGameUser')
+    
   }
 }
 export async function getGameUserSpinData(userId: number): Promise<number>
@@ -166,6 +169,7 @@ export async function getHaveWinJackpot(userId: number): Promise<boolean> {
 }
 export async function getHaveProfile(userId: number): Promise<boolean> {
   const profileData = await getGameUser(userId)
+  if(!profileData) throw createHttpError(BAD_REQUEST, 'User not found in getHaveProfile')
   console.log('profileData', profileData)
   return profileData.lastName !== "" &&
          profileData.firstName !== "" &&

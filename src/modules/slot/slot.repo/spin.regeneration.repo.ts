@@ -1,5 +1,5 @@
 import { utc, } from 'moment'
-import { INTERNAL_SERVER_ERROR } from 'http-status-codes'
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import createHttpError from 'http-errors'
 
 import { getSetting } from '../slot.services/settings.service'
@@ -163,7 +163,9 @@ async function spinRegenerationUsersInArray(): Promise<void>
     await updateUserInUsersSpinRegenerationArray(spinRegenerationData)
 }
 export async function testUser39(spins = 1):Promise<void> {
-  userChanged(await getGameUser(39), spins)
+  const user = await getGameUser(39)
+  if(!user) throw createHttpError(BAD_REQUEST, 'User not found in testUser39')
+  userChanged(user , spins)
 }
 export function userChanged(user: GameUser, spins: number): void{
 

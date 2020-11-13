@@ -30,6 +30,8 @@ export async function callback(query: {
   const rewards = Number(query.rewards)
   const user = await getGameUser(Number(userId))
   // const userIsDev = user.isDev
+  if(!user) throw createHttpError(BAD_REQUEST, 'User not found in rafflesPrizeDataGet')
+
   const wallet = await getWallet(user)
   const isNegativeCallback = query.negativeCallback === 'true'
   const stringToHash = `${query.timestamp}${query.EVENT_ID}${query.USER_ID}${query.rewards}${privateKey}`

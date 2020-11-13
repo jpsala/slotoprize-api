@@ -7,7 +7,6 @@ import { BAD_REQUEST } from 'http-status-codes'
 import { exec } from '../../../db'
 import { log } from '../../../log'
 import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
-import { getWallet, updateWallet } from './wallet.service'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 const SECRET_KEY = '6UhYgQU0H8OWd2uILWFH'
 
@@ -39,10 +38,10 @@ export async function tapjoyCallback(
   const md5 = crypto.createHash('md5').update(stringToHash).digest("hex")
 
   console.log('log md5 is', md5)
-    
+
   if (!isDev && md5 !== verifier) throw createHttpError(BAD_REQUEST, 'IronSource callback: MD5 does not match')
 
-  console.log('ID %O, userId %O, currency %O,mac_address %O ', id, userId, currency, mac_address)
+  console.log('tapjoy: ID %O, userId %O, currency %O,mac_address %O ', id, userId, currency, mac_address)
 
   const user = await getGameUser(Number(userId))
  

@@ -44,9 +44,9 @@ export async function appodealCallback(data1?: string, data2?: string, queryPara
   const hashString = queryParams ? false : crypto.createHash('sha1').update(format("user_id=%s&amount=%s&currency=%s&impression_id=%s&timestamp=%s", userId, amount, currency, impressionId, timestamp)).digest('hex')
 
   if(queryParams)
-    console.log('userId %O, amount %O, currency %O', userId, amount, currency)
+    console.log('appodeal: userId %O, amount %O, currency %O', userId, amount, currency)
   else
-    console.log('userId %O, amount %O, currency %O, impressionId %O, timestamp %O hash %o', userId, amount, currency, impressionId, timestamp, hash)
+    console.log('appodeal: userId %O, amount %O, currency %O, impressionId %O, timestamp %O hash %o', userId, amount, currency, impressionId, timestamp, hash)
 
   if (queryParams || (hashString && (<string>hash).toUpperCase() === hashString.toUpperCase())){
     const user = await getGameUser(Number(userId))
