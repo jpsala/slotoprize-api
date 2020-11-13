@@ -20,7 +20,15 @@ export async function tapjoyCallback(
     log.error('Please check the parámeters', options)
     throw createHttpError(BAD_REQUEST, 'Please check the parameters')
   }
-
+/*
+  currency: "1",
+  display_multiplier: "1.0",
+  id: "42f1dba5-a6b0-4158-910f-30be9c6c558d",
+  mac_address: "",
+  secret_key: "6UhYgQU0H8OWd2uILWFH",
+  snuid: "1cbcbb49ac58f788c5ca5d04991098e79d8c24bd1455797ba54b6288015...",
+  verifier: "6c804156e1fb43328c54beefb8a53916"
+*/
   const userId = options.snuid
   const id = options.id
   const currency = options.currency
@@ -31,7 +39,7 @@ export async function tapjoyCallback(
   const md5 = crypto.createHash('md5').update(stringToHash).digest("hex")
 
   console.log('log md5 is', md5)
-  
+    
   if (!isDev && md5 !== verifier) throw createHttpError(BAD_REQUEST, 'IronSource callback: MD5 does not match')
 
   console.log('ID %O, userId %O, currency %O,mac_address %O ', id, userId, currency, mac_address)

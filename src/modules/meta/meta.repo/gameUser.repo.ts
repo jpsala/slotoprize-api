@@ -9,6 +9,7 @@ import * as metaService from '../../meta/meta-services/meta.service'
 import getConnection, {queryOne, exec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
+import { log } from '../../../log'
 import { addHostToPath, toBoolean } from './../../../helpers'
 import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
@@ -76,11 +77,16 @@ export async function getGameUser(userId: number): Promise<GameUser> {
     select *
     from game_user
     where id =${userId}`
-  const user = camelcaseKeys(await queryOne(userSelect)) as GameUser
-  user.tutorialComplete = Number(user.tutorialComplete) === 1
-  if(user)
-    user.wallet = await getWallet(user)
-  return user
+  try {
+    const user = camelcaseKeys(await queryOne(userSelect)) as GameUser
+    user.tutorialComplete = Number(user.tutorialComplete) === 1
+    if(user)
+      user.wallet = await getWallet(user)
+    return user
+    
+  } catch (error) {
+    log.error('error en getGameUser', error)
+  }
 }
 export async function getGameUserSpinData(userId: number): Promise<number>
 {

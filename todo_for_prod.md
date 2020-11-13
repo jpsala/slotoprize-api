@@ -14,6 +14,6 @@
  - [ ] add is_default boolean field to language with default 0 and set to 1 to the default one
  - [ ] copy localization table
  - [ ] delete devicePlataform after pull and verify that the profile post uses device_plataform instead
-
+- [ ] call yarn to update
 
  
