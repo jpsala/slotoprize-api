@@ -37,7 +37,7 @@ import { resetSettings, setSetting } from './slot.services/settings.service'
 import { getSpinSettingsForCrud, setSpinSettingsForCrud } from './slot.services/spinForCrud.service'
 // import {spin} from './slot.services/spin.service'
 import { deleteSymbol, getSymbols, setSymbol, symbolsInDB } from './slot.services/symbol.service'
-import { tapjoyCallback, tapjoyCallbackPlain } from './slot.services/tapjoy'
+import { tapjoyCallback } from './slot.services/tapjoy'
 import { getTicketsSettingsForCrud, postTicketsSettingsForCrud } from "./slot.services/ticketsSettings.service"
 import { getSlotData, getTombolaForCrud, postTombolaForCrud, postWinLoseForTombolaCrudPost } from './slot.services/tombola.service'
 import * as walletService from "./slot.services/wallet.service"

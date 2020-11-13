@@ -1,14 +1,10 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import crypto, { Utf8AsciiLatin1Encoding } from 'crypto'
-import queryString from 'querystring'
-import { format } from 'util'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { exec } from '../../../db'
 import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 import { getWallet, updateWallet } from './wallet.service'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
-export type QueryParams = {user_id: number,  amount: number, paymentType: 'coins' | 'spins' | 'tickets' }
 
 export async function tapjoyCallback(
   options: { id: string, user_id: string, currency: string, mac_address: string },
