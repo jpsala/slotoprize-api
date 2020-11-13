@@ -399,8 +399,9 @@ export async function appodeal(req: Request, res: Response): Promise<void>{
 }
 export async function tapjoy(req: Request, res: Response): Promise<void>{
   // const { 'dev-request': dev } = req.headers
+  console.log('tapjoy', req.query)
   const isDev = req.query.dev === 'true'
-  const resp = await tapjoyCallback(req.query as { id: string, user_id: string, currency: string, mac_address: string }, isDev)
+  const resp = await tapjoyCallback(req.query as { id: string, snuid: string, currency: string, mac_address: string, verifier: string }, isDev)
   res.status(200).send(resp)
 }
 export async function atlasGet(req: Request, res: Response): Promise<any>{
