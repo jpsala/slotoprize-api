@@ -87,7 +87,6 @@ export async function getGameUser(userId: number): Promise<GameUser | undefined>
   } catch (error) {
     log.error('error en getGameUser', error)
     return undefined
-    // throw createHttpError(BAD_REQUEST, 'Error en getGameUser')
     
   }
 }

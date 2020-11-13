@@ -9,7 +9,7 @@ import { log } from '../../../log'
 import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 const SECRET_KEY = '6UhYgQU0H8OWd2uILWFH'
-
+const EXCEPTION_403_FOR_TAPJOY = 403
 export async function tapjoyCallback(
   options: { id: string, snuid: string, currency: string, mac_address: string, verifier: string, paymentType: string },
   isDev = false): Promise<any>
@@ -19,15 +19,6 @@ export async function tapjoyCallback(
     log.error('Please check the parámeters', options)
     throw createHttpError(BAD_REQUEST, 'Please check the parameters')
   }
-/*
-  currency: "1",
-  display_multiplier: "1.0",
-  id: "42f1dba5-a6b0-4158-910f-30be9c6c558d",
-  mac_address: "",
-  secret_key: "6UhYgQU0H8OWd2uILWFH",
-  snuid: "1cbcbb49ac58f788c5ca5d04991098e79d8c24bd1455797ba54b6288015...",
-  verifier: "6c804156e1fb43328c54beefb8a53916"
-*/
   const userId = options.snuid
   const id = options.id
   const currency = options.currency
@@ -36,18 +27,18 @@ export async function tapjoyCallback(
   const verifier = options.verifier
   const stringToHash = `${id}:${userId}:${currency}:${SECRET_KEY}`
   const md5 = crypto.createHash('md5').update(stringToHash).digest("hex")
-  if(!['spins', 'coins', 'tickets'].includes(paymentType.toLowerCase())) throw createHttpError(BAD_REQUEST, 'paymentType has to be coins, spins or tickets')
+  if(!['spins', 'coins', 'tickets'].includes(paymentType.toLowerCase())) throw createHttpError(EXCEPTION_403_FOR_TAPJOY, 'paymentType has to be coins, spins or tickets')
   console.log('log md5 is', md5)
-
-  if (!isDev && md5 !== verifier) throw createHttpError(BAD_REQUEST, 'IronSource callback: MD5 does not match')
+  
+  if (!isDev && md5 !== verifier) throw createHttpError(EXCEPTION_403_FOR_TAPJOY, 'IronSource callback: MD5 does not match')
 
   console.log('tapjoy: ID %O, userId %O, currency %O,mac_address %O ', id, userId, currency, mac_address)
 
   const user = await getGameUser(Number(userId))
  
-  if (!user) throw createHttpError(BAD_REQUEST, 'tapjoy: User not found')
+  if (!user) throw createHttpError(EXCEPTION_403_FOR_TAPJOY, 'tapjoy: User not found')
   
-  if (isDev && !user.isDev) throw createHttpError(BAD_REQUEST, 'User is not authrorized')
+  if (isDev && !user.isDev) throw createHttpError(EXCEPTION_403_FOR_TAPJOY, 'User is not authrorized')
 
   const wsMessage: WebSocketMessage = {
     code: 200,
