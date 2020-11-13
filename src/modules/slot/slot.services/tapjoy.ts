@@ -1,26 +1,35 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable babel/no-unused-expressions */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import crypto from 'crypto'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { exec } from '../../../db'
+import { log } from '../../../log'
 import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 import { getWallet, updateWallet } from './wallet.service'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 const SECRET_KEY = '6UhYgQU0H8OWd2uILWFH'
+
 export async function tapjoyCallback(
-  options: { id: string, snuid: string, currency: string, mac_address: string, verifier: string },
+  options: { id: string, snuid: string, currency: string, mac_address: string, verifier: string, paymentType: string },
   isDev = false): Promise<any>
 {
-  if (!options.snuid || !options.currency || !options.verifier)
-    throw createHttpError(BAD_REQUEST, 'Please check the parámeters')
-    
+  
+  if (!options.snuid || !options.currency || (!isDev && !options.verifier) || !options.paymentType) {
+    log.error('Please check the parámeters', options)
+    throw createHttpError(BAD_REQUEST, 'Please check the parameters')
+  }
+
   const userId = options.snuid
   const id = options.id
   const currency = options.currency
   const mac_address = options.mac_address
+  const paymentType = options.paymentType
   const verifier = options.verifier
   const stringToHash = `${id}:${userId}:${currency}:${SECRET_KEY}`
   const md5 = crypto.createHash('md5').update(stringToHash).digest("hex")
+
   console.log('log md5 is', md5)
   
   if (!isDev && md5 !== verifier) throw createHttpError(BAD_REQUEST, 'IronSource callback: MD5 does not match')
@@ -28,21 +37,18 @@ export async function tapjoyCallback(
   console.log('ID %O, userId %O, currency %O,mac_address %O ', id, userId, currency, mac_address)
 
   const user = await getGameUser(Number(userId))
+ 
   if (!user) throw createHttpError(BAD_REQUEST, 'tapjoy: User not found')
-
-  const wallet = await getWallet(user)
-  const walletAmount = Number(wallet.spins)
-  const newAmount = walletAmount + Number(currency)
-  wallet.spins = newAmount
-  await updateWallet(user, wallet)
+  
+  if (isDev && !user.isDev) throw createHttpError(BAD_REQUEST, 'User is not authrorized')
 
   const wsMessage: WebSocketMessage = {
     code: 200,
     message: 'OK',
     msgType: 'adReward',
     payload: {
-      type: 'spin',
-      currency
+      type: paymentType.slice(0, -1),
+      amount: currency
     }
   }
 

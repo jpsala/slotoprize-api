@@ -3,6 +3,7 @@ import { Request, Response } from 'express'
 import formidable from 'formidable'
 import createError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
+import { log } from '../../log'
 import { getNewToken, verifyToken } from '../../services/jwtService'
 import * as metaService from '../meta/meta-services'
 import { getAtlas } from '../meta/meta-services/atlas'
@@ -399,9 +400,9 @@ export async function appodeal(req: Request, res: Response): Promise<void>{
 }
 export async function tapjoy(req: Request, res: Response): Promise<void>{
   // const { 'dev-request': dev } = req.headers
-  console.log('tapjoy', req.query)
+  log.red.info('tapjoy', req.query)
   const isDev = req.query.dev === 'true'
-  const resp = await tapjoyCallback(req.query as { id: string, snuid: string, currency: string, mac_address: string, verifier: string }, isDev)
+  const resp = await tapjoyCallback(req.query as { id: string, snuid: string, currency: string, mac_address: string, verifier: string, paymentType: string  }, isDev)
   res.status(200).send(resp)
 }
 export async function atlasGet(req: Request, res: Response): Promise<any>{

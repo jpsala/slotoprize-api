@@ -146,7 +146,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
         console.log('sending to specific client', _msg)
         // console.log('sending to specific client', _msg.payload.name, _msg.payload.action)
         client.send(msg)
-      } else {console.log('not sending ws event, tutorial not copleted')}
+      } else {console.log('not sending ws event, tutorial not completed')}
     }
     else
     {
@@ -160,7 +160,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
             console.log('sended to specific client inside send to all')
             client.send(msg)
           } else {console.log('not sending ws event, is for dev only and user is not dev')}
-        } else {console.log('not sending ws event, tutorial not copleted')}
+        } else {console.log('not sending ws event, tutorial not completed')}
       })
     }
 

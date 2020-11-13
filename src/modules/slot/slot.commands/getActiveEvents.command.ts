@@ -4,6 +4,9 @@ import { getActiveEvents } from '../slot.services/events/events'
 import { EventPayload } from '../slot.services/events/event'
 import { getSkin } from '../slot.repo/skin.repo'
 import { exec, queryOne } from '../../../db'
+import { getWallet, updateWallet } from '../slot.services/wallet.service'
+import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
+import { log } from '../../../log'
 import { WebSocketMessage, wsServer } from './../slot.services/webSocket/ws.service'
 
 type Message = { payload: any, client: WebSocket }
@@ -17,10 +20,22 @@ export const runCommand = async (cmd: string, data: Message): Promise<void> => {
   `select jsonMsg from user_on_connect where game_user_id = ${userId}`
   )
   if (pendingMessagesRow) {
+    // solo appodeal y tapjoy
     const pendingMessage = JSON.parse(pendingMessagesRow.jsonMsg as string)
-    // @TODO que diferencia hay entre send y sendtouser
-    if (pendingMessage) wsServer.sendToUser(pendingMessage, Number(userId))
-    await exec(`delete from user_on_connect where game_user_id = ${userId}`)
+    if (pendingMessage) {
+      log.yellow('pendingMessage', pendingMessage)
+      const user = await getGameUser(Number(userId))
+      const wallet = await getWallet(user)
+      const paymentType = String(pendingMessage.payload.type.toLocaleLowerCase()) + 's'
+      const walletAmount = Number(wallet[paymentType])
+      const newAmount = walletAmount + Number(pendingMessage.payload.amount)
+      wallet[paymentType] = newAmount
+      await updateWallet(user, wallet)
+
+      // @TODO que diferencia hay entre send y sendtouser
+      wsServer.sendToUser(pendingMessage, Number(userId))
+      await exec(`delete from user_on_connect where game_user_id = ${userId}`)
+    }
   }
 
   const activeEvents = getActiveEvents().filter(_event => {
