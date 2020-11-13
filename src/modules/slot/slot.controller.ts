@@ -37,6 +37,7 @@ import { resetSettings, setSetting } from './slot.services/settings.service'
 import { getSpinSettingsForCrud, setSpinSettingsForCrud } from './slot.services/spinForCrud.service'
 // import {spin} from './slot.services/spin.service'
 import { deleteSymbol, getSymbols, setSymbol, symbolsInDB } from './slot.services/symbol.service'
+import { tapjoyCallback, tapjoyCallbackPlain } from './slot.services/tapjoy'
 import { getTicketsSettingsForCrud, postTicketsSettingsForCrud } from "./slot.services/ticketsSettings.service"
 import { getSlotData, getTombolaForCrud, postTombolaForCrud, postWinLoseForTombolaCrudPost } from './slot.services/tombola.service'
 import * as walletService from "./slot.services/wallet.service"
@@ -394,6 +395,12 @@ export async function appodeal(req: Request, res: Response): Promise<void>{
     resp = await appodealCallbackPlain(req.body as QueryParams)
   } else
     {resp = await appodealCallback(<string> req.query.data1, <string> req.query.data2)}
+  res.status(200).send(resp)
+}
+export async function tapjoy(req: Request, res: Response): Promise<void>{
+  // const { 'dev-request': dev } = req.headers
+  const isDev = req.query.dev === 'true'
+  const resp = await tapjoyCallback(req.query as { id: string, user_id: string, currency: string, mac_address: string }, isDev)
   res.status(200).send(resp)
 }
 export async function atlasGet(req: Request, res: Response): Promise<any>{

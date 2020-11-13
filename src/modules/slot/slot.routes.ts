@@ -83,6 +83,7 @@ router.route('/country_for_crud').post(formidableMiddleware(), checkToken, slot.
 router.route('/testRegSpinsUSer39').get(slot.testRegSpinsUSer39)
 router.route('/ironsource').get(slot.ironsource)
 router.route('/appodeal').get(slot.appodeal)
+router.route('/tapjoy').get(slot.tapjoy)
 router.route('/atlas').get(slot.atlasGet)
 router.route('/slot-data').get(slot.slotDataGet)
 router.route('/reset-settings').post(slot.resetSettingsPost)
