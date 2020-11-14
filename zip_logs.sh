@@ -4,6 +4,6 @@ echo zip
 rm -f logs.zip
 rm -f error.log.bz2
 zip logs.zip info.log error.log
-echo **********************
+echo "**********************"
 echo listo zip
-echo **********************
+echo "**********************"
