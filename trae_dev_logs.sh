@@ -1,10 +1,11 @@
+echo ssh
 ssh dev "sh /prg/api/bzip_dev_logs.sh"
-echo ################## volví del IAE
-rm info.dev.log 2>/dev/null
-rm error.dev.log 2>/dev/null
+mkdir -p logs.dev
+rm -rf logs.dev/* 2>/dev/null
+rm -rf logs.zip  .
+echo *************************
 echo scp
-scp -C  dev:/prg/api/info.log.bz2  .
-scp -C  dev:/prg/api/error.log.bz2  .
-echo bunzip2
-bunzip2 info.log.bz2 -d ./info.dev.log
-bunzip2 error.log.bz2 -d ./error.dev.log
+echo *************************
+scp -C  dev:/prg/api/logs.zip  .
+echo unzip
+unzip logs.zip -d ./logs.dev
