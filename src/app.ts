@@ -6,6 +6,7 @@ import { HttpError } from 'http-errors'
 import express, { json, Express, Request, Response, NextFunction } from 'express'
 import routes from './routes'
 import './modules/slot/slot.services/events/events'
+import { log } from "./log"
 
 const createApp = (): Express => {
 
@@ -27,6 +28,7 @@ const createApp = (): Express => {
   app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
     if (process.env.NODE_ENV !== 'testing')
       console.error(error)
+    log.error('App catch:', error)
     res.status(error.status || 500).json({ message: error.message })
     next()
   })
