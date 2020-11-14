@@ -58,6 +58,5 @@ export async function tapjoyCallback(
     wsServer.sendToUser(error, userId)
   }
 
-  console.log(`tapjoy user ${user.id}/${user.deviceId}, ${currency}`)
   return { status: 'ok' }
 }

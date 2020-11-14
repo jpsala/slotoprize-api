@@ -46,7 +46,7 @@ export const log = require('ololog').configure({
 
             /*  Writes .error and .warn calls to a separate file   */
 
-                if ((consoleMethod === 'error') || (consoleMethod === 'warn')) 
+                if ((consoleMethod === 'error') || (consoleMethod === 'warn' )) 
 
                     fs.appendFileSync ('error.log', strippedText)
                 
