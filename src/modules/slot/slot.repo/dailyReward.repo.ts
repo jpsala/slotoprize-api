@@ -5,7 +5,7 @@ import { getWallet } from '../slot.services/wallet.service'
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { Wallet } from './../../meta/models/wallet'
 import { GameUser } from './../../meta/meta.types'
-import { query, queryOne, exec } from './../../../db'
+import { query, queryOne, queryExec } from './../../../db'
 import { updateWallet } from './wallet.repo'
 
 export type SpinData = { last: Date, days: number, lastClaim: Date }
@@ -18,7 +18,7 @@ export const getLastSpin = async (user: GameUser): Promise<SpinData | undefined>
 export const setSpinData = async (user: GameUser): Promise<number> => {
   const row = await queryOne(`select * from last_spin where game_user_id = ${user.id}`)
   if (!row)
-    await exec(`insert into last_spin(last,days,game_user_id) values(?,?,?)`,
+    await queryExec(`insert into last_spin(last,days,game_user_id) values(?,?,?)`,
       [new Date(), 0, user.id])
   let days = row?.days ?? 0
   const lastMoment = moment(row?.last ?? new Date())
@@ -29,7 +29,7 @@ export const setSpinData = async (user: GameUser): Promise<number> => {
     days = 0
   else
     days++
-  await exec(`update last_spin set last=?, days=? where game_user_id=?`,
+  await queryExec(`update last_spin set last=?, days=? where game_user_id=?`,
     [new Date(), days, user.id])
   return diff
 }
@@ -53,10 +53,10 @@ export const setDailyRewardPrize = async (reqData: DailyRewardPrize): Promise<nu
   if(reqData.type === '') throw createHttpError(BAD_REQUEST, 'Type has to be coin, ticket or spin')
   if (isNew) {
     delete reqData.id
-    const resp = await exec(`insert into daily_reward set ?`, reqData)
+    const resp = await queryExec(`insert into daily_reward set ?`, reqData)
     return resp.insertId
   }
-  await exec(`update daily_reward set ? where id = ${<number> reqData.id}`, reqData)
+  await queryExec(`update daily_reward set ? where id = ${<number> reqData.id}`, reqData)
   return <number> reqData.id
 }
 export const deleteDailyRewardPrize = async (id: number): Promise<void> => {
@@ -90,7 +90,7 @@ export const dailyRewardClaim = async (deviceId: string): Promise<Partial<Wallet
   console.log('`${userPrize.type}s`', `${userPrize.type}s`, userPrize.amount)
   wallet[`${userPrize.type}s`] += userPrize.amount
   await updateWallet(user, wallet)
-  await exec(`update last_spin set last_claim = ? where game_user_id = ?`, [new Date(), user.id])
+  await queryExec(`update last_spin set last_claim = ? where game_user_id = ?`, [new Date(), user.id])
   // await exec(`update wallet set ${userPrize.type}s = ?`, [wallet[`${userPrize.type}s`]])
   return { coins: wallet.coins, tickets: wallet.tickets, spins: wallet.spins }
 }

@@ -5,7 +5,7 @@ import { BAD_REQUEST } from 'http-status-codes'
 import { getActiveEvents } from '../slot.services/events/events'
 import { EventPayload } from '../slot.services/events/event'
 import { getSkin } from '../slot.repo/skin.repo'
-import { exec, queryOne } from '../../../db'
+import { queryExec, queryOne } from '../../../db'
 import { getWallet, updateWallet } from '../slot.services/wallet.service'
 import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 import { log } from '../../../log'
@@ -37,7 +37,7 @@ export const runCommand = async (cmd: string, data: Message): Promise<void> => {
 
       // @TODO que diferencia hay entre send y sendtouser
       wsServer.sendToUser(pendingMessage, Number(userId))
-      await exec(`delete from user_on_connect where game_user_id = ${userId}`)
+      await queryExec(`delete from user_on_connect where game_user_id = ${userId}`)
     }
   }
 

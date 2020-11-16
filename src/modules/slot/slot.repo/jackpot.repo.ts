@@ -1,7 +1,7 @@
 import { urlBase } from './../../../helpers'
 import { PrizeWinners } from './../slot.services/prizes.service'
 import { GameUser } from './../../meta/meta.types'
-import { query, queryOne, exec } from './../../../db'
+import { query, queryOne, queryExec } from './../../../db'
 export type JackpotState = 'next' | 'live' | 'past'
 export type JackpotData = {
   id?: number;
@@ -60,16 +60,16 @@ export async function cleanLive(data: JackpotData): Promise<JackpotData>
 {
   data.spinCount = 0
   data.repeated++
-  await exec(`update jackpot set spinCount=0, repeated=repeated+1 where id = ?`, [data.id])
+  await queryExec(`update jackpot set spinCount=0, repeated=repeated+1 where id = ?`, [data.id])
   return data
 }
 export async function updateJackpotNextRow(data: JackpotData): Promise<number>{
-  const resp = await exec(`update jackpot set ? where id = ${<number>data.id}`, data)
+  const resp = await queryExec(`update jackpot set ? where id = ${<number>data.id}`, data)
   return resp.affectedRows
 }
 export async function addJackpotNextRow(data: JackpotData): Promise<number>
 {
-  const resp = await exec(`insert into jackpot set ?`, data)
+  const resp = await queryExec(`insert into jackpot set ?`, data)
   return resp.insertId
 }
 export async function getJackpotLiveRow(): Promise<JackpotData | undefined>
@@ -79,7 +79,7 @@ export async function getJackpotLiveRow(): Promise<JackpotData | undefined>
 }
 export const changeState = async (jackpotRow: JackpotData, state: JackpotState): Promise<JackpotData> =>
 {
-  await exec(`update jackpot set state = '${state}' where id = ${jackpotRow.id as number}`)
+  await queryExec(`update jackpot set state = '${state}' where id = ${jackpotRow.id as number}`)
   jackpotRow.state = state
   return jackpotRow
 }

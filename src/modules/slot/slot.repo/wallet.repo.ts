@@ -1,6 +1,6 @@
 import createError from 'http-errors'
 import { INTERNAL_SERVER_ERROR } from 'http-status-codes'
-import { queryOne, exec } from '../../../db'
+import { queryOne, queryExec } from '../../../db'
 import {Wallet} from '../slot.types'
 import { getSetting } from './../slot.services/settings.service'
 import { GameUser } from './../../meta/meta.types'
@@ -14,7 +14,7 @@ export const getWallet = async (user: GameUser): Promise<Wallet> =>
   }
   export async function updateWallet( user: GameUser, wallet: Wallet ): Promise<Wallet> {
   userChanged(user, wallet.spins)
-  const respUpdateRow = await exec(`
+  const respUpdateRow = await queryExec(`
   update wallet
   set coins = ${wallet.coins}, tickets = ${wallet.tickets}, spins = ${wallet.spins}
   where game_user_id = ${user.id}
@@ -32,7 +32,7 @@ Promise<Wallet>
   type WalletDto = Omit<Wallet, 'id'> & { game_user_id: number, id?: number }
     // type WalletDto = {game_user_id: number, coins: number, spins: nu, tickets, id?: number}
   const walletDto: WalletDto = {game_user_id: user.id, coins, spins, tickets}
-  const respInsert = await exec(`insert into wallet set ?`, walletDto)
+  const respInsert = await queryExec(`insert into wallet set ?`, walletDto)
   if (Number(respInsert.insertId) <= 0)
     throw createError( INTERNAL_SERVER_ERROR, 'Something whent wrong storing the wallet' )
   walletDto.id = respInsert.insertId

@@ -48,7 +48,7 @@ export const query = async (select: string, params: string[] = [], camelCase = f
     conn.destroy()
   }
 }
-export const exec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
+export const queryExec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
   const conn = await getConnection()
   try
   {

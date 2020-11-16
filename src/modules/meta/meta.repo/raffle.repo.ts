@@ -8,7 +8,7 @@ import camelcaseKeys from 'camelcase-keys'
 
 import { format} from 'date-fns'
 import moment from "moment"
-import { query, queryOne, exec } from '../../../db'
+import { query, queryOne, queryExec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
 import { addHostToPath, getRandomNumber, getUrlWithoutHost, isNotebook, saveFile , urlBase } from "../../../helpers"
@@ -84,7 +84,7 @@ export async function getRaffles(user: GameUser, onlyLive = false): Promise<Raff
 }
 export async function prizeNotified(raffleId: number): Promise<string> {
   if (isNaN(raffleId)) throw new ParamRequiredException('raffleId')
-  const resp = await exec(`
+  const resp = await queryExec(`
   update raffle_history set notified = 1
     where win = 1 and raffle_id = ${raffleId} and notified = 0
   `)
@@ -181,7 +181,7 @@ export async function getRaffle(id: number,
 export async function saveRaffle(raffle: RafflePrizeData, user: GameUser, tickets: number, amount: number): Promise<number> {
   // TODO validate parameters
   try {
-    const resp = await exec(`
+    const resp = await queryExec(`
       insert into raffle_history(raffle_id, game_user_id, tickets, raffle_numbers) VALUES (?,?,?,?)
     `, [raffle.id, user.id, tickets, amount])
     return resp.insertId
@@ -192,9 +192,9 @@ export async function saveRaffle(raffle: RafflePrizeData, user: GameUser, ticket
 export async function deleteRaffle(id: string): Promise<any>
 {
   const eventData = JSON.stringify({"id": Number(id)})
-  const respEvent = await exec(`delete from event where data = '${eventData}'`)
+  const respEvent = await queryExec(`delete from event where data = '${eventData}'`)
   console.log('respEvent', respEvent, eventData)
-  const resp = await exec(`delete from raffle where id = ${id}`)
+  const resp = await queryExec(`delete from raffle where id = ${id}`)
   console.log('resp', )
   return resp.affectedRows === 1
 }
@@ -239,9 +239,9 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
   let respRaffle
   if (isNew) {
     delete raffleForDB.id
-    respRaffle = await exec(`insert into raffle SET ?`, raffleForDB)
+    respRaffle = await queryExec(`insert into raffle SET ?`, raffleForDB)
   } else {
-    respRaffle = await exec(`update raffle SET ? where id = ${raffleForDB.id}`, raffleForDB)
+    respRaffle = await queryExec(`update raffle SET ? where id = ${raffleForDB.id}`, raffleForDB)
   }
   const raffleId = isNew ? respRaffle.insertId : raffle.id
   console.log('raffleId', raffleId)
@@ -252,12 +252,12 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
         where raffle_id = ${raffleId} and language_code = "${localizationDataRow.language_code}"`)
     if (localizationData?.id) {
       console.log('localizationData', localizationData.id, snakeCaseKeys(localizationDataRow))
-      await exec(`
+      await queryExec(`
         update raffle_localization SET ? where id = ${localizationData.id} `,
         snakeCaseKeys(localizationDataRow)
       )
     } else {
-      await exec(`
+      await queryExec(`
       insert into raffle_localization SET ?`,
       snakeCaseKeys(localizationDataRow)
     )
@@ -268,14 +268,14 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
   if (image) {
     const saveResp = saveFile({ file: image, path: 'raffleItems', id: String(_raffle.id), delete: true })
     if(!saveResp) throw new Error('could not save image for this raffle')
-    await exec(`update raffle set texture_url = ? where id = ${_raffle.id}`, [saveResp.url])
+    await queryExec(`update raffle set texture_url = ? where id = ${_raffle.id}`, [saveResp.url])
     _raffle.textureUrl = saveResp.url
   }
   
   const rule = `{ "type": "cron", "rule": "${dateToRule(new Date(_raffle.closingDate))}" }`
   const eventIdAnt = JSON.stringify({ "id": _raffle.id })
-  await exec(`delete from event where data = '${eventIdAnt}'`)
-  await exec(`insert into event set ? `, [
+  await queryExec(`delete from event where data = '${eventIdAnt}'`)
+  await queryExec(`insert into event set ? `, [
     {
       "eventType": "raffle",
       "name": _raffle.localization[0]?.name,
@@ -321,9 +321,9 @@ export async function raffleTime(raffleId: number): Promise<any> {
     where raffle_id = ${raffleId}
   `)
   if (!purchases || purchases.length < 1) {
-    await exec(`update raffle set state = "nowinner" where id = ${raffleId}`)
+    await queryExec(`update raffle set state = "nowinner" where id = ${raffleId}`)
     const eventData = JSON.stringify({"id": Number(raffleId)})
-    await exec(`delete from event where data = '${eventData}'`)
+    await queryExec(`delete from event where data = '${eventData}'`)
     await reloadRulesFromDb()
     console.log('no purchases, skipping')
     return false
@@ -346,8 +346,8 @@ export async function raffleTime(raffleId: number): Promise<any> {
   const eventDataForDb = JSON.stringify({"id": Number(raffleId)})
   const eventForDeletion = await queryOne(`select id from event where data = '${eventDataForDb}'`)
   
-  await exec(`update raffle set winner = ${raffleWinner.game_user_id}, state = "won" where id = ${raffleId}`)
-  await exec(`update raffle_history set win = 1 where id = ${raffleWinner.id}`)
+  await queryExec(`update raffle set winner = ${raffleWinner.game_user_id}, state = "won" where id = ${raffleId}`)
+  await queryExec(`update raffle_history set win = 1 where id = ${raffleWinner.id}`)
   
   console.log('raffleTime, raffle# %O have a winner!!! %O', raffleId, raffleWinner)
   
@@ -370,7 +370,7 @@ async function sendEventToWinner(userId: number): Promise<void> {
   } else {console.log('raffleTime, user is not connected for the event to be send' )}
 }
 async function saveWinner(raffleHistoryId: number): Promise<void> {
-  await exec(`
+  await queryExec(`
     insert into raffle_wins(raffle_history_id) values(${raffleHistoryId})
   `)
 }

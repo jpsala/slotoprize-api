@@ -3,7 +3,7 @@ import createError from 'http-errors'
 import * as httpStatusCodes from "http-status-codes"
 import snakecaseKeys from 'snakecase-keys'
 import {getGameUserByDeviceId, toTest} from '../../meta/meta.repo/gameUser.repo'
-import {queryOne, exec} from '../../../db'
+import {queryOne, queryExec} from '../../../db'
 import {GameUser} from "../../meta/meta.types"
 import { toBoolean } from '../../../helpers'
 import { sendJackpotWinEvent } from './jackpot.service'
@@ -43,7 +43,7 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   delete userForSave.banned
   delete userForSave.session_token
 
-  await exec(`update game_user set ? where device_id = '${user.deviceId}'`, userForSave)
+  await queryExec(`update game_user set ? where device_id = '${user.deviceId}'`, userForSave)
 
   const updatedUser = gameUserToProfile(await getGameUserByDeviceId(user.deviceId)) as any
   await sendWinJackpotEventIfCorrespond(updatedUser)

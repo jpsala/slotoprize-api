@@ -1,5 +1,5 @@
 import { spinRegenerationInit } from '../slot.repo/spin.regeneration.repo'
-import { query, exec } from './../../../db'
+import { query, queryExec } from './../../../db'
 type Setting = {id?: number, name: string, value: string, description: string}
 let settings: Setting[] = []
 
@@ -12,7 +12,7 @@ export const getSetting = async (key: string, defaultValue: string): Promise<str
   const setting = settings.find(_setting => _setting.name.toUpperCase() === key.toUpperCase()) as Setting
   if (setting === undefined && defaultValue !== undefined) {
     console.warn('SettingValue for ', key, 'not found, inserting  a default value of ', defaultValue)
-    const respInsert = (await exec('insert into setting(name, value) values (?, ?)', [key, defaultValue]))
+    const respInsert = (await queryExec('insert into setting(name, value) values (?, ?)', [key, defaultValue]))
     settings.push({id: respInsert.insertId, name: key, value: defaultValue, description: ''})
     return defaultValue
   }
@@ -23,10 +23,10 @@ export const setSetting = async (key: string, value : string): Promise<void> => 
   const setting = settings.find(_setting => _setting.name === key) as Setting
   //if (setting && setting.value === value) don't do anything
   if (setting && setting.value !== value) {
-    await exec(`update setting set value = '${value}' where name = '${key}'`)
+    await queryExec(`update setting set value = '${value}' where name = '${key}'`)
     setting.value = value
   } else if (setting === undefined) {
-    const respInsert = await exec(`insert into setting(value, name) values('${value}', '${key}')`)
+    const respInsert = await queryExec(`insert into setting(value, name) values('${value}', '${key}')`)
     settings.push({ id: respInsert.insertId, name: key, value: value, description: '' })
   }
   if (['lapseForSpinRegeneration', 'maxSpinsForSpinRegeneration', 'spinsAmountForSpinRegeneration'].includes(key)) 

@@ -4,7 +4,7 @@ import createHttpError from 'http-errors'
 import { getWallet, updateWallet } from '../wallet.service'
 import { WebSocketMessage, wsServer } from '../webSocket/ws.service'
 import { getGameUser } from '../../../meta/meta.repo/gameUser.repo'
-import { queryOne, exec, query } from './../../../../db'
+import { queryOne, queryExec, query } from './../../../../db'
 
 export async function callback(query: {
     USER_ID: string;
@@ -99,7 +99,7 @@ const setAndGetIronSourceEvent = async (eventId: string, userId: number, currenc
   const resp = await queryOne(`select * from iron_source where eventId = '${eventId}'`)
   if (!resp) {
     console.log('saving event in iron_source', eventId, userId, currency, rewards, deliveryType, adProvider)
-    await exec(`insert into iron_source(eventId, userID, currency, rewards, deliveryType, adProvider)
+    await queryExec(`insert into iron_source(eventId, userID, currency, rewards, deliveryType, adProvider)
       values(?,?,?,?,?,?)`, [eventId, userId, currency, rewards, deliveryType, adProvider])
     }
   return Boolean(resp)

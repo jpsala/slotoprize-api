@@ -7,7 +7,7 @@ import Spritesmith from 'spritesmith'
 import pixelsmith from 'pixelsmith'
 import { publicPath, urlBase } from '../../../helpers'
 import { buildSymbolsAtlas } from '../../slot/slot.services/symbol.service'
-import { queryOne, exec } from '../../../db'
+import { queryOne, queryExec } from '../../../db'
 
 export type AtlasSpriteCoordinates = {
   height: number,
@@ -90,11 +90,11 @@ export async function saveAtlasToDB(data: Atlas): Promise<void> {
   const jsonData = JSON.stringify(data)
   let resp
   if (atlasInDB)
-    resp = await exec(`
+    resp = await queryExec(`
       update atlas set json = ? where name = ?
     `, [jsonData, data.name])
   else
-    resp = await exec(`
+    resp = await queryExec(`
       insert into atlas(name, json) values(?, ?)
     `, [data.name, jsonData])
   console.log('atlas saved to DB', resp )

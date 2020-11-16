@@ -6,7 +6,7 @@ import camelcaseKeys from 'camelcase-keys'
 // import createError from 'http-errors'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
-import { exec, query, queryOne } from '../../../db'
+import { queryExec, query, queryOne } from '../../../db'
 import { getUrlWithoutHost, saveFile, urlBase } from '../../../helpers'
 import { LanguageData } from '../meta.types'
 
@@ -35,13 +35,13 @@ export async function getLanguages(): Promise<LanguageData[]> {
     return localizationData
 }
 export async function toggleDeleteLanguageForCrud(languageId: string): Promise<any> {
-    const data = await exec(`update language set deleted = if(deleted = 1, 0, 1) where id = ${languageId}`)
+    const data = await queryExec(`update language set deleted = if(deleted = 1, 0, 1) where id = ${languageId}`)
     return data.affectedRows
 }
 export async function deleteLanguageForCrud(languageId: string): Promise<any> {
     let data
     try {
-        data = await exec(`delete from language where id = ${languageId}`)
+        data = await queryExec(`delete from language where id = ${languageId}`)
     } catch (err) {
         if (err.message.includes('game_user_language_language_code_fk'))
             throw createHttpError(BAD_REQUEST, 'Language can not be deleted, it is assigned to one or more users')

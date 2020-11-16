@@ -4,7 +4,7 @@
 import crypto from 'crypto'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
-import { exec } from '../../../db'
+import { queryExec, queryOne } from '../../../db'
 import { log } from '../../../log'
 import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
@@ -19,6 +19,7 @@ export async function tapjoyCallback(
     log.error('Please check the parámeters', options)
     throw createHttpError(BAD_REQUEST, 'Please check the parameters')
   }
+
   const userId = options.snuid
   const id = options.id
   const currency = options.currency
@@ -30,7 +31,7 @@ export async function tapjoyCallback(
   if(!['spins', 'coins', 'tickets'].includes(paymentType.toLowerCase())) throw createHttpError(EXCEPTION_403_FOR_TAPJOY, 'paymentType has to be coins, spins or tickets')
   console.log('log md5 is', md5)
   
-  if (!isDev && md5 !== verifier) throw createHttpError(EXCEPTION_403_FOR_TAPJOY, 'IronSource callback: MD5 does not match')
+  if (!isDev && md5 !== verifier) throw createHttpError(EXCEPTION_403_FOR_TAPJOY, 'tapjoy callback: MD5 does not match')
 
   console.log('tapjoy: ID %O, userId %O, currency %O,mac_address %O ', id, userId, currency, mac_address)
 
@@ -40,6 +41,8 @@ export async function tapjoyCallback(
   
   if (isDev && !user.isDev) throw createHttpError(EXCEPTION_403_FOR_TAPJOY, 'User is not authrorized')
 
+  await validateTapjoyID(id, userId, paymentType, currency)
+  
   const wsMessage: WebSocketMessage = {
     code: 200,
     message: 'OK',
@@ -51,7 +54,7 @@ export async function tapjoyCallback(
   }
 
   try {
-    await exec(`
+    await queryExec(`
       insert into user_on_connect(game_user_id, jsonMsg) values(?, ?)
     `, [userId, JSON.stringify(wsMessage)])
   } catch (error) {
@@ -59,4 +62,15 @@ export async function tapjoyCallback(
   }
 
   return { status: 'ok' }
+}
+
+async function validateTapjoyID(id: string, userId: string, paymentType: string, currency: string) {
+  const tapjoyRow = await queryOne(`
+    select * from tapjoy where tapjoy_id = ?
+  `, [id])
+  if (tapjoyRow)
+    throw createHttpError(EXCEPTION_403_FOR_TAPJOY, 'tapjoy: duplicate transaction')
+  await queryExec(`
+    insert into tapjoy(user_id, tapjoy_id, payment_type, amount) values(?,?,?,?)
+  `, [userId, id, paymentType, currency])
 }

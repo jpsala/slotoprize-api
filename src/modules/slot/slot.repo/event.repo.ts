@@ -8,13 +8,13 @@ import { BAD_REQUEST } from 'http-status-codes'
 import { format } from 'date-fns'
 import { getRandomNumber, getUrlWithoutHost, addHostToPath } from './../../../helpers'
 import { processEvents } from './../slot.services/events/events'
-import { exec, query } from './../../../db'
+import { queryExec, query } from './../../../db'
 import { EventDTO, Event  } from './../slot.services/events/event'
 import * as eventsService from './../slot.services/events/events'
 // #endregion
 
 export async function addEvent(eventRule: EventDTO): Promise<void> {
-  await exec('insert into event set ?', eventRule)
+  await queryExec('insert into event set ?', eventRule)
   processEvents([eventRule])
 }
 export async function getEvents(eventId?: number, onlyGeneric = false): Promise<Event[]> {
@@ -91,7 +91,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   eventDto.notificationTextureUrl = getUrlWithoutHost(<string>eventDto.notificationTextureUrl)
   eventDto.popupTextureUrl = getUrlWithoutHost(<string>eventDto.popupTextureUrl) 
 
-  const resp = await exec(`REPLACE into event set ?`, <any>eventDto)
+  const resp = await queryExec(`REPLACE into event set ?`, <any>eventDto)
   
   removeActualImage(files?.notificationFile, resp.insertId, 'notification')
   removeActualImage(files?.popupFile, resp.insertId, 'popup')
@@ -105,7 +105,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
   eventDto.notificationTextureUrl = notificationFile ?? eventDto.notificationTextureUrl
   eventDto.particlesTextureUrl = particlesFile ?? eventDto.particlesTextureUrl
   if (isNew) eventDto.id = resp.insertId
-  await exec(`REPLACE into event set ?`, <any>eventDto)
+  await queryExec(`REPLACE into event set ?`, <any>eventDto)
   const rulesFromDB = await query('select * from event where id = '+eventDto.id)
   processEvents(rulesFromDB)
 
@@ -144,7 +144,7 @@ export async function setEvent(eventDto: EventDto, files: { notificationFile?: a
 export async function deleteEvent(id: number): Promise<boolean> {
   console.log('eventRepo.deleteEvent id:%o', id )
   eventsService.removeEvent(id)
-  const respDelete = await exec(`
+  const respDelete = await queryExec(`
     delete from event where id = ${id}
   `)
   return respDelete.affectedRows === 1

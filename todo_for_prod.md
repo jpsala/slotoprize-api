@@ -15,5 +15,6 @@
  - [ ] copy localization table
  - [ ] delete devicePlataform after pull and verify that the profile post uses device_plataform instead
 - [ ] call yarn to update
+- [ ] apt install zip
 
  

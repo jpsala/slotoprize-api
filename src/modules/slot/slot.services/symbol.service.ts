@@ -4,7 +4,7 @@ import path, { basename, extname, join } from 'path'
 import toCamelCase from 'camelcase-keys'
 import createHttpError from "http-errors"
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "http-status-codes"
-import { query, exec } from '../../../db'
+import { query, queryExec } from '../../../db'
 import { Atlas, AtlasSprite, buildAtlas, saveAtlasToDB } from "../../meta/meta-services/atlas"
 import { urlBase , getRandomNumber, addHostToPath, getUrlWithoutHost, publicPath } from './../../../helpers'
 
@@ -62,13 +62,13 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
   let symbolId
 
   if (isNew) {
-    resp = await exec(`insert into symbol set ?`, <any>symbolDto)
+    resp = await queryExec(`insert into symbol set ?`, <any>symbolDto)
     symbolId = resp.insertId
     removeActualImage(files?.image, symbolId)
   }
   else {
     console.log('symbolDto', symbolDto)
-    resp = await exec(`update symbol set ? where id = ${symbolDto.id}`, <any>symbolDto)
+    resp = await queryExec(`update symbol set ? where id = ${symbolDto.id}`, <any>symbolDto)
     symbolId = symbolDto.id
 
   }
@@ -79,7 +79,7 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
 
   if (isNew)
     symbolDto.id = symbolId
-    await exec(`update symbol set ?  where id = ${symbolDto.id}`, <any>symbolDto)
+    await queryExec(`update symbol set ?  where id = ${symbolDto.id}`, <any>symbolDto)
     symbolDto.texture_url = addHostToPath(symbolDto.texture_url)
 
   return toCamelCase(symbolDto)

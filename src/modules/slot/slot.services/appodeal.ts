@@ -4,7 +4,7 @@ import queryString from 'querystring'
 import { format } from 'util'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
-import { exec } from '../../../db'
+import { queryExec } from '../../../db'
 import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 export type QueryParams = {user_id: number,  amount: number, paymentType: 'coins' | 'spins' | 'tickets' }
@@ -66,7 +66,7 @@ export async function appodealCallback(data1?: string, data2?: string, queryPara
     // console.log('sended to user', userId)
 
     try {
-      await exec(`
+      await queryExec(`
         insert into user_on_connect(game_user_id, jsonMsg) values(?, ?)
       `, [userId, JSON.stringify(wsMessage)])
       // wsServer.sendToUser(wsMessage, Number(userId))

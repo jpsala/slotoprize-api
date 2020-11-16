@@ -4,7 +4,7 @@ import createError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
 import { getUrlWithoutHost, saveFile, urlBase } from '../../../helpers'
-import { query, queryOne, exec } from './../../../db'
+import { query, queryOne, queryExec } from './../../../db'
 
 // #endregion
 export interface Skin {
@@ -57,7 +57,7 @@ export async function postSkinForCrud(fields, files): Promise<any> {
     if (!fields.machineBgColor) fields.machineBgColor = ''  
     if (isNew) {
         delete fields.id
-        const respQuery = await exec('insert into skin set ?', fields)
+        const respQuery = await queryExec('insert into skin set ?', fields)
         skinId = respQuery.insertId
     } else {
         skinId = fields.id
@@ -86,7 +86,7 @@ export async function postSkinForCrud(fields, files): Promise<any> {
     return camelcaseKeys(respSkin)
 }
 export async function deleteSkinForCrud(skinId: string): Promise<any> {
-    const data = await exec(`delete from skin where id = ${skinId}`)
+    const data = await queryExec(`delete from skin where id = ${skinId}`)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return data.affectedRows
 }

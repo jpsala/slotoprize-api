@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
-import {queryOne, exec, query} from '../../../db'
+import {queryOne, queryExec, query} from '../../../db'
 import { getLanguage } from '../meta.repo/gameUser.repo'
 import { getDefaultLanguage } from '../meta.repo/language.repo'
 
@@ -18,7 +18,7 @@ export const getLocalization = async (item: string, userId?: number, defaultText
   `, [defaultLanguage.id, item]) as { text: string }
   if (!row)
     if (defaultText) {
-      await exec(`insert into localization(item,language_id,text) values(?, ?, ?)`,
+      await queryExec(`insert into localization(item,language_id,text) values(?, ?, ?)`,
         [item, defaultLanguage.id, defaultText]
       )
       return defaultText
@@ -36,7 +36,7 @@ export const getLocalizations = async (item: string): Promise<Localization[]> =>
     return rows
 }
 export const postLocalizations = async (item: {text: string, id: number, languageId: number}): Promise<any> => {
-  const resp = await exec(
+  const resp = await queryExec(
     `update localization set text = ? where id = ?`,
     [item.text, item.id]
   )

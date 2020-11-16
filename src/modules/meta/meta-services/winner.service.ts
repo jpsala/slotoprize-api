@@ -1,4 +1,4 @@
-import { exec, query } from "../../../db"
+import { queryExec, query } from "../../../db"
 import { getSetting } from "../../slot/slot.services/settings.service"
 import { getGameUserByDeviceId } from "../meta.repo/gameUser.repo"
 
@@ -40,13 +40,14 @@ const data = await query(select)
   for (const row of data) 
     row.player = await getGameUserByDeviceId(row.device_id)
   
-  return data
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return data
 }
 export const postWinnersStatusForCrud = async (items: any[], state: string ): Promise<any> => {
   console.log('items', items)
   for (const item of items) 
     if (item.origin === 'Jackpot') 
-      await exec(`update jackpot_win set state = '${state}' where id = ${<number>item.id}`)  
+      await queryExec(`update jackpot_win set state = '${state}' where id = ${<number>item.id}`)  
     else
-      await exec(`update raffle set state = '${state}' where id = ${<number>item.id}`)  
+      await queryExec(`update raffle set state = '${state}' where id = ${<number>item.id}`)  
 }

@@ -6,7 +6,7 @@ import { RowDataPacket } from 'mysql2'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import * as metaService from '../../meta/meta-services/meta.service'
-import getConnection, {queryOne, exec, query } from '../../../db'
+import getConnection, {queryOne, queryExec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
 import { log } from '../../../log'
@@ -23,7 +23,7 @@ export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: D
     const date = new Date()
     console.log('date utc', date, new Date())
     date.setSeconds(date.getSeconds() - spinRatioTimerPlus1)
-    await exec(`insert into game_user_spin set ?`,
+    await queryExec(`insert into game_user_spin set ?`,
       {
         "game_user_id": user.id,
         "spinCount": 0,
@@ -106,7 +106,7 @@ export async function setGameUserSpinData(userId: number): Promise<number>
       "game_user_id": userId,
       "spinCount": 0
     }
-    await exec(`
+    await queryExec(`
       replace into game_user_spin set ?`, {
         "id": spinCountResp ? spinCountResp.id : null,
         "game_user_id": userId,
@@ -156,8 +156,8 @@ export async function getHaveWinRaffle(userId: number): Promise<boolean> {
   return Number(winData.win) > 0
 }
 export async function resetPendingPrize(userId: number): Promise<void> {
-  await exec(`update raffle_history set notified = 1 where game_user_id = ${userId}`)
-  await exec(`update jackpot_win set notified = 1 where game_user_id = ${userId}`)
+  await queryExec(`update raffle_history set notified = 1 where game_user_id = ${userId}`)
+  await queryExec(`update jackpot_win set notified = 1 where game_user_id = ${userId}`)
 }
 export async function getHaveWinJackpot(userId: number): Promise<boolean> {
   const winData = await queryOne(`
@@ -185,13 +185,13 @@ export async function delUser(deviceId: string): Promise < void > {
   const user = await getGameUserByDeviceId(deviceId)
   if(!user) return
   const {id} = user
-  await exec(`
+  await queryExec(`
     delete from game_user_login where game_user_id = ${id}
   `)
-  await exec(`
+  await queryExec(`
     delete from wallet where game_user_id = ${id}
   `)
-  await exec(`
+  await queryExec(`
     delete from game_user  where id = ${id}
   `)
 }
@@ -236,7 +236,7 @@ export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Pro
 export async function setGameUserLogin(deviceId: string): Promise<any>
 {
   const gameUser = await getGameUserByDeviceId(deviceId)
-  await exec(`
+  await queryExec(`
     replace into game_user_login set ?
   `,
     {
@@ -250,7 +250,7 @@ export async function setLanguageCode(userId: number, languageCode: string): Pro
   const qry = `
     update game_user set language_code = '${languageCode}'
     where id = ${userId}`
-  await exec(qry)
+  await queryExec(qry)
   // const resp = await exec(qry)
   // const changed=resp.affectedRows === 1 ? 'changed' : 'dont\' changed'
   return { languageCode }
@@ -272,7 +272,7 @@ export const getPlayerForFront = async (id: string): Promise<any> =>
 export const postToggleBanForCrud = async (userId: number): Promise<any> => {
   const resp = await queryOne(`select banned from game_user where id = ${userId}`)
   const banned: number = Number(resp.banned) === 1 ? 0 : 1
-  await exec(`update game_user set banned = ${banned} where id = ${userId}`)
+  await queryExec(`update game_user set banned = ${banned} where id = ${userId}`)
   return banned
 }
 export const getPlayersForFront = async (filter: string): Promise < any > => {
@@ -290,12 +290,12 @@ for (const user of players)
   return { players, maxAllowedBirthYear }
 }
 export const markGameUserForEventWhenProfileGetsFilled = async (user: GameUser, jackpotId: number): Promise<void> => {
-  await exec(`
+  await queryExec(`
     update game_user set sendWinJackpotEventWhenProfileFilled = ${jackpotId} where id = ${user.id}
   `)
 }
 export const unMarkGameUserForEventWhenProfileGetsFilled = async (user: GameUser): Promise<void> => {
-  await exec(`
+  await queryExec(`
     update game_user set sendWinJackpotEventWhenProfileFilled = null where id = ${user.id}
   `)
 }

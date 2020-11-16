@@ -3,7 +3,7 @@ import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'http-status-codes'
 import createHttpError from 'http-errors'
 
 import { getSetting } from '../slot.services/settings.service'
-import { query, exec } from '../../../db'
+import { query, queryExec } from '../../../db'
 import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
 import { wsServer, WebSocketMessage } from './../slot.services/webSocket/ws.service'
 import { GameUser } from './../../meta/meta.types'
@@ -49,7 +49,7 @@ async function validateAndAddUserToUsersArray(partialSpinRegenerationData: Parti
   const spinRegenerationData = partialSpinRegenerationData as UserSpinRegenerationData
   if (!partialSpinRegenerationData?.spinRegenerationTableId) {
     console.log('Adding record in spins_regeneration', partialSpinRegenerationData.userId, partialSpinRegenerationData, utc(new Date()).format('YYYY-MM-DD HH:mm:ss'))
-    const resp = await exec(`insert into spins_regeneration(game_user_id) values(?)`, [spinRegenerationData.userId])
+    const resp = await queryExec(`insert into spins_regeneration(game_user_id) values(?)`, [spinRegenerationData.userId])
     spinRegenerationData.spinRegenerationTableId = resp.insertId
     if (initSpinRegenerationData) {
       spinRegenerationData.last = new Date()
@@ -83,7 +83,7 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
     console.log('Update user %o spins %o last spin %o now %o rest %o', userSpinRegenerationData.userId, userSpinRegenerationData.spins, lastMoment.format('YYYY-MM-DD HH:mm:ss'), nowMoment.format('YYYY-MM-DD HH:mm:ss'),  `${diff / 1000} Secs`)
     const newUserSpinAmount = userSpinRegenerationData.spins + spinsAmountForSpinRegeneration
     modified = true
-    await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ? `, [
+    await queryExec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ? `, [
       nowMoment.format('YYYY/MM/DD HH:mm:ss'), userSpinRegenerationData.userId
     ])
 
@@ -91,13 +91,13 @@ async function updateUserInUsersSpinRegenerationArray(userSpinRegenerationData: 
     rowInArray.last = new Date()
     rowInArray.spins = newUserSpinAmount
     rowInArray.spinsRegenerated = spinsAmountForSpinRegeneration
-    await exec(`update spins_regeneration set ? where id = ${userSpinRegenerationData.spinRegenerationTableId}`, {
+    await queryExec(`update spins_regeneration set ? where id = ${userSpinRegenerationData.spinRegenerationTableId}`, {
       id: String(userSpinRegenerationData.spinRegenerationTableId),
       game_user_id: userSpinRegenerationData.userId,
       lastRegeneration: userSpinRegenerationData.last
     })
     // TODO ver si actualizar abajo o llamar a un método de wallet o gameUser
-    await exec(`update wallet set spins = ? where game_user_id = ?`, [
+    await queryExec(`update wallet set spins = ? where game_user_id = ?`, [
       String(newUserSpinAmount),
       String(userSpinRegenerationData.userId)
     ])
@@ -140,7 +140,7 @@ export async function shutDown():Promise<void>{
 async function saveSpinRegenerationDataToDB(){
   for (const row of usersSpinRegenerationArray)
     if(row.dirty){
-      await exec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ?`,
+      await queryExec(`update spins_regeneration set lastRegeneration = ? where game_user_id = ?`,
         [row.last, row.userId])
       row.dirty = false
     }
