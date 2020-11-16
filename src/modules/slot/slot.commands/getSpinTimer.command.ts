@@ -10,7 +10,8 @@ import { getSetting } from './../slot.services/settings.service'
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const runCommand = async (cmd: string, data: any): Promise<void> => {
-  const userSpinRegenerationData = getUserSpinRegenerationData(data.client.userId)
+  const userSpinRegenerationData = getUserSpinRegenerationData(data.client.user.id)
+  console.log('userSpinRegenerationData', userSpinRegenerationData, data.client.user.id)
   const client: ExtWebSocket = data.client
   const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10'))
   const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10')) * 1000
