@@ -20,3 +20,12 @@ tutorialComplete = false {
  - [x]  en game-init Devuelvo dailyRewardClaimed en true
  - [x]  en game-init devuevo  0 0 y 1 spin
 }
+
+
+- [ ] cambiamos login info por stats
+- [ ] agregamos total spins played
+- [ ] support scroll
+- [ ] Backend: #107, #116, #117, #118, 
+- [ ] Backoffice: #58, #60, #61, #63, #64
+
+

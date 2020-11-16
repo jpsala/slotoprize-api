@@ -17,5 +17,6 @@
 - [ ] call yarn to update
 - [ ] apt install zip
 - [ ] copy tapjoy table to db
+- [ ] agregar localizations to live
 
  
