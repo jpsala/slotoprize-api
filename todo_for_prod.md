@@ -9,14 +9,14 @@
  
  skin no se actuaza el skin
 
- - [ ] tutorialComplete new field on game_init, defaults to 0 y va con los booleans abajo
- - [ ] move isDev arriba de banned en game_init
- - [ ] add is_default boolean field to language with default 0 and set to 1 to the default one
- - [ ] copy localization table
+ - [x] tutorialComplete new field on game_init, defaults to 0 y va con los booleans abajo
+ - [x] move isDev arriba de banned en game_init
+ - [x] add is_default boolean field to language with default 0 and set to 1 to the default one
+ - [ x copy localization table
+- [x] copy tapjoy table to db
+- [x] agregar localizations to live
  - [ ] delete devicePlataform after pull and verify that the profile post uses device_plataform instead
 - [ ] call yarn to update
 - [ ] apt install zip
-- [ ] copy tapjoy table to db
-- [ ] agregar localizations to live
 
  
