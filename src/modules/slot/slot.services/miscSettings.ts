@@ -18,7 +18,6 @@ export async function getMiscSettingsForCrud(): Promise<any> {
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postMiscSettingsForCrud(settings: any): Promise<any> {
-  console.log('settings', settings)
   await setSetting('gameVersion', settings.gameVersion)
   await setSetting('spinRatioTimer', settings.spinTimeThreshold)
   await setSetting('maintenanceMode', settings.maintenanceMode ? '1' : '0')
