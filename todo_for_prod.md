@@ -15,8 +15,8 @@
  - [ x copy localization table
 - [x] copy tapjoy table to db
 - [x] agregar localizations to live
- - [ ] delete devicePlataform after pull and verify that the profile post uses device_plataform instead
-- [ ] call yarn to update
-- [ ] apt install zip
+- [x] call yarn to update
+- [x] apt install zip
 
+ - [ ] delete devicePlataform after pull and verify that the profile post uses device_plataform instead
  
