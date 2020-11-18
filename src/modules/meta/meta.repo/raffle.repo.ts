@@ -147,7 +147,7 @@ export async function getRafflesForCrud(id?: number)
 
     const url = urlBase()
     const languages = await query(`select id, language_code,
-        concat('${url}',texture_url) as texture_url,concat('${url}',localization_url) as localization_url
+        concat('${url}',texture_url) as texture_url
          from language`)
     return { raffles, languages, newRaffle }
   }

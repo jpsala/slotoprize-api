@@ -14,7 +14,7 @@ export const getDefaultLanguage = async (): Promise<LanguageData> => {
     const row = await queryOne(`
         select
             id, language_code as languageCode, texture_url as textureUrl,
-            localization_url as localizationUrl, is_default as 'default'
+            is_default as 'default'
         from language where is_default = 1`) as LanguageData
     if(!row) throw createHttpError(BAD_REQUEST, 'There is no default language')
     return row
@@ -25,8 +25,7 @@ export async function getLanguages(): Promise<LanguageData[]> {
     const localizationData = await query(
         `
     select id, language_code,
-      concat('${url}', texture_url) as texture_url,
-      concat('${url}', localization_url) as localization_url
+      concat('${url}', texture_url) as texture_url
     from  language where deleted = 0
   `,
         undefined,
@@ -51,13 +50,11 @@ export async function deleteLanguageForCrud(languageId: string): Promise<any> {
 }
 export async function getLanguagesForCrud(): Promise<any> {
     const url = urlBase()
-    const data = await query(
-        `
-    select id, language_code,
-    concat('${url}', texture_url) as texture_url,
-    concat('${url}', localization_url) as localization_url, deleted, is_default
-     from  language
-  `,
+    const data = await query(`
+        select id, language_code,
+            concat('${url}', texture_url) as texture_url,
+            deleted, is_default
+        from  language`,
         undefined,
         true
     )
@@ -76,14 +73,11 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
     const isNew = fields.isNew
     const localizationFile = files.localizationFile
     const textureFile = files.textureFile
-    fields.localization_url = getUrlWithoutHost(fields.localization_url)
     fields.texture_url = getUrlWithoutHost(fields.texture_url)
     let respQuery
 
     delete fields.isNew
 
-    if (isNew && !(localizationFile || fields.localization_url))
-        throw createHttpError(BAD_REQUEST, 'Select a JSON file please')
     if (isNew && !(textureFile || fields.texture_url))
         throw createHttpError(BAD_REQUEST, 'Select an image please')
     
@@ -95,8 +89,8 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
         respQuery = await query('insert into language set ?', fields)
         languageId = respQuery.insertId
     } else {
-        const { texture_url, localization_url } = await queryOne(
-            `select texture_url, localization_url from language where id = ${fields.id}`
+        const { texture_url} = await queryOne(
+            `select texture_url from language where id = ${fields.id}`
         )
         const localizationPath = '/var/www/html/public/assets/localization'
         if (texture_url && textureFile) {
@@ -106,28 +100,11 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
             )
             if (existsSync(textureFileToDelete)) unlinkSync(textureFileToDelete)
         }
-        if (localization_url && localizationFile) {
-            const localizationFileToDelete = join(
-                localizationPath,
-                basename(localization_url)
-            )
-            if (existsSync(localizationFileToDelete))
-                unlinkSync(localizationFileToDelete)
-        }
 
         await query(`update language set ? where id = ${fields.id}`, fields)
         languageId = fields.id
     }
 
-    if (localizationFile) {
-        const saveResp = saveFile(
-            { file: localizationFile, path: 'localization', preppend: fields.language_code, id: languageId }
-        )
-        await query(`update language set localization_url = ? where id = ?`, [
-            saveResp.url,
-            languageId
-        ])
-    }
     if (textureFile) {
         const saveResp = saveFile({
             file: textureFile,
@@ -144,8 +121,7 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
     return camelcaseKeys(
         await queryOne(
             `select
-              id, language_code, concat('${url}', texture_url) as texture_url, deleted,
-              concat('${url}', localization_url) as localization_url
+              id, language_code, concat('${url}', texture_url) as texture_url, deleted
             from language where id = ?`,
             [languageId]
         )

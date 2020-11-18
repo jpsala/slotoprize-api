@@ -79,9 +79,11 @@ export async function getGameUser(userId: number): Promise<GameUser | undefined>
     where id =${userId}`
   try {
     const user = camelcaseKeys(await queryOne(userSelect)) as GameUser
+    
     if (user) {
       user.tutorialComplete = Number(user.tutorialComplete) === 1
-      user.wallet = await getWallet(user)
+      if (user)
+        user.wallet = await getWallet(user)
     }
     return user
     

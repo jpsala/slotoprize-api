@@ -1,6 +1,8 @@
+import Axios from 'axios'
+import { database } from 'faker'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
-import {queryOne, queryExec, query} from '../../../db'
+import {queryOne, queryExec, query, queryScalar} from '../../../db'
 import { getLanguage } from '../meta.repo/gameUser.repo'
 import { getDefaultLanguage } from '../meta.repo/language.repo'
 
@@ -42,4 +44,23 @@ export const postLocalizations = async (item: {text: string, id: number, languag
   )
   console.log('resp', resp)
 return resp
+}
+export const updateLocalizationJSON = async (languageCode: string): Promise<void> => {
+  const json = await Axios.get(`
+    https://script.google.com/macros/s/AKfycbzkBJBlnS7HfHMj5rlZvAcLTEuoHHBP6848nJ2mfnBzfQ2xge0w/exec?ssid=1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ&sheet=dev&langCode=${languageCode}
+  `)
+  console.log('resp axios get json', json)
+  if(json && json.data && json.data.msg) throw createHttpError(BAD_REQUEST, json.data.msg)
+  await queryExec(`
+    update language set localization_json = '${escape(JSON.stringify(json.data))}' where language_code = '${languageCode}'
+  `)
+}
+export const getLocalizationJSON = async (languageCode: string): Promise<string> => {
+  console.log('select', `
+  select localization_json from language where language_code = '${languageCode}'
+`)
+  const json = <string> (await queryScalar(`
+    select localization_json from language where language_code = '${languageCode}'
+  `))
+  return unescape(json)
 }

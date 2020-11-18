@@ -92,5 +92,7 @@ router.route('/iap').get(checkmaintenanceMode, checkToken, slot.iapGet)
 router.route('/sendmail').post(checkmaintenanceMode, checkToken, slot.sendmail)
 router.route('/localizations_for_crud').get(checkmaintenanceMode, checkToken, slot.localizationsForCrudGet)
 router.route('/localizations_for_crud').post(checkmaintenanceMode, checkToken, slot.localizationsForCrudPost)
+router.route('/localizations_update_for_crud').post(checkmaintenanceMode, checkToken, slot.updateLocalizationJSONPost)
+router.route('/localization').get(checkmaintenanceMode, checkToken, slot.localization)
 router.route('/language_default_for_crud').post(checkmaintenanceMode, checkToken, slot.languageDefaultForCrudPost)
 export default router

@@ -48,6 +48,11 @@ export const query = async (select: string, params: string[] = [], camelCase = f
     conn.destroy()
   }
 }
+export const queryScalar = async (select: string, params: any = []): Promise<string | undefined> => {
+  const resp = await queryOne(select, params)
+  if(!resp || Object.getOwnPropertyNames(resp).length === 0) return undefined
+  return resp[Object.getOwnPropertyNames(resp)[0]] as string
+}
 export const queryExec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
   const conn = await getConnection()
   try

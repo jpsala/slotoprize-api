@@ -8,7 +8,7 @@ import { getNewToken, verifyToken } from '../../services/jwtService'
 import * as metaService from '../meta/meta-services'
 import { getAtlas } from '../meta/meta-services/atlas'
 import { sendMail } from '../meta/meta-services/email.service'
-import { getLocalizations, postLocalizations } from '../meta/meta-services/localization.service'
+import { getLocalizationJSON, getLocalizations, postLocalizations, updateLocalizationJSON } from '../meta/meta-services/localization.service'
 import { getWinnersForCrud, postWinnersStatusForCrud } from '../meta/meta-services/winner.service'
 import { gameUserRepo } from '../meta/meta.repo'
 import { getCountries, getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/country.repo'
@@ -434,6 +434,14 @@ export async function localizationsForCrudGet(req: Request, res: Response): Prom
 export async function localizationsForCrudPost(req: Request, res: Response): Promise<void>{
   const localizations = await postLocalizations(req.body.item)
   res.status(200).send(localizations)
+}
+export async function updateLocalizationJSONPost(req: Request, res: Response): Promise<void> {
+  await updateLocalizationJSON(req.body.languageCode)
+  res.status(200).send({status: 'ok'})
+}
+export async function localization(req: Request, res: Response): Promise<void> {
+  const resp = await getLocalizationJSON(req.query.languageCode as string)
+  res.status(200).send(resp)
 }
 export async function languageDefaultForCrudPost(req: Request, res: Response): Promise<void>{
   const localizations = await postLanguageDefaultForCrud(Number(req.body.id))
