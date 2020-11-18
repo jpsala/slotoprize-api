@@ -1,4 +1,4 @@
-import { queryExec } from "../../../db"
+mkknjjnnimport { queryExec } from "../../../db"
 import { GameUser } from "../meta.types"
 
 export async function setIap(user: GameUser, adsFree: string): Promise<void> {
