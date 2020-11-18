@@ -15,7 +15,7 @@ import { getCountries, getCountriesForCrud, postCountryForCrud } from '../meta/m
 // import { setReqUser } from '../meta/authMiddleware'
 import { getGameUser, getLoginData, getPlayerForFront, getPlayersForFront, postToggleBanForCrud, setLanguageCode } from '../meta/meta.repo/gameUser.repo'
 import { setIap } from '../meta/meta.repo/iap.service'
-import { deleteLanguageForCrud, getLanguagesForCrud, postLanguageForCrud, toggleDeleteLanguageForCrud } from '../meta/meta.repo/language.repo'
+import { deleteLanguageForCrud, getLanguagesForCrud, postLanguageForCrud, postLanguageDefaultForCrud, toggleDeleteLanguageForCrud } from '../meta/meta.repo/language.repo'
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
 import { deleteRaffle, getRafflesForCrud, postRaffle } from '../meta/meta.repo/raffle.repo'
 import { getSupportRequestForCrud, postSupportAdminForCrud, setSoporte, supportAdminForCrud } from '../meta/meta.repo/support.repo'
@@ -433,6 +433,10 @@ export async function localizationsForCrudGet(req: Request, res: Response): Prom
 }
 export async function localizationsForCrudPost(req: Request, res: Response): Promise<void>{
   const localizations = await postLocalizations(req.body.item)
+  res.status(200).send(localizations)
+}
+export async function languageDefaultForCrudPost(req: Request, res: Response): Promise<void>{
+  const localizations = await postLanguageDefaultForCrud(Number(req.body.id))
   res.status(200).send(localizations)
 }
 export async function sendmail(req: Request, res: Response): Promise<void>{

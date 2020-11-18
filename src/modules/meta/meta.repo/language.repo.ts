@@ -55,13 +55,21 @@ export async function getLanguagesForCrud(): Promise<any> {
         `
     select id, language_code,
     concat('${url}', texture_url) as texture_url,
-    concat('${url}', localization_url) as localization_url, deleted
+    concat('${url}', localization_url) as localization_url, deleted, is_default
      from  language
   `,
         undefined,
         true
     )
     return data
+}
+export const postLanguageDefaultForCrud = async (id: number): Promise<void> => {
+    await queryExec(`
+        update language set is_default = 0 where is_default = 1
+    `)
+    await queryExec(`
+        update language set is_default = 1 where id = ${id}
+    `)
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postLanguageForCrud(fields, files): Promise<any> {

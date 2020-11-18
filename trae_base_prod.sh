@@ -3,14 +3,14 @@ LIVE=slotoprizes
 host=$(hostname)
 if [ $host = $LIVE ]
 then
-        echo "Estoy en el WOPI, CUIDADO!!!!!!!"
+        echo "Estoy en LIVE, CUIDADO!!!!!!!"
         exit
 fi
-echo 'no estoy en slotoprizes'
+echo 'no estoy en live...'
 
 
 now=$(date -d "today" +"%Y%m%d-%H%M")
-echo dump en slotoprizes
+echo dump en slotoprizes.dev
 ssh jpsala@slotoprizes.tagadagames.com "sh /prg/api/dump.sh"
 rm wopidom.dump 2>/dev/null
 echo ################## volví del WOPI

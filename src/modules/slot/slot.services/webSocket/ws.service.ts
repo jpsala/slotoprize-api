@@ -15,7 +15,7 @@ export interface WebSocketMessage
 {
   code: 200 | 400 | 500;
   message: 'OK' | string;
-  msgType: 'events' | 'webSocket' | 'eventsState' | 'spinTimer' | 'getSpinTimer' | 'adReward' | 'jackpotWin' | 'raffleWin';
+  msgType: 'events' | 'webSocket' | 'eventsState' | 'spinTimer' | 'getSpinTimer' | 'adReward' | 'jackpotWin' | 'raffleWin' | 'maintenanceMode';
   payload: EventPayload | any
   isJson?: boolean
   log?: boolean
@@ -134,6 +134,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
   }
   const send = (_msg: WebSocketMessage, client: WebSocket | undefined = undefined): void =>
   {
+    console.log('send', _msg)
     const forDevOnly = _msg.payload.devOnly
     const payload = JSON.stringify(_msg.payload)
     const msgStr = Object.assign({}, _msg) as any
