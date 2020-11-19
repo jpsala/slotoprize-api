@@ -9,6 +9,7 @@ import { BAD_REQUEST } from 'http-status-codes'
 import { queryExec, query, queryOne } from '../../../db'
 import { getUrlWithoutHost, saveFile, urlBase } from '../../../helpers'
 import { LanguageData } from '../meta.types'
+import { getSetting } from '../../slot/slot.services/settings.service'
 
 export const getDefaultLanguage = async (): Promise<LanguageData> => {
     const row = await queryOne(`
@@ -49,16 +50,18 @@ export async function deleteLanguageForCrud(languageId: string): Promise<any> {
     return data?.affectedRows
 }
 export async function getLanguagesForCrud(): Promise<any> {
+    const localizationSpreadsheetUrlDev = await getSetting('localizationSpreadsheetUrlLive', 'https://docs.google.com/spreadsheets/d/1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ/edit#gid=1259474418')
+    const localizationSpreadsheetUrlLive = await getSetting('localizationSpreadsheetUrlLive', 'https://docs.google.com/spreadsheets/d/1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ/edit#gid=1117868095')
     const url = urlBase()
     const data = await query(`
         select id, language_code,
             concat('${url}', texture_url) as texture_url,
-            deleted, is_default
+            deleted, is_default, date_format(updated_at, '%Y-%m-%d %H:%i') as updated_at
         from  language`,
         undefined,
         true
     )
-    return data
+    return { data, localizationSpreadsheetUrlDev, localizationSpreadsheetUrlLive }
 }
 export const postLanguageDefaultForCrud = async (id: number): Promise<void> => {
     await queryExec(`
@@ -71,7 +74,6 @@ export const postLanguageDefaultForCrud = async (id: number): Promise<void> => {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postLanguageForCrud(fields, files): Promise<any> {
     const isNew = fields.isNew
-    const localizationFile = files.localizationFile
     const textureFile = files.textureFile
     fields.texture_url = getUrlWithoutHost(fields.texture_url)
     let respQuery

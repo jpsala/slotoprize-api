@@ -1,8 +1,9 @@
 import Axios from 'axios'
-import { database } from 'faker'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
+import { format } from 'date-fns'
 import {queryOne, queryExec, query, queryScalar} from '../../../db'
+import { getSetting } from '../../slot/slot.services/settings.service'
 import { getLanguage } from '../meta.repo/gameUser.repo'
 import { getDefaultLanguage } from '../meta.repo/language.repo'
 
@@ -45,15 +46,25 @@ export const postLocalizations = async (item: {text: string, id: number, languag
   console.log('resp', resp)
 return resp
 }
-export const updateLocalizationJSON = async (languageCode: string): Promise<void> => {
-  const json = await Axios.get(`
-    https://script.google.com/macros/s/AKfycbzkBJBlnS7HfHMj5rlZvAcLTEuoHHBP6848nJ2mfnBzfQ2xge0w/exec?ssid=1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ&sheet=dev&langCode=${languageCode}
-  `)
-  console.log('resp axios get json', json)
+export const updateLocalizationJSON = async (languageCode: string, environment: string): Promise<string> => {
+  if(!languageCode || !environment) throw createHttpError(BAD_REQUEST, 'languageCode and environment are required parameters')
+  const localizationJsonUrl: string = await getSetting('localizationJsonUrl', 'https://script.google.com/macros/s/AKfycbzkBJBlnS7HfHMj5rlZvAcLTEuoHHBP6848nJ2mfnBzfQ2xge0w/exec?ssid=1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ&sheet=<environment>&langCode=<languageCode>')
+  if(!localizationJsonUrl.includes('<languageCode>')) throw createHttpError(BAD_REQUEST, 'Update URL does not contains <languageCode>')
+  if(!localizationJsonUrl.includes('<environment>')) throw createHttpError(BAD_REQUEST, 'Update URL does not contains <languageCode>')
+  let url = localizationJsonUrl.replace('<languageCode>', languageCode)
+  url = url.replace('<environment>', environment)
+
+  const json = await Axios.get(url)
+
   if(json && json.data && json.data.msg) throw createHttpError(BAD_REQUEST, json.data.msg)
+  const updatedAt: string = format(new Date(), 'yyyy-MM-dd HH:mm:ss')
   await queryExec(`
-    update language set localization_json = '${escape(JSON.stringify(json.data))}' where language_code = '${languageCode}'
+    update language
+      set localization_json = '${escape(JSON.stringify(json.data))}',
+          updated_at = '${updatedAt}'
+      where language_code = '${languageCode}'
   `)
+  return updatedAt
 }
 export const getLocalizationJSON = async (languageCode: string): Promise<any> => {
   const json = <string> (await queryScalar(`

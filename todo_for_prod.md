@@ -19,4 +19,5 @@
 - [x] apt install zip
 
  - [ ] delete devicePlataform after pull and verify that the profile post uses device_plataform instead
+ - [ ] add updated_at field to language table
  
