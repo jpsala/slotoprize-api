@@ -13,7 +13,7 @@ export async function getMiscSettingsForCrud(): Promise<any> {
     spins: await getSetting('initialWalletSpins', '10'),
   }
   console.log('maintenanceMode', maintenanceMode, maintenanceMode === '1')
-  return {gameVersion, signupCount, maintenanceMode: maintenanceMode === '1', wallet, interstitialsRatio, lapseForSpinRegeneration, maxSpinsForSpinRegeneration, localizationJsonUrl, localizationSpreadsheetUrlDev, localizationSpreadsheetUrlLive}
+  return {gameVersion, signupCount, maintenanceMode: maintenanceMode === '1', wallet, interstitialsRatio, lapseForSpinRegeneration, maxSpinsForSpinRegeneration }
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postMiscSettingsForCrud(settings: any): Promise<any> {
