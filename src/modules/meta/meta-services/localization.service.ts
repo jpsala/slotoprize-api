@@ -3,7 +3,7 @@ import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { format } from 'date-fns'
 import {queryOne, queryExec, query, queryScalar} from '../../../db'
-import { getSetting } from '../../slot/slot.services/settings.service'
+import { getSetting, setSetting } from '../../slot/slot.services/settings.service'
 import { getLanguage } from '../meta.repo/gameUser.repo'
 import { getDefaultLanguage } from '../meta.repo/language.repo'
 import { log } from '../../../log'
@@ -74,4 +74,14 @@ export const getLocalizationJSON = async (languageCode: string): Promise<any> =>
   if(!json) throw createHttpError(BAD_REQUEST, 'There is no localization for ' + languageCode)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return JSON.parse(unescape(json))
+}
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const postSettingsForLocalization = async (settings: any): Promise<any> => {
+  const localizationJsonUrl: string = settings.localizationJsonUrl
+  if(!localizationJsonUrl.includes('<languageCode>')) throw createHttpError(BAD_REQUEST, 'localizationJsonUrl bad formed, please include <languageCode> where the parameter while be inserted')
+  console.log('localizationJsonUrl', localizationJsonUrl)
+  await setSetting('localizationJsonUrl', localizationJsonUrl)
+  await setSetting('localizationSpreadsheetUrlDev', settings.localizationSpreadsheetUrlDev)
+  await setSetting('localizationSpreadsheetUrlLive', settings.localizationSpreadsheetUrlLive)
+
 }

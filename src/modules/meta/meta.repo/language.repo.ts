@@ -52,6 +52,7 @@ export async function deleteLanguageForCrud(languageId: string): Promise<any> {
 export async function getLanguagesForCrud(): Promise<any> {
     const localizationSpreadsheetUrlDev = await getSetting('localizationSpreadsheetUrlDev', 'https://docs.google.com/spreadsheets/d/1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ/edit#gid=1259474418')
     const localizationSpreadsheetUrlLive = await getSetting('localizationSpreadsheetUrlLive', 'https://docs.google.com/spreadsheets/d/1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ/edit#gid=1117868095')
+    const localizationJsonUrl = await getSetting('localizationJsonUrl', 'https://script.google.com/macros/s/AKfycbzkBJBlnS7HfHMj5rlZvAcLTEuoHHBP6848nJ2mfnBzfQ2xge0w/exec?ssid=1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ&sheet=<environment>&langCode=<languageCode>')
     const url = urlBase()
     const data = await query(`
         select id, language_code,
@@ -61,7 +62,7 @@ export async function getLanguagesForCrud(): Promise<any> {
         undefined,
         true
     )
-    return { data, localizationSpreadsheetUrlDev, localizationSpreadsheetUrlLive }
+    return { data, localizationSpreadsheetUrlDev, localizationSpreadsheetUrlLive, localizationJsonUrl }
 }
 export const postLanguageDefaultForCrud = async (id: number): Promise<void> => {
     await queryExec(`

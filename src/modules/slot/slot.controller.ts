@@ -8,7 +8,7 @@ import { getNewToken, verifyToken } from '../../services/jwtService'
 import * as metaService from '../meta/meta-services'
 import { getAtlas } from '../meta/meta-services/atlas'
 import { sendMail } from '../meta/meta-services/email.service'
-import { getLocalizationJSON, getLocalizations, postLocalizations, updateLocalizationJSON } from '../meta/meta-services/localization.service'
+import { getLocalizationJSON, getLocalizations, postLocalizations, postSettingsForLocalization, updateLocalizationJSON } from '../meta/meta-services/localization.service'
 import { getWinnersForCrud, postWinnersStatusForCrud } from '../meta/meta-services/winner.service'
 import { gameUserRepo } from '../meta/meta.repo'
 import { getCountries, getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/country.repo'
@@ -361,6 +361,10 @@ export async function miscSettingsForCrudGet(req: Request, res: Response): Promi
 }
 export async function miscSettingsForCrudPost(req: Request, res: Response): Promise<any>{
   const data = await postMiscSettingsForCrud(req.body)
+  res.status(200).json(data)
+}
+export async function settingsForLocalizationPost(req: Request, res: Response): Promise<any>{
+  const data = await postSettingsForLocalization(req.body)
   res.status(200).json(data)
 }
 export async function testRegSpinsUSer39(req: Request, res: Response): Promise<any>{

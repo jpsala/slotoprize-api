@@ -77,6 +77,8 @@ router.route('/skin_for_crud').delete(checkmaintenanceMode, checkToken, slot.ski
 router.route('/misc_settings_for_crud').get(checkmaintenanceMode, checkToken, slot.miscSettingsForCrudGet)
 router.route('/misc_settings_for_crud').post(checkmaintenanceMode, checkToken, slot.miscSettingsForCrudPost)
 
+router.route('/settings_for_localization').post(checkmaintenanceMode, checkToken, slot.settingsForLocalizationPost)
+
 router.route('/countries_for_crud').get(checkmaintenanceMode, checkToken, slot.countriesForCrudGet)
 router.route('/country_for_crud').post(checkmaintenanceMode, formidableMiddleware(), checkToken, slot.countriesForCrudPost)
 
