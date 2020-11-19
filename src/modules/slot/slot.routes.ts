@@ -40,7 +40,6 @@ router.route('/events').get(checkmaintenanceMode, checkToken, slot.eventsForCrud
 router.route('/event').post(checkmaintenanceMode, formidableMiddleware(), checkToken, slot.eventPost)
 router.route('/event').delete(checkmaintenanceMode, checkToken, slot.eventDelete)
 router.route('/skins').get(checkmaintenanceMode, checkToken, slot.skinsGet)
-router.route('/eventsReload').post(checkmaintenanceMode, checkToken, slot.eventsReloadPost)
 router.route('/toggleLog').post(checkmaintenanceMode, checkToken, (req, res) => { res.status(200).json({ logging: toggleLog() }) })
 router.route('/daily_reward_claim').get(checkmaintenanceMode, checkToken, slot.dailyRewardClaimGet)
 router.route('/daily_reward_info').get(checkmaintenanceMode, checkToken, slot.dailyRewardInfoGet)

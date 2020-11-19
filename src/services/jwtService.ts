@@ -9,12 +9,11 @@ const getNewToken = (payload: string | Buffer | object, expiresIn = 100000): any
 const verifyToken = (token: string): any => {
   return verify(token, tokenKey, (_error, decodedToken): any => {
     let error
-    if (_error) {
+    if (_error) 
       error = {
         message: (_error && _error.message === 'jwt expired') ? 'La sesión expiró\nVuelva a ingresar' : _error.message,
       }
-      console.error('VerifyToken error! token:%O - error: %O', token, _error.message)
-    }
+    
     return {decodedToken, error}
   })
 }

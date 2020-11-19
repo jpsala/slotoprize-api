@@ -57,7 +57,7 @@ export async function appodealCallback(data1?: string, data2?: string, queryPara
       message: 'OK',
       msgType: 'adReward',
       payload: {
-        type: currency === 'Spins' as string ? 'spin' : 'coin',
+        type: currency.slice(0, -1) ,
         amount
       }
     }

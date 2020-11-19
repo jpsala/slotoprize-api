@@ -436,8 +436,8 @@ export async function localizationsForCrudPost(req: Request, res: Response): Pro
   res.status(200).send(localizations)
 }
 export async function updateLocalizationJSONPost(req: Request, res: Response): Promise<void> {
-  await updateLocalizationJSON(req.body.languageCode)
-  res.status(200).send({status: 'ok'})
+  const resp = await updateLocalizationJSON(req.body.languageCode)
+  res.status(200).send(resp)
 }
 export async function localization(req: Request, res: Response): Promise<void> {
   const resp = await getLocalizationJSON(req.query.languageCode as string)

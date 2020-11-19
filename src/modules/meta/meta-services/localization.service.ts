@@ -55,12 +55,11 @@ export const updateLocalizationJSON = async (languageCode: string): Promise<void
     update language set localization_json = '${escape(JSON.stringify(json.data))}' where language_code = '${languageCode}'
   `)
 }
-export const getLocalizationJSON = async (languageCode: string): Promise<string> => {
-  console.log('select', `
-  select localization_json from language where language_code = '${languageCode}'
-`)
+export const getLocalizationJSON = async (languageCode: string): Promise<any> => {
   const json = <string> (await queryScalar(`
     select localization_json from language where language_code = '${languageCode}'
   `))
-  return unescape(json)
+  if(!json) throw createHttpError(BAD_REQUEST, 'There is no localization for ' + languageCode)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return JSON.parse(unescape(json))
 }
