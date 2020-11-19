@@ -227,7 +227,7 @@ export async function ticketsSettingsForCrudGet(req: Request, res: Response): Pr
   res.status(200).json(resp)
 }
 export async function ticketsSettingsForCrudPost(req: Request, res: Response): Promise<any>{
-  const resp = await postTicketsSettingsForCrud(req.body.ticketValue)
+  const resp = await postTicketsSettingsForCrud(req.body)
   res.status(200).json(resp)
 }
 export async function supportRequestForCrudGet(req: Request, res: Response): Promise<any>{
