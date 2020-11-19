@@ -7,13 +7,15 @@ export async function getMiscSettingsForCrud(): Promise<any> {
   const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10'))
   const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10'))
   const signupCount = Number(await getSetting('signupCount', '10'))
+  const spinTimeThreshold = Number(await getSetting('spinRatioTimer', '10'))
+
   const wallet = {
     tickets: await getSetting('initialWalletTickets', '10'),
     coins: await getSetting('initialWalletCoins', '10'),
     spins: await getSetting('initialWalletSpins', '10'),
   }
   console.log('maintenanceMode', maintenanceMode, maintenanceMode === '1')
-  return {gameVersion, signupCount, maintenanceMode: maintenanceMode === '1', wallet, interstitialsRatio, lapseForSpinRegeneration, maxSpinsForSpinRegeneration }
+  return {gameVersion, signupCount, maintenanceMode: maintenanceMode === '1', wallet, interstitialsRatio, lapseForSpinRegeneration, maxSpinsForSpinRegeneration, spinTimeThreshold }
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postMiscSettingsForCrud(settings: any): Promise<any> {
