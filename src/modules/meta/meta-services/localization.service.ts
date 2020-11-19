@@ -6,6 +6,7 @@ import {queryOne, queryExec, query, queryScalar} from '../../../db'
 import { getSetting } from '../../slot/slot.services/settings.service'
 import { getLanguage } from '../meta.repo/gameUser.repo'
 import { getDefaultLanguage } from '../meta.repo/language.repo'
+import { log } from '../../../log'
 
 export interface Localization {
   id: number;
@@ -53,7 +54,7 @@ export const updateLocalizationJSON = async (languageCode: string, environment: 
   if(!localizationJsonUrl.includes('<environment>')) throw createHttpError(BAD_REQUEST, 'Update URL does not contains <languageCode>')
   let url = localizationJsonUrl.replace('<languageCode>', languageCode)
   url = url.replace('<environment>', environment)
-
+  log.bright.red('url', url)
   const json = await Axios.get(url)
 
   if(json && json.data && json.data.msg) throw createHttpError(BAD_REQUEST, json.data.msg)

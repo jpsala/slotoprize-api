@@ -50,7 +50,7 @@ export async function deleteLanguageForCrud(languageId: string): Promise<any> {
     return data?.affectedRows
 }
 export async function getLanguagesForCrud(): Promise<any> {
-    const localizationSpreadsheetUrlDev = await getSetting('localizationSpreadsheetUrlLive', 'https://docs.google.com/spreadsheets/d/1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ/edit#gid=1259474418')
+    const localizationSpreadsheetUrlDev = await getSetting('localizationSpreadsheetUrlDev', 'https://docs.google.com/spreadsheets/d/1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ/edit#gid=1259474418')
     const localizationSpreadsheetUrlLive = await getSetting('localizationSpreadsheetUrlLive', 'https://docs.google.com/spreadsheets/d/1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ/edit#gid=1117868095')
     const url = urlBase()
     const data = await query(`
