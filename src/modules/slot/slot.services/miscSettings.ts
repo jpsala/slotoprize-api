@@ -21,6 +21,7 @@ export async function getMiscSettingsForCrud(): Promise<any> {
 export async function postMiscSettingsForCrud(settings: any): Promise<any> {
   await setSetting('gameVersion', settings.gameVersion)
   await setSetting('maintenanceMode', settings.maintenanceMode ? '1' : '0')
+  await setSetting('spinRatioTimer', settings.spinTimeThreshold)
   await setSetting('interstitialsRatio', settings.interstitialsRatio)
   await setSetting('signupCount', settings.signupCount)
   if(settings.lapseForSpinRegeneration) await setSetting('lapseForSpinRegeneration', settings.lapseForSpinRegeneration)
