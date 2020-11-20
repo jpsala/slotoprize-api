@@ -45,30 +45,41 @@ export const getLegals = async (deviceId: string): Promise<any> => {
         inner join language la on la.id = l.language_id
       where l.item = '${text}' and la.language_code = '${user.languageCode}'`)
     if(localization) items.push(localization)
-    else items.push('No localization')
+    else items.push('')
   }
   return {rulesTxt: items[0], faqTxt: items[1], privacyPolicyTxt: items[2]}
 }
 
-export const postLegalsForCrud = async (items: Item[]): Promise<any> => {
+export const postLegalsForCrud = async (items: Item[], dontEnforce: boolean): Promise<number> => {
+  const enforce = !dontEnforce
+  let resetAgreementsFromProfiles = false
   for (const item of items)
     for (const localization of item.localizations) {
-      const text = <string>(await queryScalar(`
-          select text from localization l
+      const row = <{ id: number, text: string }> (await queryOne(`
+          select id, text from localization l
             where l.item = '${item.value}' and l.language_id = ${localization.languageId}`
       ))
-      console.log('text', text, `
-      select text from localization l
-        where l.item = '${item.value}' and l.language_id = ${localization.languageId}`)
-      if (text !== undefined)
+      if (row !== undefined) {
+        if (enforce && row.text !== localization.text) 
+          resetAgreementsFromProfiles = true
+        
+    
         await queryExec(`
             update localization set text = ? where language_id = ? and item = ?
           `, [localization.text, localization.languageId, item.value]
         )
+      }
       else
-        await queryExec(`
+        {await queryExec(`
             insert into localization(text,language_id,item) values (?, ?, ?)
           `, [localization.text, localization.languageId, item.value]
-        )
+        )}
     }
+  let agreementsReseted = 0
+  if (resetAgreementsFromProfiles) {
+    console.log('resetAgreementsFromProfiles')
+    const resp = await queryExec('update game_user set agreements = 1 where agreements =0')
+    agreementsReseted = resp.affectedRows
+  }
+  return agreementsReseted
 }

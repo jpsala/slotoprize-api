@@ -20,4 +20,5 @@
 
  - [ ] delete devicePlataform after pull and verify that the profile post uses device_plataform instead
  - [ ] add updated_at field to language table
+ - [ ] add agreements field to game_user table
  

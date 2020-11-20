@@ -343,7 +343,7 @@ export async function legalsGet(req: Request, res: Response): Promise<any>{
   res.status(200).json(data)
 }
 export async function legalsForCrudPost(req: Request, res: Response): Promise<any>{
-  const data = await postLegalsForCrud(req.body)
+  const data = await postLegalsForCrud(req.body.items, req.body.dontEnforce as boolean)
   res.status(200).json(data)
 }
 export async function languageForCrudToggleDelete(req: Request, res: Response): Promise<any>{
