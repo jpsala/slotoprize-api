@@ -1,4 +1,3 @@
-import { log } from "../../../log"
 import { getSetting, setSetting } from "./settings.service"
 
 export const getTicketsSettingsForCrud = async (): Promise<any> => {
@@ -15,7 +14,6 @@ export const getTicketsSettingsForCrud = async (): Promise<any> => {
 } 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const postTicketsSettingsForCrud = async (settings: any): Promise<void> => {
-  log('settings', settings)
   await setSetting('ticketPrice', settings.ticketPrice)
   await setSetting('interstitialsRatio', settings.interstitialsRatio)
   if(settings.lapseForSpinRegeneration) await setSetting('lapseForSpinRegeneration', settings.lapseForSpinRegeneration)

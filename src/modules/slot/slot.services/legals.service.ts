@@ -53,6 +53,7 @@ export const getLegals = async (deviceId: string): Promise<any> => {
 export const postLegalsForCrud = async (items: Item[], dontEnforce: boolean): Promise<number> => {
   const enforce = !dontEnforce
   let resetAgreementsFromProfiles = false
+  
   for (const item of items)
     for (const localization of item.localizations) {
       const row = <{ id: number, text: string }> (await queryOne(`
