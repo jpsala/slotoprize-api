@@ -31,7 +31,7 @@ import { appodealCallback, appodealCallbackPlain, QueryParams } from './slot.ser
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
 import { callback, getVideoAdsViewCountForCrud } from './slot.services/ironsource'
 import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
-import { getLegalsForCrud, postLegalsForCrud } from './slot.services/legals.service'
+import { getLegals, getLegalsForCrud, postLegalsForCrud } from './slot.services/legals.service'
 import { getMiscSettingsForCrud, postMiscSettingsForCrud } from './slot.services/miscSettings'
 import { getPrizes, PrizeWinners } from './slot.services/prizes.service'
 import { setProfile } from './slot.services/profile.service'
@@ -336,6 +336,10 @@ export async function supportAdminForCrudGet(req: Request, res: Response): Promi
 }
 export async function legalsForCrudGet(req: Request, res: Response): Promise<any>{
   const data = await getLegalsForCrud()
+  res.status(200).json(data)
+}
+export async function legalsGet(req: Request, res: Response): Promise<any>{
+  const data = await getLegals(req.query.deviceId as string)
   res.status(200).json(data)
 }
 export async function legalsForCrudPost(req: Request, res: Response): Promise<any>{

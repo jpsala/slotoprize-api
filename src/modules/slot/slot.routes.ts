@@ -63,8 +63,6 @@ router.route('/playerForFront').get(checkmaintenanceMode, checkToken, slot.playe
 router.route('/tombola_for_crud').get(checkmaintenanceMode, checkToken, slot.tombolaForCrudGet)
 router.route('/tombola_for_crud').post(checkmaintenanceMode, checkToken, slot.tombolaForCrudPost)
 router.route('/win_lose_for_tombola_crud').post(checkmaintenanceMode, checkToken, slot.winLoseForTombolaCrudPost)
-router.route('/legals_for_crud').get(checkmaintenanceMode, checkToken, slot.legalsForCrudGet)
-router.route('/legals_for_crud').post(checkmaintenanceMode, checkToken, slot.legalsForCrudPost)
 router.route('/support_admin_for_crud').get(checkmaintenanceMode, checkToken, slot.supportAdminForCrudGet)
 router.route('/support_admin_for_crud').post(checkmaintenanceMode, checkToken, slot.supportAdminForCrudPost)
 
@@ -98,4 +96,7 @@ router.route('/localizations_for_crud').post(checkmaintenanceMode, checkToken, s
 router.route('/localizations_update_for_crud').post(checkmaintenanceMode, checkToken, slot.updateLocalizationJSONPost)
 router.route('/localization').get(checkmaintenanceMode, checkToken, slot.localization)
 router.route('/language_default_for_crud').post(checkmaintenanceMode, checkToken, slot.languageDefaultForCrudPost)
+router.route('/legals_for_crud').get(checkmaintenanceMode, checkToken, slot.legalsForCrudGet)
+router.route('/legals_for_crud').post(checkmaintenanceMode, checkToken, slot.legalsForCrudPost)
+router.route('/legals').get(checkmaintenanceMode, checkToken, slot.legalsGet)
 export default router

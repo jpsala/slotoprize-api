@@ -1,11 +1,14 @@
+import camelcaseKeys from "camelcase-keys"
+import createHttpError from "http-errors"
+import { BAD_REQUEST } from "http-status-codes"
 import { query, queryExec, queryOne, queryScalar } from "../../../db"
+import { getGameUserByDeviceId } from "../../meta/meta.repo/gameUser.repo"
 
 type Item = {value: string, label: string, localizations: Localization[]}
 type Localization = { languageId: number, languageCode: string, text: string}
 type Language = {id: number, languageCode: string, text: string}
+
 export const getLegalsForCrud = async (): Promise<any> => {
-  
-  
   const languages = <Language[]>(await query(`select * from language`, undefined, true))
   const items: Item[] = []
   const types = [{value:'rules', label: 'Rules'}, {value:'faq', label: 'FAQ'}, {value:'privacyPolicy', label: 'Privacy Policy'}]
@@ -22,6 +25,29 @@ export const getLegalsForCrud = async (): Promise<any> => {
     items.push(item)
   }
   return items
+}
+export const getLegals = async (deviceId: string): Promise<any> => {
+  const user = camelcaseKeys(await getGameUserByDeviceId(deviceId))
+  console.log('usr', user)
+  if (!user) throw createHttpError(BAD_REQUEST, 'User not found')
+  const items:string[] = []
+  const types = ['rules', 'faq', 'privacyPolicy']
+  for (const text of types) {
+    const localization = <string> (await queryScalar(`
+    select text
+      from localization l
+        inner join language la on la.id = l.language_id
+      where l.item = '${text}' and la.language_code = '${user.languageCode}'`
+    ))
+    console.log(`
+    select text
+      from localization l
+        inner join language la on la.id = l.language_id
+      where l.item = '${text}' and la.language_code = '${user.languageCode}'`)
+    if(localization) items.push(localization)
+    else items.push('No localization')
+  }
+  return {rulesTxt: items[0], faqTxt: items[1], privacyPolicyTxt: items[2]}
 }
 
 export const postLegalsForCrud = async (items: Item[]): Promise<any> => {
