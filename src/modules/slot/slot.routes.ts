@@ -64,6 +64,7 @@ router.route('/tombola_for_crud').get(checkmaintenanceMode, checkToken, slot.tom
 router.route('/tombola_for_crud').post(checkmaintenanceMode, checkToken, slot.tombolaForCrudPost)
 router.route('/win_lose_for_tombola_crud').post(checkmaintenanceMode, checkToken, slot.winLoseForTombolaCrudPost)
 router.route('/legals_for_crud').get(checkmaintenanceMode, checkToken, slot.legalsForCrudGet)
+router.route('/legals_for_crud').post(checkmaintenanceMode, checkToken, slot.legalsForCrudPost)
 router.route('/support_admin_for_crud').get(checkmaintenanceMode, checkToken, slot.supportAdminForCrudGet)
 router.route('/support_admin_for_crud').post(checkmaintenanceMode, checkToken, slot.supportAdminForCrudPost)
 
