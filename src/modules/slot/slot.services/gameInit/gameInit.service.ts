@@ -55,7 +55,8 @@ export async function gameInit(deviceId: string): Promise<any> {
     const languageCode = rawUser.languageCode
     const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
     const maxAllowedBirthYear = Number(await getSetting('maxAllowedBirthYear', '2002'))
-    const gameVersion = String(await getSetting('gameVersion', '0.1'))
+    const currentGameVersion = String(await getSetting('currentGameVersion', '0.1'))
+    const latestMandatoryVersion = String(await getSetting('latestMandatoryVersion', '0.1'))
     const gameIdentifier = await getSetting('gameIdentifier', 'this is the gameIdentifier')
     const signupCount = Number(await getSetting('signupCount', '10'))
   rawUser = gameUserToProfile(rawUser)
@@ -65,7 +66,8 @@ export async function gameInit(deviceId: string): Promise<any> {
 
     const initData = {
       sessionId: token,
-      gameVersion,
+      currentGameVersion,
+      latestMandatoryVersion,
       gameIdentifier,
       languageCode,
       interstitialsRatio,

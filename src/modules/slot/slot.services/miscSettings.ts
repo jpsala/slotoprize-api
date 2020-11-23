@@ -1,7 +1,8 @@
 import { getSetting, setSetting } from "./settings.service"
 
 export async function getMiscSettingsForCrud(): Promise<any> {
-  const gameVersion = await getSetting('gameVersion', '0.0.10')
+  const currentGameVersion = await getSetting('currentGameVersion', '0.0.10')
+  const latestMandatoryVersion = await getSetting('latestMandatoryVersion', '0.0.10')
   const maintenanceMode = await getSetting('maintenanceMode', '0')
   const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
   const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10'))
@@ -15,11 +16,12 @@ export async function getMiscSettingsForCrud(): Promise<any> {
     spins: await getSetting('initialWalletSpins', '10'),
   }
   console.log('maintenanceMode', maintenanceMode, maintenanceMode === '1')
-  return {gameVersion, signupCount, maintenanceMode: maintenanceMode === '1', wallet, interstitialsRatio, lapseForSpinRegeneration, maxSpinsForSpinRegeneration, spinTimeThreshold }
+  return {currentGameVersion, latestMandatoryVersion, signupCount, maintenanceMode: maintenanceMode === '1', wallet, interstitialsRatio, lapseForSpinRegeneration, maxSpinsForSpinRegeneration, spinTimeThreshold }
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postMiscSettingsForCrud(settings: any): Promise<any> {
-  await setSetting('gameVersion', settings.gameVersion)
+  await setSetting('currentGameVersion', settings.currentGameVersion)
+  await setSetting('latestMandatoryVersion', settings.latestMandatoryVersion)
   await setSetting('maintenanceMode', settings.maintenanceMode ? '1' : '0')
   await setSetting('spinRatioTimer', settings.spinTimeThreshold)
   await setSetting('interstitialsRatio', settings.interstitialsRatio)
