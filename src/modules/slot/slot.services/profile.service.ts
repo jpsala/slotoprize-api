@@ -61,6 +61,7 @@ export const gameUserToProfile = (rawUser: any): GameUser => {
   user.banned = toBoolean(user.banned)
   user.isDev = toBoolean(user.isDev)
   user.adsFree = toBoolean(user.adsFree)
+  user.agreements = toBoolean(user.agreements)
   user.tutorialComplete = toBoolean(user.tutorialComplete)
   return user as GameUser
 }

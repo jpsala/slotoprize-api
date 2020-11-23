@@ -78,9 +78,9 @@ export const postLegalsForCrud = async (items: Item[], dontEnforce: boolean): Pr
     }
   let agreementsReseted = 0
   if (resetAgreementsFromProfiles) {
-    console.log('resetAgreementsFromProfiles')
-    const resp = await queryExec('update game_user set agreements = 1 where agreements =0')
+    const resp = await queryExec('update game_user set agreements = 0 where agreements =1')
     agreementsReseted = resp.affectedRows
+    console.log(`${agreementsReseted} resetAgreementsFromProfiles`)
   }
   return agreementsReseted
 }

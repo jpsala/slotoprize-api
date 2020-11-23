@@ -1,6 +1,7 @@
+import { getLocalization } from '../../meta/meta-services/localization.service'
 import { spinRegenerationInit } from '../slot.repo/spin.regeneration.repo'
 import { query, queryExec } from './../../../db'
-import { WebSocketMessage, wsServer } from './webSocket/ws.service'
+import { ExtWebSocket, WebSocketMessage, wsServer } from './webSocket/ws.service'
 type Setting = {id?: number, name: string, value: string, description: string}
 let settings: Setting[] = []
 
@@ -35,21 +36,35 @@ export const setSetting = async (key: string, value : string): Promise<void> => 
   if (['lapseForSpinRegeneration', 'maxSpinsForSpinRegeneration', 'spinsAmountForSpinRegeneration'].includes(key)) 
     await spinRegenerationInit()
   if (key.toLocaleLowerCase() === 'maintenancemode' && oldMaintenanceMode !== value) 
-    if(value === '1') sendMaintenanceModWsEvent()
+    if(value === '1') await sendMaintenanceModWsEvent()
   
   
   // if (['lapseForSpinRegeneration', 'maxSpinsForSpinRegeneration', 'spinsAmountForSpinRegeneration'].includes(key)) 
 }
-const sendMaintenanceModWsEvent = (): void => {
+const sendMaintenanceModWsEvent = async (): Promise<void> => {
   const wsMessage: WebSocketMessage = {
     code: 200,
     message: 'OK',
     msgType: 'maintenanceMode',
     payload: {
-      maintenanceMode: true
+      maintenanceMode: true,
     }
   }
-  wsServer.send( wsMessage)
+  for (const client of wsServer.server.clients) {
+    const userId = Number((client as ExtWebSocket).user.id)
+    wsMessage.payload.message = await getLocalization('maintenanceMode', userId, 'We are in maintenance, we\'ll be back up soon!')
+    const msgStr = Object.assign({}, wsMessage) as any
+    const msg = JSON.stringify(wsMessage.isJson ? wsMessage : msgStr)
+    client.send(msg)
+  }
+    
+  
+  // wsServer.server.clients.forEach((client) => {
+  //   const userId = Number((client as ExtWebSocket).user.id)
+  //   wsMessage.payload.message = await getLocalization('maintenanceMode', userId, 'We are in maintenance, we\'ll be back up soon!')
+
+  //   client.send(wsMessage)
+  // })
 }
 
 export const resetSettings = (): void => { settings.splice(0) }
