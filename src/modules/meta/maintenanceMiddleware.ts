@@ -43,7 +43,7 @@ export async function checkmaintenanceMode(req: Request, res: Response, next: Ne
     if(user?.deviceId !== deviceId) throw createHttpError(BAD_REQUEST, 'User\'s deviceId and deviceId parametar doesn\'t match')
     if(user && user.isDev) return next()
     if(user && !user.isDev) throw createHttpError(503, await getLocalization('maintenanceMode', user?.id, 'We are in maintenance, we\'ll be back up soon!'))
-  } else if(!isGameInitRoute) {throw createHttpError(503, 'Token error')}
+  }// else if(!isGameInitRoute) {throw createHttpError(503, 'Token error')}
   
 
   user = deviceId ? camelcaseKeys(await getGameUserByDeviceId(deviceId as string)) : undefined
