@@ -9,7 +9,7 @@ import { toggleLog } from './slot.services/events/events'
 const router = Router()
 
 
-router.route('/game_init').get(checkDeviceId, checkmaintenanceMode, slot.gameInitGet)
+router.route('/game_init').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.gameInitGet)
 router.route('/profile').post(checkDeviceId, checkToken, checkmaintenanceMode, slot.profilePost)
 router.route('/spin').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.spinGet)
 router.route('/countries').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.countriesGet)

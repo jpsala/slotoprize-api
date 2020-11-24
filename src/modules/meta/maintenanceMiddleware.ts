@@ -11,6 +11,5 @@ export async function checkmaintenanceMode(req: Request, res: Response, next: Ne
   if (!maintenanceMode) return next()
   
   if (req.user.isDev) return next()
-
   throw createHttpError(503, await getLocalization('maintenanceMode', req.user.id, 'We are in maintenance, we\'ll be back up soon!'))
 }

@@ -14,7 +14,8 @@ const { /* cyan, yellow, red, blue, */ bright } = require('ansicolor')
 let saveToDB = false
 let linesToSave = undefined
 export const log = require('ololog').configure({
-  locate: { shift: 1 },
+  // locate: { shift: 1 },
+  locate: true,
   time: {
     yes: true,
     format: 'locale',
@@ -37,7 +38,7 @@ export const log = require('ololog').configure({
         // const text = data.lines
         console.log('save', saveToDB)
         if (text) {
-
+          console.log('consoleMethod', consoleMethod)
             const strippedText = ansi.strip (text).trim () + '\n' // remove ANSI codes
 
         /*  Writes to the file only if .info or .error or .warn has been specified.  */

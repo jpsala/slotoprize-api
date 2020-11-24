@@ -53,7 +53,11 @@ const sendMaintenanceModWsEvent = async (): Promise<void> => {
   for (const client of wsServer.server.clients) {
     const userId = Number((client as ExtWebSocket).user.id)
     wsMessage.payload.message = await getLocalization('maintenanceMode', userId, 'We are in maintenance, we\'ll be back up soon!')
+    
+    const payload = JSON.stringify(wsMessage.payload)
+    
     const msgStr = Object.assign({}, wsMessage) as any
+    msgStr.payload = payload
     const msg = JSON.stringify(wsMessage.isJson ? wsMessage : msgStr)
     client.send(msg)
   }

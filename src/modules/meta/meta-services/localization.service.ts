@@ -17,6 +17,7 @@ export interface Localization {
 
 export const getLocalization = async (item: string, userId?: number, defaultText ?: string): Promise<string> => {
   const defaultLanguage = userId ? await getLanguage(userId) : await getDefaultLanguage()
+  console.log('userId', userId)
   const row = await queryOne(`
     select text from localization where language_id = ? and item = ?
   `, [defaultLanguage.id, item]) as { text: string }
