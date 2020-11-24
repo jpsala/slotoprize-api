@@ -11,16 +11,14 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
 {
   let { deviceId } = req.query
   if (!deviceId) deviceId = req.body?.deviceId
+  if (!deviceId) deviceId = req.params?.deviceId
+
   const { 'dev-request': dev } = req.headers
   const isDev = (dev === 'true')
-  if (isDev)
-  {
-    if (!deviceId)
-    {
-      console.error(`missed deviceId in req.query in ${req.baseUrl}${req.route?.path}`)
-      throw createHttpError(BAD_REQUEST, `deviceId parameter missing ${req.baseUrl}${req.route?.path}`)
-    }
-      const _user = await getGameUserByDeviceId(deviceId as string)
+
+  if (isDev) {
+    if(!deviceId) throw createHttpError(BAD_REQUEST, 'Device ID is required') 
+    const _user = await getGameUserByDeviceId(deviceId as string)
     if (!_user) throw createHttpError(BAD_REQUEST, 'There is not user registered with that deviceId')
     req.user = {
       deviceId: deviceId as string,
@@ -28,14 +26,13 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     }
     return next()
   }
+
   let { sessionToken } = req.query
   if (!sessionToken) sessionToken = req.body.sessionToken
   if (!sessionToken) sessionToken = req.headers.token
   const { decodedToken, error } = verifyToken(sessionToken as string)
-  // console.log('settoken', decodedToken)
 
-  if (error || !decodedToken.id)
-  {
+  if (error || !decodedToken.id) {
     const message = error ? error.message : 'No user found in token'
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     console.log(`checkToken: ${message}`, req.baseUrl, sessionToken)
@@ -44,11 +41,17 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
     const user  = await getGameUser(decodedToken.id)
     if (!user) {
       const normalUser = await getUserById(decodedToken.id)
-      if(!normalUser) return res.status(401).send({ auth: false, message: 'User not found' })
+      if (!normalUser) return res.status(401).send({ auth: false, message: 'User not found' })
+    } else {
+      if (!deviceId)  throw createHttpError(BAD_REQUEST, 'Device ID is required') 
+      if (deviceId !== user.deviceId)  throw createHttpError(BAD_REQUEST, 'User devive ID and paramater Device ID doesn\'t match') 
     }
+      
     if (user?.deviceId !== null) req.query.deviceId = user?.deviceId
-    console.log('Auth:', `${user?.id}-${user?.deviceId}-${user?.lastName}`)
+    console.log('Auth:', `${user?.id}-${user?.deviceId}-Dev:${user?.isDev ? 'isDev':'notDev'}`)
   }
+
   req.user = {id: decodedToken.id, deviceId: decodedToken.devicedID}
+
   return next()
 }
