@@ -5,7 +5,7 @@ import { format } from 'util'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { queryExec } from '../../../db'
-import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
+import { getGameUserById } from '../../meta/meta.repo/gameUser.repo'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 export type QueryParams = {user_id: number,  amount: number, paymentType: 'coins' | 'spins' | 'tickets' }
 
@@ -49,7 +49,7 @@ export async function appodealCallback(data1?: string, data2?: string, queryPara
     console.log('appodeal: userId %O, amount %O, currency %O, impressionId %O, timestamp %O hash %o', userId, amount, currency, impressionId, timestamp, hash)
 
   if (queryParams || (hashString && (<string>hash).toUpperCase() === hashString.toUpperCase())){
-    const user = await getGameUser(Number(userId))
+    const user = await getGameUserById(Number(userId))
     if (!user) throw createHttpError(BAD_REQUEST, 'User not found')
     
     const wsMessage: WebSocketMessage = {

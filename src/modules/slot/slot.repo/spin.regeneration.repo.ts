@@ -4,7 +4,7 @@ import createHttpError from 'http-errors'
 
 import { getSetting } from '../slot.services/settings.service'
 import { query, queryExec } from '../../../db'
-import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
+import { getGameUserById } from '../../meta/meta.repo/gameUser.repo'
 import { wsServer, WebSocketMessage } from './../slot.services/webSocket/ws.service'
 import { GameUser } from './../../meta/meta.types'
 
@@ -163,7 +163,7 @@ async function spinRegenerationUsersInArray(): Promise<void>
     await updateUserInUsersSpinRegenerationArray(spinRegenerationData)
 }
 export async function testUser39(spins = 1):Promise<void> {
-  const user = await getGameUser(39)
+  const user = await getGameUserById(39)
   if(!user) throw createHttpError(BAD_REQUEST, 'User not found in testUser39')
   userChanged(user , spins)
 }

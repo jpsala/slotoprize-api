@@ -7,7 +7,7 @@ import { EventPayload } from '../slot.services/events/event'
 import { getSkin } from '../slot.repo/skin.repo'
 import { queryExec, queryOne } from '../../../db'
 import { getWallet, updateWallet } from '../slot.services/wallet.service'
-import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
+import { getGameUserById } from '../../meta/meta.repo/gameUser.repo'
 import { log } from '../../../log'
 import { WebSocketMessage, wsServer } from './../slot.services/webSocket/ws.service'
 
@@ -26,7 +26,7 @@ export const runCommand = async (cmd: string, data: Message): Promise<void> => {
     const pendingMessage = JSON.parse(pendingMessagesRow.jsonMsg as string)
     if (pendingMessage) {
       log.yellow('pendingMessage', pendingMessage)
-      const user = await getGameUser(Number(userId))
+      const user = await getGameUserById(Number(userId))
       if(!user) throw createHttpError(BAD_REQUEST, 'User not found in getActiveEvents command')
       const wallet = await getWallet(user)
       const paymentType = String(pendingMessage.payload.type.toLocaleLowerCase()) + 's'

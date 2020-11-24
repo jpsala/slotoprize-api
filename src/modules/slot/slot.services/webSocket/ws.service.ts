@@ -6,7 +6,7 @@ import PubSub from 'pubsub-js'
 import createHttpError from 'http-errors'
 import { isValidJSON } from '../../../../helpers'
 import { EventPayload } from '../events/event'
-import { getGameUser } from '../../../meta/meta.repo/gameUser.repo'
+import { getGameUserById } from '../../../meta/meta.repo/gameUser.repo'
 import { verifyToken } from '../../../../services/jwtService'
 import { GameUser } from '../../../meta/meta.types'
 //#region types
@@ -75,7 +75,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       ws.close()
       throw createHttpError(BAD_REQUEST, 'userId is missing in the ws connection')
     }
-    const user = await getGameUser(query.userId)
+    const user = await getGameUserById(query.userId)
     if(!user) {
       ws.close()
       throw createHttpError(BAD_REQUEST, 'User does not exists')

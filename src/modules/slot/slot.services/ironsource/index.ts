@@ -3,7 +3,7 @@ import { BAD_REQUEST } from 'http-status-codes'
 import createHttpError from 'http-errors'
 import { getWallet, updateWallet } from '../wallet.service'
 import { WebSocketMessage, wsServer } from '../webSocket/ws.service'
-import { getGameUser } from '../../../meta/meta.repo/gameUser.repo'
+import { getGameUserById } from '../../../meta/meta.repo/gameUser.repo'
 import { queryOne, queryExec, query } from './../../../../db'
 
 export async function callback(query: {
@@ -28,7 +28,7 @@ export async function callback(query: {
   const adProvider = query.AD_PROVIDER
   if(!['coins', 'spins'].includes(currency)) throw createHttpError(BAD_REQUEST, 'currency has to be coins or spins')
   const rewards = Number(query.rewards)
-  const user = await getGameUser(Number(userId))
+  const user = await getGameUserById(Number(userId))
   // const userIsDev = user.isDev
   if(!user) throw createHttpError(BAD_REQUEST, 'User not found in rafflesPrizeDataGet')
 

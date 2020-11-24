@@ -12,8 +12,7 @@ import { getLocalizationJSON, getLocalizations, postLocalizations, postSettingsF
 import { getWinnersForCrud, postWinnersStatusForCrud } from '../meta/meta-services/winner.service'
 import { gameUserRepo } from '../meta/meta.repo'
 import { getCountries, getCountriesForCrud, postCountryForCrud } from '../meta/meta.repo/country.repo'
-// import { setReqUser } from '../meta/authMiddleware'
-import { getGameUser, getLoginData, getPlayerForFront, getPlayersForFront, postToggleBanForCrud, setLanguageCode } from '../meta/meta.repo/gameUser.repo'
+import { getGameUserById, getLoginData, getPlayerForFront, getPlayersForFront, postToggleBanForCrud, setLanguageCode } from '../meta/meta.repo/gameUser.repo'
 import { setIap } from '../meta/meta.repo/iap.service'
 import { deleteLanguageForCrud, getLanguagesForCrud, postLanguageForCrud, postLanguageDefaultForCrud, toggleDeleteLanguageForCrud } from '../meta/meta.repo/language.repo'
 import * as raffleRepo from '../meta/meta.repo/raffle.repo'
@@ -52,6 +51,10 @@ export async function playerForFrontGet(req: Request, res: Response): Promise<an
   res.status(200).json(resp)
 }
 export async function maxAllowedBirthYearPost(req: Request, res: Response): Promise<any>{
+  await setSetting('maxAllowedBirthYear', req.body.maxAllowedBirthYear)
+  res.status(200).json({status: 'ok'})
+}
+export async function maxAllowedBirthYearForCrudPost(req: Request, res: Response): Promise<any>{
   await setSetting('maxAllowedBirthYear', req.body.maxAllowedBirthYear)
   res.status(200).json({status: 'ok'})
 }
@@ -128,7 +131,7 @@ export async function raffleDelete(req: Request, res: Response): Promise<void>{
   res.status(200).json(resp)
 }
 export async function rafflesPrizeDataGet(req: Request, res: Response): Promise<any>{
-  const user = await getGameUser(req.user.id)
+  const user = await getGameUserById(req.user.id)
   if(!user) throw createHttpError(BAD_REQUEST, 'User not found in rafflesPrizeDataGet')
   const resp = await raffleRepo.getRaffles(user, true)
   res.status(200).json(resp)
@@ -169,7 +172,6 @@ export async function withTokenGet(req: Request, res: Response): Promise<any>{
     return res.status(401).send({ auth: false, message: 'The user in the token was not found in the db' })
   const token = getNewToken({ id: user.id, deviceId: undefined })
   res.setHeader('token', token)
-  // setReqUser(undefined, user.id)
   const retUser = { name: user.name, email: user.email, id: user.id, isDev: user.isDev }
   res.status(200).json({ user: retUser })
   return undefined

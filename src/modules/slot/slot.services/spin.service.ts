@@ -19,6 +19,7 @@ import { getWallet, updateWallet } from './wallet.service'
 
 
 const randomNumbers: number[] = []
+//@URGENT userIsDev is only when the user is dev, not dev-request
 export async function spin(deviceId: string, multiplier: number, userIsDev: boolean): Promise<SpinData> {
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 

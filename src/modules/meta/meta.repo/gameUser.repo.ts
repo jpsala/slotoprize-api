@@ -15,8 +15,7 @@ import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
 
 
-export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: Date }> =>
-{
+export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: Date }> =>{
   let resp = await queryOne(`select last from game_user_spin where game_user_id = ${user.id}`)
   if (!resp) {
     const spinRatioTimerPlus1 = Number(await getSetting('spinRatioTimer', '8')) + 1
@@ -50,8 +49,7 @@ export const purchaseTickets = async (deviceId: string,ticketAmount: number): Pr
   await updateWallet(user, wallet)
   return wallet as Wallet
 }
-export function toTest(msg = 'mal'): any
-{
+export function toTest(msg = 'mal'): any{
   return msg
 }
 export async function getLanguage(userId: number): Promise<LanguageData> {
@@ -72,7 +70,7 @@ export async function getGameUserByDeviceId(deviceId: string): Promise<Partial <
   const user = await queryOne(userSelect, undefined, false) as GameUser
   return user
 }
-export async function getGameUser(userId: number): Promise<GameUser | undefined> {
+export async function getGameUserById(userId: number): Promise<GameUser | undefined> {
   const userSelect = `
     select *
     from game_user
@@ -170,7 +168,7 @@ export async function getHaveWinJackpot(userId: number): Promise<boolean> {
   return winData.win > 0
 }
 export async function getHaveProfile(userId: number): Promise<boolean> {
-  const profileData = await getGameUser(userId)
+  const profileData = await getGameUserById(userId)
   if(!profileData) throw createHttpError(BAD_REQUEST, 'User not found in getHaveProfile')
   console.log('profileData', profileData)
   return profileData.lastName !== "" &&

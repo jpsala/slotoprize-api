@@ -6,7 +6,7 @@ declare global {
     interface Request {
       user: ReqUser,
       fields: any,
-      files: any
+      files: any,
     }
   }
 }

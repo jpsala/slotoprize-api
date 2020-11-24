@@ -6,7 +6,7 @@ import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { queryExec, queryOne } from '../../../db'
 import { log } from '../../../log'
-import { getGameUser } from '../../meta/meta.repo/gameUser.repo'
+import { getGameUserById } from '../../meta/meta.repo/gameUser.repo'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
 const SECRET_KEY = '6UhYgQU0H8OWd2uILWFH'
 const EXCEPTION_403_FOR_TAPJOY = 403
@@ -35,7 +35,7 @@ export async function tapjoyCallback(
 
   console.log('tapjoy: ID %O, userId %O, currency %O,mac_address %O ', id, userId, currency, mac_address)
 
-  const user = await getGameUser(Number(userId))
+  const user = await getGameUserById(Number(userId))
  
   if (!user) throw createHttpError(EXCEPTION_403_FOR_TAPJOY, 'tapjoy: User not found')
   
