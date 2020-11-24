@@ -15,18 +15,19 @@ export async function checkmaintenanceMode(req: Request, res: Response, next: Ne
   const isDev = (dev === 'true')
   if (isDev) return next()
 
-  let { sessionToken } = req.query
-  if (!sessionToken) sessionToken = req.body.sessionToken
-  if (!sessionToken) sessionToken = req.headers.token
-  if (sessionToken && sessionToken === 'lani0363') return next()
-  
-  const { decodedToken, error } = verifyToken(sessionToken as string)
-
   let { deviceId } = req.query
   if (!deviceId) deviceId = req.body?.deviceId
   if (!deviceId) deviceId = req.params?.deviceId
   const user = deviceId ? await getGameUserByDeviceId(deviceId as string) : undefined
-  if ((error || !decodedToken.id) && maintenanceMode)
+  if(user?.isDev) return next()
+
+  let { sessionToken } = req.query
+  if (!sessionToken) sessionToken = req.body.sessionToken
+  if (!sessionToken) sessionToken = req.headers.token
+  if (sessionToken && sessionToken === 'lani0363') return next()
+
+  const { decodedToken, error } = verifyToken(sessionToken as string)
+  if ((error || !decodedToken?.id) && maintenanceMode)
     throw createHttpError(503, await getLocalization('maintenanceMode', user?.id, 'We are in maintenance, we\'ll be back up soon!'))
   
   if (maintenanceMode) {

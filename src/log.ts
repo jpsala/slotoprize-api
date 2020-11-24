@@ -43,27 +43,26 @@ export const log = require('ololog').configure({
         /*  Writes to the file only if .info or .error or .warn has been specified.  */
 
           if (consoleMethod || saveToDB) {
-                  try {
-                  let err
-                  if(typeof(linesToSave) === 'string') err = linesToSave
-                  else if (typeof (linesToSave) === 'number') err = String(linesToSave)
-                  else err = JSON.stringify(linesToSave)
-                  queryExec('insert into log(json, text) values(?, ?)', [err, strippedText]).catch(e => {
-                    console.log('error saving logs to db', e)
-                  })
-                } catch (e) {
-                  console.log('error saving logs to db', e)
-                }
-
-
-                fs.appendFileSync ('info.log', strippedText)
-
-            /*  Writes .error and .warn calls to a separate file   */
-
-                if ((consoleMethod === 'error') || (consoleMethod === 'warn' )) 
-                    fs.appendFileSync ('error.log', strippedText)
-                
+            try {
+              let err
+              if(typeof(linesToSave) === 'string') err = linesToSave
+              else if (typeof (linesToSave) === 'number') err = String(linesToSave)
+              else err = JSON.stringify(linesToSave)
+              queryExec('insert into log(json, text) values(?, ?)', [err, strippedText]).catch(e => {
+                console.log('error saving logs to db', e)
+              })
+            } catch (e) {
+              console.log('error saving logs to db', e)
             }
+
+
+            fs.appendFileSync ('info.log', strippedText)
+
+        /*  Writes .error and .warn calls to a separate file   */
+
+            if ((consoleMethod === 'error') || (consoleMethod === 'warn' )) 
+                fs.appendFileSync ('error.log', strippedText)
+          }
         }
 
         return text

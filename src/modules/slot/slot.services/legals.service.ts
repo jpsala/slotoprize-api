@@ -28,7 +28,6 @@ export const getLegalsForCrud = async (): Promise<any> => {
 }
 export const getLegals = async (deviceId: string): Promise<any> => {
   const user = camelcaseKeys(await getGameUserByDeviceId(deviceId))
-  console.log('usr', user)
   if (!user) throw createHttpError(BAD_REQUEST, 'User not found')
   const items:string[] = []
   const types = ['rules', 'faq', 'privacyPolicy']
@@ -39,11 +38,6 @@ export const getLegals = async (deviceId: string): Promise<any> => {
         inner join language la on la.id = l.language_id
       where l.item = '${text}' and la.language_code = '${user.languageCode}'`
     ))
-    console.log(`
-    select text
-      from localization l
-        inner join language la on la.id = l.language_id
-      where l.item = '${text}' and la.language_code = '${user.languageCode}'`)
     if(localization) items.push(localization)
     else items.push('')
   }
@@ -78,7 +72,7 @@ export const postLegalsForCrud = async (items: Item[], dontEnforce: boolean): Pr
     }
   let agreementsReseted = 0
   if (resetAgreementsFromProfiles) {
-    const resp = await queryExec('update game_user set agreements = 0 where agreements =1')
+    const resp = await queryExec('update game_user set agreements = 0 where agreements = 1')
     agreementsReseted = resp.affectedRows
     console.log(`${agreementsReseted} resetAgreementsFromProfiles`)
   }
