@@ -35,6 +35,7 @@ export const setProfile = async (user: GameUser): Promise<any> => {
   }
 
   if (userForSave.ads_free !== undefined) userForSave.adsFree = toBoolean(userForSave.ads_free)
+  if (userForSave.agreements !== undefined) userForSave.agreements = (userForSave.agreements === 'true' ? 1 : 0)
   if(userForSave.tutorial_complete !== undefined) userForSave.tutorial_complete = toBoolean(userForSave.tutorial_complete)
 
   delete userForSave.is_dev
