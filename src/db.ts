@@ -1,19 +1,23 @@
 /* eslint-disable babel/no-unused-expressions */
+import { hostname } from 'os'
 import {createConnection, ResultSetHeader, Connection} from 'mysql2/promise'
 import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
 
 import camelcaseKeys from 'camelcase-keys'
 const log = false
-export default function getConnection(host = 'localhost'): Promise<Connection> {
+console.log('xx', hostname())
+const hostDefault = hostname() === 'jpnote' ? 'localhost' : 'slotoprizes.cdy8hosrrn6a.eu-west-3.rds.amazonaws.com'
+const userName = hostname() === 'jpnote' ? 'jpsala' : 'admin'
+const dbName = hostname() === 'jpnote' ? 'wopidom' : 'slotoprizes'
+export default function getConnection(host = hostDefault): Promise<Connection> {
   // eslint-disable-next-line no-process-env
-  const environment = process.env.NODE_ENV || 'development'
   const config = {
     // connectionLimit: 10,
     host,
-    user: 'jpsala',
+    user: userName,
     password: 'lani0363',
-    database: environment === 'XXtesting' ? 'wopitest' : 'wopidom',
+    database: dbName,
     debug: false,
     charset: 'utf8mb4',
     // waitForConnections: true,
