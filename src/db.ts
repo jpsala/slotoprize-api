@@ -1,9 +1,6 @@
 /* eslint-disable babel/no-unused-expressions */
 import { hostname } from 'os'
 import {createConnection, ResultSetHeader, Connection} from 'mysql2/promise'
-import * as httpStatusCodes from 'http-status-codes'
-import createError from 'http-errors'
-import stackTrace from 'stack-trace'
 import camelcaseKeys from 'camelcase-keys'
 const log = false
 const hostDefault = hostname() === 'jpnote' ? 'localhost' : 'slotoprizes.cdy8hosrrn6a.eu-west-3.rds.amazonaws.com'
@@ -33,7 +30,6 @@ export const queryOne = async (query: string, params: any = [], camelCase = fals
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return response
   } catch (err) {
-    const trace = stackTrace.get()
     console.error('queryExec error: select %O, params %O, error %O', select, params, trace.toString(), err)
     throw Object.assign({}, err, {data: {select, params, trace: trace.toString()}})
   } finally {
@@ -49,8 +45,7 @@ export const query = async (select: string, params: string[] = [], camelCase = f
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return response
   } catch(error) {
-    const trace = stackTrace.get()
-    console.error('query error: select %O, params %O, error %O', select, params, trace.toString(), err)
+    console.error('query error: select %O, params %O, error %O', select, params, err)
     throw Object.assign({}, err, {data: {select, params, trace: trace.toString()}})
   } finally {
     conn.destroy()
@@ -62,9 +57,8 @@ try {
     if(!resp || Object.getOwnPropertyNames(resp).length === 0) return undefined
     return resp[Object.getOwnPropertyNames(resp)[0]] as string
 } catch (err) {
-  const trace = stackTrace.get()
-  console.error('queryScalar error: select %O, params %O, error %O', select, params, trace.toString(), err)
-  throw Object.assign({}, err, {data: {select, params, trace: trace.toString()}})
+  console.error('queryScalar error: select %O, params %O, error %O', select, params, err)
+  throw Object.assign({}, err, {data: {select, params}})
 }
 }
 export const queryExec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
