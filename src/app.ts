@@ -27,8 +27,8 @@ const createApp = (): Express => {
   })
   app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
     // if (process.env.NODE_ENV !== 'testing')
-      // console.error(error)
     log.bright.white.error('App catch:', error)
+    if(error.data) console.log('error data', error.data)
     res.status(error.status || 500).json({ message: error.message })
     next()
   })

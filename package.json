@@ -61,6 +61,7 @@
     "reflect-metadata": "^0.1.13",
     "snakecase-keys": "^3.2.0",
     "spritesmith": "^3.4.0",
+    "stack-trace": "^0.0.10",
     "string.bullet": "^1.0.12",
     "ws": "^7.3.1"
   },

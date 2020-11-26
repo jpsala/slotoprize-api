@@ -3,10 +3,9 @@ import { hostname } from 'os'
 import {createConnection, ResultSetHeader, Connection} from 'mysql2/promise'
 import * as httpStatusCodes from 'http-status-codes'
 import createError from 'http-errors'
-
+import stackTrace from 'stack-trace'
 import camelcaseKeys from 'camelcase-keys'
 const log = false
-console.log('xx', hostname())
 const hostDefault = hostname() === 'jpnote' ? 'localhost' : 'slotoprizes.cdy8hosrrn6a.eu-west-3.rds.amazonaws.com'
 const userName = hostname() === 'jpnote' ? 'jpsala' : 'admin'
 const dbName = hostname() === 'jpnote' ? 'wopidom' : 'slotoprizes'
@@ -34,8 +33,9 @@ export const queryOne = async (query: string, params: any = [], camelCase = fals
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return response
   } catch (err) {
-    console.error(err.message)
-    throw createError(httpStatusCodes.INTERNAL_SERVER_ERROR, err)
+    const trace = stackTrace.get()
+    console.error('queryExec error: select %O, params %O, error %O', select, params, trace.toString(), err)
+    throw Object.assign({}, err, {data: {select, params, trace: trace.toString()}})
   } finally {
     conn.destroy()
   }
@@ -48,27 +48,60 @@ export const query = async (select: string, params: string[] = [], camelCase = f
     const response = camelCase ? camelcaseKeys(results) : results
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return response
+  } catch(error) {
+    const trace = stackTrace.get()
+    console.error('query error: select %O, params %O, error %O', select, params, trace.toString(), err)
+    throw Object.assign({}, err, {data: {select, params, trace: trace.toString()}})
   } finally {
     conn.destroy()
   }
 }
 export const queryScalar = async (select: string, params: any = []): Promise<string | undefined> => {
-  const resp = await queryOne(select, params)
-  if(!resp || Object.getOwnPropertyNames(resp).length === 0) return undefined
-  return resp[Object.getOwnPropertyNames(resp)[0]] as string
+try {
+    const resp = await queryOne(select, params)
+    if(!resp || Object.getOwnPropertyNames(resp).length === 0) return undefined
+    return resp[Object.getOwnPropertyNames(resp)[0]] as string
+} catch (err) {
+  const trace = stackTrace.get()
+  console.error('queryScalar error: select %O, params %O, error %O', select, params, trace.toString(), err)
+  throw Object.assign({}, err, {data: {select, params, trace: trace.toString()}})
+}
 }
 export const queryExec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
   const conn = await getConnection()
+  const stmt = conn.format(select, params)
   try
   {
-    const [respExec] = await conn.query(select, params) as ResultSetHeader[]
+    const [respExec] = await conn.query(stmt) as ResultSetHeader[]
     return respExec
   }catch (err)
-    {
-    console.dir(err)
-    throw err
+  {
+    const trace = stackTrace.get()
+    console.error('queryExec error: %O, params %O, error %O', select, params, trace.toString(), err)
+    throw Object.assign({}, err, {data: {select, params, trace: trace.toString()}})
   } finally {
     conn.destroy()
   }
 }
 
+/*
+
+export const queryExec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
+  console.log('queryExec select', select)
+  if(!select)
+    throw Error('queryExec: select can not be empty', select)
+  
+  const conn = await getConnection()
+  const select = params ? conn.format(select, params) : select
+  console.log('select', select)
+  try {
+    const [respExec] = await conn.query(select) as ResultSetHeader[]
+    return respExec
+  }catch (err){
+    console.error('Error in queryExec', err.trace)
+    throw Object.assign(err, {sql: select})
+  } finally {
+    conn.destroy()
+  }
+}
+*/

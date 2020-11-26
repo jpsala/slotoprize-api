@@ -12,7 +12,6 @@ const { /* cyan, yellow, red, blue, */ bright } = require('ansicolor')
 
 /*  ------------------------------------------------------------------------ */
 let saveToDB = false
-let linesToSave = undefined
 export const log = require('ololog').configure({
   // locate: { shift: 1 },
   locate: true,
@@ -28,15 +27,12 @@ export const log = require('ololog').configure({
   }) => {
     // const levelStr = level && (levelColor[level] || (s => s))(level.toUpperCase())
     saveToDB = save
-    if (save) linesToSave = lines
-    else linesToSave = undefined
     return lines
   },
   /*  Injects a function after the "render" step            */
   
   'render+' (text, { consoleMethod = '' }) {
         // const text = data.lines
-        console.log('save', saveToDB)
         if (text) {
           console.log('consoleMethod', consoleMethod)
             const strippedText = ansi.strip (text).trim () + '\n' // remove ANSI codes
@@ -45,11 +41,7 @@ export const log = require('ololog').configure({
 
           if (consoleMethod || saveToDB) {
             try {
-              let err
-              if(typeof(linesToSave) === 'string') err = linesToSave
-              else if (typeof (linesToSave) === 'number') err = String(linesToSave)
-              else err = JSON.stringify(linesToSave)
-              queryExec('insert into log(json, text) values(?, ?)', [err, strippedText]).catch(e => {
+              queryExec('insert into log(text) values(?)', [strippedText]).catch(e => {
                 console.log('error saving logs to db', e)
               })
             } catch (e) {
