@@ -30,8 +30,8 @@ export const queryOne = async (query: string, params: any = [], camelCase = fals
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return response
   } catch (err) {
-    console.error('queryExec error: select %O, params %O, error %O', select, params, trace.toString(), err)
-    throw Object.assign({}, err, {data: {select, params, trace: trace.toString()}})
+    console.error('queryExec error: select %O, params %O, error %O', query, params, err)
+    throw Object.assign({}, err, {data: {select, params}})
   } finally {
     conn.destroy()
   }
@@ -46,7 +46,7 @@ export const query = async (select: string, params: string[] = [], camelCase = f
     return response
   } catch(error) {
     console.error('query error: select %O, params %O, error %O', select, params, err)
-    throw Object.assign({}, err, {data: {select, params, trace: trace.toString()}})
+    throw Object.assign({}, err, {data: {select, params}})
   } finally {
     conn.destroy()
   }
@@ -70,9 +70,8 @@ export const queryExec = async (select: string, params: any = []): Promise<Resul
     return respExec
   }catch (err)
   {
-    const trace = stackTrace.get()
-    console.error('queryExec error: %O, params %O, error %O', select, params, trace.toString(), err)
-    throw Object.assign({}, err, {data: {select, params, trace: trace.toString()}})
+    console.error('queryExec error: %O, params %O, error %O', select, params, err)
+    throw Object.assign({}, err, {data: {select}})
   } finally {
     conn.destroy()
   }
