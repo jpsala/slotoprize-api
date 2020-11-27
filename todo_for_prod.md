@@ -22,3 +22,4 @@
  - [ ] add updated_at field to language table
  - [ ] add agreements field to game_user table and set default to what marcos talks to rodrigo
  - [ ] copy apache options from dev
+ - [ ] yarn update
