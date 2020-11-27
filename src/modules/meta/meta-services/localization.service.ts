@@ -8,6 +8,7 @@ import { getSetting, setSetting } from '../../slot/slot.services/settings.servic
 import { getLanguage } from '../meta.repo/gameUser.repo'
 import { getDefaultLanguage } from '../meta.repo/language.repo'
 import { log } from '../../../log'
+import { Language } from '../models'
 
 export interface Localization {
   id: number;
@@ -52,8 +53,7 @@ export const getLocalizations = async (item: string, item_id?: number): Promise<
         ${where}
     `, 
       params, true
-  ) as Localization[]
-  console.log('rows', rows)
+  ) as Localization & {languageCode: string}[]
   for (const language of languages) {
     const rowId = rows.find(row => row.languageCode === language.languageCode)
     if (!rowId) {

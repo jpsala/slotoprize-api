@@ -31,7 +31,7 @@ export const queryOne = async (query: string, params: any = [], camelCase = fals
     return response
   } catch (err) {
     console.error('queryExec error: select %O, params %O, error %O', query, params, err)
-    throw Object.assign({}, err, {data: {select, params}})
+    throw Object.assign({}, err, {data: {query, params}})
   } finally {
     conn.destroy()
   }
@@ -45,8 +45,8 @@ export const query = async (select: string, params: string[] = [], camelCase = f
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return response
   } catch(error) {
-    console.error('query error: select %O, params %O, error %O', select, params, err)
-    throw Object.assign({}, err, {data: {select, params}})
+    console.error('query error: select %O, params %O, error %O', select, params, error)
+    throw Object.assign({}, error, {data: {select, params}})
   } finally {
     conn.destroy()
   }
