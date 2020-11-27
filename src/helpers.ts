@@ -1,16 +1,19 @@
 import { readdirSync, unlinkSync, writeFileSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { hostname } from 'os'
-import * as statusCodes from 'http-status-codes'
+import {StatusCodes} from 'http-status-codes'
 import { Request, Response, NextFunction } from 'express'
 import createHttpError from 'http-errors'
-import { INTERNAL_SERVER_ERROR } from 'http-status-codes'
 export const toBoolean = (value: string | number | boolean): boolean => {
     if (typeof value === 'string')
         return value.toUpperCase() === 'TRUE' || value.toUpperCase() === '1'
     if (typeof value === 'number') return value === 1
     if (typeof value === 'boolean') return value
-    throw createHttpError(statusCodes.BAD_REQUEST, 'Value type not supported ' + typeof value)
+    throw createHttpError(StatusCodes.BAD_REQUEST, 'Value type not supported ' + typeof value)
+}
+export const paymentTypes = ['coins', 'spins', 'tickets', 'cards']
+export const isValidPaymentType = (paymentType: string): boolean => {
+    return paymentTypes.includes(paymentType.toLocaleLowerCase())
 }
 export function pickProps<T>(obj: T, props: string[]): Partial<T> {
     return props.reduce((a, e) => ((a[e] = obj[e]), a), {})
@@ -129,7 +132,7 @@ export const urlBase = (): string => {
         return 'https://assets.dev.slotoprizes.tagadagames.com'
     else if (_hostname === 'slotoprizes')
         return 'https://assets.slotoprizes.tagadagames.com'
-    else throw createHttpError(INTERNAL_SERVER_ERROR, 'hostname unrecognized')
+    else throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, 'hostname unrecognized')
 }
 export const sleep = async (time: number): Promise<void> => {
     return await new Promise((resolve) => {
@@ -159,5 +162,5 @@ export const publicPath = (): string => {
         return '/var/www/html/public/'
     else if (hostname() === 'slotoprizes')
         return '/var/www/html/public/'
-    else throw createHttpError(INTERNAL_SERVER_ERROR, 'hostname unrecognized')
+    else throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, 'hostname unrecognized')
 }

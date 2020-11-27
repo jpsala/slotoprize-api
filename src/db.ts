@@ -21,6 +21,38 @@ export default function getConnection(host = hostDefault): Promise<Connection> {
   }
   return createConnection(config)
 }
+export const queryGetEmpty = async (query: string, camelCase = false): Promise<any> => {
+  log && console.log('queryGetEmpty', query)
+  const conn = await getConnection()
+  const emptySet = {}
+  try {
+    const [_, fields] = await conn.query(query)
+    for (const field of <any>fields) 
+      switch (field.columnType) {
+        case 3:
+          emptySet[field.name] = String(field.name).toLocaleLowerCase() === 'id' ? -1 : 0
+          break
+        case 253:
+        case 252:
+          emptySet[field.name] = ''
+          break
+        case 12:
+          emptySet[field.name] = ''
+          break
+        default:
+          console.log('queryGetEmpty unknown field type', field.name, field.columnType)
+          emptySet[field.name] = `${field.columnType as number} not known`
+          break
+      }
+    
+    return camelCase ? camelcaseKeys(emptySet) : emptySet
+  } catch (err) {
+    console.error('queryExec error: select %O, error %O', query, err)
+    throw Object.assign({}, err, {data: {query}})
+  } finally {
+    conn.destroy()
+  }
+}
 export const queryOne = async (query: string, params: any = [], camelCase = false): Promise<any> => {
   log && console.log('queryOne', query)
   const conn = await getConnection()

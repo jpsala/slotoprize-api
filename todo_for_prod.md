@@ -20,6 +20,8 @@
 
  - [ ] delete devicePlataform after pull and verify that the profile post uses device_plataform instead
  - [ ] add updated_at field to language table
- - [ ] add agreements field to game_user table and set default to what marcos talks to rodrigo
+ - [ ] add agreements field to game_user table and set default to what marcos talks with rodrigo, el nuevo campo del profile, "agreements" va en false para los usuarios existentes tambien
  - [ ] copy apache options from dev
+ - [ ] create card_set and card in db
+ - [ ] remove yarn.lock
  - [ ] yarn update
