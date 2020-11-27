@@ -1,5 +1,7 @@
 // #region imports and types
 import camelcaseKeys from "camelcase-keys"
+import createHttpError from "http-errors"
+import { StatusCodes } from "http-status-codes"
 import { ResultSetHeader } from "mysql2"
 import snakecaseKeys from "snakecase-keys"
 import { query, queryExec, queryOne, queryScalar } from "../../../db"
@@ -39,9 +41,9 @@ export const setCard = async (card: Card): Promise<void> => {
   else resp = await queryExec(`insert into card ?`, [cardDTO])
   if (!cardInDb) card.id = resp.insertId
 
-  const languagesCount = await queryScalar(`select (count) from language`)
-  if(languagesCount > 0 && (!card.localizations || card.localizations.length < languagesCount))
-    throw createHttpError(BAD_REQUEST, 'There are missing localizations')
+  const languagesCount = Number(await queryScalar(`select (count) from language`))
+  if(languagesCount > 0 && (!card.localizations || (card.localizations.length < languagesCount)))
+    throw createHttpError(StatusCodes.BAD_REQUEST, 'There are missing localizations')
 
   await queryExec(`delete from localization where item = 'card' and item_id = ${card.id}`)
   if (card.localizations && card.localizations.length > 0)

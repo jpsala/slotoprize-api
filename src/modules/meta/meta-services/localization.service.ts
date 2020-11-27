@@ -14,7 +14,8 @@ export interface Localization {
   id: number;
   item: string;
   item_id?: number;
-  languageId: string;
+  languageId: number;
+  languageCode?: string;
   text: string;
 }
 
@@ -53,7 +54,7 @@ export const getLocalizations = async (item: string, item_id?: number): Promise<
         ${where}
     `, 
       params, true
-  ) as Localization & {languageCode: string}[]
+  ) as Localization[]
   for (const language of languages) {
     const rowId = rows.find(row => row.languageCode === language.languageCode)
     if (!rowId) {
@@ -62,7 +63,7 @@ export const getLocalizations = async (item: string, item_id?: number): Promise<
       if(item_id) stmt = 'insert into localization(item, language_id, text, item_id)  values(?,?,?,?)'
       if(item_id) params.push(item_id)
       const resp = await queryExec(stmt, params)
-      rows.push({id: resp.insertId, languageId: language.id, item_id, text: ''})
+      rows.push({id: resp.insertId, languageId: language.id, item, languageCode:language.languageCode, item_id, text: ''})
     }
   }
     

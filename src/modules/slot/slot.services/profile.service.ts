@@ -22,7 +22,7 @@ export const setProfile = async (user: GameUser): Promise<any> => {
 
   const userExists = await queryOne(`select * from game_user where device_id = '${user.deviceId}'`)
   if (!userExists)
-    throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
+    throw createError(httpStatusCodes.StatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
 
   const userForSave = <any> snakecaseKeys(user)
   
