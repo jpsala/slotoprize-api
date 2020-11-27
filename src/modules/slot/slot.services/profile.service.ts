@@ -20,8 +20,6 @@ export const setProfile = async (user: GameUser): Promise<any> => {
 
   console.log('setProfile for user %O', user)
 
-  if (!user.deviceId) throw createError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
-
   const userExists = await queryOne(`select * from game_user where device_id = '${user.deviceId}'`)
   if (!userExists)
     throw createError(httpStatusCodes.BAD_REQUEST, 'a user with this deviceId was not found')
