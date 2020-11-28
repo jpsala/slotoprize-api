@@ -98,6 +98,7 @@ router.route('/playersForFront').get(checkTokenForBO, slot.playersForFrontGet)
 router.route('/playerForFront').get(checkTokenForBO, slot.playerForFrontGet)
 router.route('/cards_for_crud').get(checkTokenForBO, slot.cardsForFrontGet)
 router.route('/card_sets_for_crud').get(checkTokenForBO, slot.cardSetsForFrontGet)
-router.route('/card_sets_for_crud').post(checkTokenForBO, slot.cardSetsForFrontPost)
+router.route('/card_sets_for_crud').post(checkTokenForBO, slot.cardSetForFrontPost)
+router.route('/card_for_crud').post(checkTokenForBO, slot.cardForFrontPost)
 
 export default router

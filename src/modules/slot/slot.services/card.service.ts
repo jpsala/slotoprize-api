@@ -158,3 +158,54 @@ export const postCardSetsForCrud = async (cardSet: CardSet): Promise<any> => {
 
   return cardSet
 }
+export const postCardForCrud = async (card: CardSet): Promise<any> => {
+  console.log('card', card )
+  const isNew = card.id === -1
+  console.log('isnew', isNew, typeof card.id)
+  // if(card.rewardAmount === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Amount can not be empty')
+  
+  const languages: Language[] = camelcaseKeys(await query(`select * from language`))
+  if(!isNew){
+    if(!card.localizations || card.localizations.length !== languages.length) throw createHttpError(StatusCodes.BAD_REQUEST, 'Missing Card Set Localizations')
+    for (const localization of card.localizations) 
+      if(localization.text === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Card localizations can not be empty')
+
+  }
+  const cardSetExists = await queryOne(`select id from card_set where id = ${card.id}`)
+  let response: ResultSetHeader
+  if(cardSetExists)
+    response = await queryExec(`
+        update card set 
+          reward_amount = ?,
+          reward_type = ?,
+          theme_color = ?
+        where id = ${card.id}`, 
+      [card.rewardAmount, card.rewardType, card.themeColor]
+    )
+  else 
+    response = (await queryExec(`insert into card(reward_amount,reward_type,theme_color) values (?, ?, ?)`,
+      [card.rewardAmount, card.rewardType, card.themeColor])
+    )
+
+  if(card.id === -1) card.id = response.insertId
+
+  // save localizations
+  if (card.localizations && card.localizations.length > 0){
+    const conn = await getConnection()
+    await conn.beginTransaction()
+    try {
+      await conn.query(`delete from localization where item = 'card' and item_id = ${card.id}`)
+        for (const localization of card.localizations) 
+          await conn.query(`insert into localization(language_id, item, item_id, text) values(?,?,?,?)`,
+          [localization.languageId, 'card', card.id, localization.text])
+      await conn.commit()
+    } catch(error) {
+      await conn.rollback()
+    } finally {
+        conn.destroy()
+    }
+  }
+
+
+  return card
+}
