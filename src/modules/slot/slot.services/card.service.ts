@@ -1,5 +1,4 @@
 // #region imports and types
-import { connect } from "http2"
 import camelcaseKeys from "camelcase-keys"
 import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"

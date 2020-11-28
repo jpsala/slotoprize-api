@@ -487,6 +487,6 @@ export async function cardSetForFrontPost(req: Request, res: Response): Promise<
   res.status(200).send(cards)
 }
 export async function cardForFrontPost(req: Request, res: Response): Promise<void> {
-  const cards = await postCardForCrud(req.body)
+  const cards = await postCardForCrud (req.body)
   res.status(200).send(cards)
 }
