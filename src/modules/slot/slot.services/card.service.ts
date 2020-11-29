@@ -4,7 +4,7 @@ import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import { ResultSetHeader } from "mysql2"
 import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar } from "../../../db"
-import { getUrlWithoutHost, isValidPaymentType, saveFile, urlBase } from "../../../helpers"
+import { isValidPaymentType, saveFile, urlBase } from "../../../helpers"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
 export type CardSet = {id: number, rewardType: string, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[]}
@@ -31,12 +31,11 @@ thumbTextureUrl interno para generar el atlas
 // #endregion
 export const getCards = async (cardSetId?: number): Promise<Card[] | undefined> => {
   const where = cardSetId ? ` where card_set_id = ${cardSetId}`: ''
-  const url = urlBase()
   const cards: Card[] = camelcaseKeys(await query(`
     select 
       id, card_set_id, stars,
-      concat('${url}', texture_url) as texture_url,
-      concat('${url}', thumb_url) as thumb_url
+      texture_url,
+      thumb_url
     from card ${where}`))    
   for (const card of cards) 
     card.localizations = camelcaseKeys(await getLocalizations('card', card.id))
@@ -163,55 +162,59 @@ export const postCardSetsForCrud = async (cardSet: CardSet): Promise<any> => {
   return cardSet
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const postCardForCrud = async (fields: any, files): Promise<any> => {
-  const card = JSON.parse(fields.json) as Card
+export const postCardForCrud = async (_fields: any, files): Promise<any> => {
+  type Fields = {
+    cardSetId: number,   id: number,     localizations: Localization[], stars: number,    textureUrl: string, thumbUrl: string
+  }
+  let fields: Fields
+  try {
+    fields = JSON.parse(_fields.json) as Fields
+  } catch (error) {
+    throw createHttpError(StatusCodes.BAD_REQUEST, 'Error parsing fields in Card Post')
+  }
   
-  console.log('card', card, files )
-
   const textureFile: { path: string; name: string; } = files.textureFile
   const thumbFile: { path: string; name: string; } = files.thumbFile
 
-  card.textureUrl = getUrlWithoutHost(card.textureUrl)
-  card.thumbUrl = getUrlWithoutHost(card.thumbUrl)
-
-  if ((!textureFile && !card.textureUrl)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Select a card image')
-  if ((!thumbFile && !card.thumbUrl)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Select an image for the thumb')
-  if(!card.stars || card.stars > 5) throw createHttpError(StatusCodes.BAD_REQUEST, 'Stars has to be less or equal to 5')
+  if ((!textureFile && !fields.textureUrl)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Select a card image')
+  if ((!thumbFile && !fields.thumbUrl)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Select an image for the thumb')
+  if(!fields.stars || fields.stars > 5) throw createHttpError(StatusCodes.BAD_REQUEST, 'Stars has to be less or equal to 5')
   
-  const isNew = card.id === -1
+  const isNew = fields.id === -1
   
   const languages: Language[] = camelcaseKeys(await query(`select * from language`))
   if(!isNew){
-    if(!card.localizations || card.localizations.length !== languages.length) throw createHttpError(StatusCodes.BAD_REQUEST, 'Missing Card Set Localizations')
-    for (const localization of card.localizations) 
+    if(!fields.localizations || fields.localizations.length !== languages.length) throw createHttpError(StatusCodes.BAD_REQUEST, 'Missing Card Set Localizations')
+    for (const localization of fields.localizations) 
       if(localization.text === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Card localizations can not be empty')
 
   }
-  const cardExists = await queryOne(`select id from card where id = ${card.id}`)
+
+  const cardExists = await queryOne(`select id from card where id = ${fields.id}`)
   let response: ResultSetHeader
   if(cardExists)
     response = await queryExec(`
         update card set 
           stars = ?
-        where id = ${card.id}`, 
-      [card.stars]
+        where id = ${fields.id}`, 
+      [fields.stars]
     )
   else 
     response = (await queryExec(`insert into card(stars) values (?)`,
-      [card.stars])
+      [fields.stars])
     )
 
-  if(card.id === -1) card.id = response.insertId
+  if(fields.id === -1) fields.id = response.insertId
 
   // save localizations
-  if (card.localizations && card.localizations.length > 0){
+  if (fields.localizations && fields.localizations.length > 0){
     const conn = await getConnection()
     await conn.beginTransaction()
     try {
-      await conn.query(`delete from localization where item = 'card' and item_id = ${card.id}`)
-        for (const localization of card.localizations) 
+      await conn.query(`delete from localization where item = 'card' and item_id = ${fields.id}`)
+        for (const localization of fields.localizations) 
         await conn.query(`insert into localization(language_id, item, item_id, text) values(?,?,?,?)`,
-        [localization.languageId, 'card', card.id, localization.text])
+        [localization.languageId, 'card', fields.id, localization.text])
         await conn.commit()
     } catch(error) {
       await conn.rollback()
@@ -220,32 +223,18 @@ export const postCardForCrud = async (fields: any, files): Promise<any> => {
     }
   }
   
-  const url = urlBase()
-  if (textureFile) {
-    const saveResp = saveFile({
-        file: textureFile,
-        path: 'cards',
-        id: String(card.id),
-        delete: true
-    })
-    card.textureUrl = url + saveResp.url
-    await query(`update card set texture_url = ? where id = ?`, [
-        saveResp.url,
-        String(card.id)
-    ])
-  }else {card.textureUrl = url + card.textureUrl}
+
+  if (textureFile) {    
+    const {fullUrl} = saveFile({ file: textureFile, path: 'cards', id: String(fields.id), delete: true })
+    fields.textureUrl = fullUrl
+    await query(`update card set texture_url = ? where id = ?`, [ fields.textureUrl, String(fields.id) ])
+  }
+
   if (thumbFile) {
-    const saveResp = saveFile({
-        file: thumbFile,
-        path: 'cards',
-        id: `thumb_${String(card.id)}`,
-        delete: true
-    })
-    card.thumbUrl = url + saveResp.url
-    await query(`update card set thumb_url = ? where id = ?`, [
-      saveResp.url,
-      String(card.id)
-    ])
-  }else {card.thumbUrl = url + card.thumbUrl}
-  return card
+    const {fullUrl} = saveFile({ file: thumbFile, path: 'cards', id: `thumb_${String(fields.id)}`, delete: true })
+    fields.thumbUrl = fullUrl
+    await query(`update card set thumb_url = ? where id = ?`, [ fields.thumbUrl, String(fields.id) ])
+  }
+
+  return fields
 }

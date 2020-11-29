@@ -81,7 +81,8 @@ export function saveFile(options: {
 }): {
     newPath: string,
     fileName: string,
-    url: string
+    url: string,
+    fullUrl: string
 } {
     if (!options.file) throw new Error('options.file is required')
 
@@ -92,6 +93,7 @@ export function saveFile(options: {
     const url = baseUrl + (options.path ? options.path : 'img')
     const path = basePath + (options.path ? options.path : 'img')
     const preppend = options.preppend ? `_${options.preppend}_` : ''
+
     const fileName =
         options.fileName ??
         `${
@@ -122,7 +124,7 @@ export function saveFile(options: {
 
     writeFileSync(newPath, rawData)
     unlinkSync(oldPath)
-    return { newPath, fileName, url: `${url}/${fileName}` }
+    return { newPath, fileName, url: `${url}/${fileName}`, fullUrl: `${urlBase()}${url}/${fileName}` }
 }
 export const urlBase = (): string => {
     const _hostname = hostname()
