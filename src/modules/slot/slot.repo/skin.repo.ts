@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 // #region imports
 import createError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
@@ -61,7 +60,7 @@ export async function postSkinForCrud(fields, files): Promise<any> {
         skinId = respQuery.insertId
     } else {
         skinId = fields.id
-        await query(`update skin set ? where id = ${skinId}`, fields)
+        await query(`update skin set ? where id = ${skinId as number}`, fields)
     }
 
     if (file) {
@@ -80,7 +79,7 @@ export async function postSkinForCrud(fields, files): Promise<any> {
 
     const respSkin = await queryOne(`
     select id, concat('${url}', machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name
-    from skin where id = ${skinId}
+    from skin where id = ${skinId as number}
   `)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return camelcaseKeys(respSkin)

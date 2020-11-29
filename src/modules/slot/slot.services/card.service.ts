@@ -4,11 +4,11 @@ import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import { ResultSetHeader } from "mysql2"
 import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar } from "../../../db"
-import { isValidPaymentType } from "../../../helpers"
+import { getUrlWithoutHost, isValidPaymentType, saveFile, urlBase } from "../../../helpers"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
 export type CardSet = {id: number, rewardType: string, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[]}
-export type Card = { id: number, localizations: Localization[], textureUrl: string, cardSet }
+export type Card = { id: number, stars: number, localizations: Localization[], textureUrl: string, thumbUrl: string, cardSet }
 // #endregion
 // #region comments
 /*
@@ -29,10 +29,15 @@ textureUrl interno para generar el atlas
 thumbTextureUrl interno para generar el atlas
 */
 // #endregion
-
 export const getCards = async (cardSetId?: number): Promise<Card[] | undefined> => {
   const where = cardSetId ? ` where card_set_id = ${cardSetId}`: ''
-  const cards: Card[] = camelcaseKeys(await query(`select * from card ${where}`))    
+  const url = urlBase()
+  const cards: Card[] = camelcaseKeys(await query(`
+    select 
+      id, card_set_id, stars,
+      concat('${url}', texture_url) as texture_url,
+      concat('${url}', thumb_url) as thumb_url
+    from card ${where}`))    
   for (const card of cards) 
     card.localizations = camelcaseKeys(await getLocalizations('card', card.id))
   return cards
@@ -157,11 +162,23 @@ export const postCardSetsForCrud = async (cardSet: CardSet): Promise<any> => {
 
   return cardSet
 }
-export const postCardForCrud = async (card: CardSet): Promise<any> => {
-  console.log('card', card )
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const postCardForCrud = async (fields: any, files): Promise<any> => {
+  const card = JSON.parse(fields.json) as Card
+  
+  console.log('card', card, files )
+
+  const textureFile: { path: string; name: string; } = files.textureFile
+  const thumbFile: { path: string; name: string; } = files.thumbFile
+
+  card.textureUrl = getUrlWithoutHost(card.textureUrl)
+  card.thumbUrl = getUrlWithoutHost(card.thumbUrl)
+
+  if ((!textureFile && !card.textureUrl)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Select a card image')
+  if ((!thumbFile && !card.thumbUrl)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Select an image for the thumb')
+  if(!card.stars || card.stars > 5) throw createHttpError(StatusCodes.BAD_REQUEST, 'Stars has to be less or equal to 5')
+  
   const isNew = card.id === -1
-  console.log('isnew', isNew, typeof card.id)
-  // if(card.rewardAmount === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Amount can not be empty')
   
   const languages: Language[] = camelcaseKeys(await query(`select * from language`))
   if(!isNew){
@@ -170,20 +187,18 @@ export const postCardForCrud = async (card: CardSet): Promise<any> => {
       if(localization.text === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Card localizations can not be empty')
 
   }
-  const cardSetExists = await queryOne(`select id from card_set where id = ${card.id}`)
+  const cardExists = await queryOne(`select id from card where id = ${card.id}`)
   let response: ResultSetHeader
-  if(cardSetExists)
+  if(cardExists)
     response = await queryExec(`
         update card set 
-          reward_amount = ?,
-          reward_type = ?,
-          theme_color = ?
+          stars = ?
         where id = ${card.id}`, 
-      [card.rewardAmount, card.rewardType, card.themeColor]
+      [card.stars]
     )
   else 
-    response = (await queryExec(`insert into card(reward_amount,reward_type,theme_color) values (?, ?, ?)`,
-      [card.rewardAmount, card.rewardType, card.themeColor])
+    response = (await queryExec(`insert into card(stars) values (?)`,
+      [card.stars])
     )
 
   if(card.id === -1) card.id = response.insertId
@@ -195,16 +210,42 @@ export const postCardForCrud = async (card: CardSet): Promise<any> => {
     try {
       await conn.query(`delete from localization where item = 'card' and item_id = ${card.id}`)
         for (const localization of card.localizations) 
-          await conn.query(`insert into localization(language_id, item, item_id, text) values(?,?,?,?)`,
-          [localization.languageId, 'card', card.id, localization.text])
-      await conn.commit()
+        await conn.query(`insert into localization(language_id, item, item_id, text) values(?,?,?,?)`,
+        [localization.languageId, 'card', card.id, localization.text])
+        await conn.commit()
     } catch(error) {
       await conn.rollback()
     } finally {
-        conn.destroy()
+      conn.destroy()
     }
   }
-
-
+  
+  const url = urlBase()
+  if (textureFile) {
+    const saveResp = saveFile({
+        file: textureFile,
+        path: 'cards',
+        id: String(card.id),
+        delete: true
+    })
+    card.textureUrl = url + saveResp.url
+    await query(`update card set texture_url = ? where id = ?`, [
+        saveResp.url,
+        String(card.id)
+    ])
+  }else {card.textureUrl = url + card.textureUrl}
+  if (thumbFile) {
+    const saveResp = saveFile({
+        file: thumbFile,
+        path: 'cards',
+        id: `thumb_${String(card.id)}`,
+        delete: true
+    })
+    card.thumbUrl = url + saveResp.url
+    await query(`update card set thumb_url = ? where id = ?`, [
+      saveResp.url,
+      String(card.id)
+    ])
+  }else {card.thumbUrl = url + card.thumbUrl}
   return card
 }
