@@ -102,5 +102,6 @@ router.route('/card_sets_for_crud').post(checkTokenForBO, slot.cardSetForFrontPo
 router.route('/card_for_crud').post(checkTokenForBO, formidableMiddleware({
   multiples: true, // req.files to be arrays of files
 }), slot.cardForFrontPost)
+router.route('/card_for_crud').delete(checkTokenForBO, slot.cardForFrontDelete)
 
 export default router

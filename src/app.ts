@@ -1,5 +1,5 @@
 /* eslint-disable import/default */
-import {urlencoded,} from "body-parser"
+import {urlencoded} from "body-parser"
 import cors from 'cors'
 import 'express-async-errors'
 import { HttpError } from 'http-errors'
@@ -26,7 +26,6 @@ const createApp = (): Express => {
     res.status(404).json({ message: `${req.path} not found!` })
   })
   app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
-    // if (process.env.NODE_ENV !== 'testing')
     log.bright.white.error('App catch:', error)
     if(error.data) console.log('error data', error.data)
     res.status(error.status || 500).json({ message: error.message })
