@@ -4,7 +4,6 @@ import cors from 'cors'
 import 'express-async-errors'
 import { HttpError } from 'http-errors'
 import express, { json, Express, Request, Response, NextFunction } from 'express'
-import fileupload from 'express-fileupload'
 import routes from './routes'
 import './modules/slot/slot.services/events/events'
 import { log } from "./log"
@@ -21,7 +20,6 @@ const createApp = (): Express => {
     next()
   })
   app.use(urlencoded({ extended: true }))
-  // app.use(fileupload())
   app.use('/api/', routes)
   app.use((req, res) => {
     console.log('req.route.path', req.path)
