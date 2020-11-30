@@ -1,9 +1,9 @@
-import { BAD_REQUEST } from 'http-status-codes'
+import { StatusCodes } from 'http-status-codes'
 import { utc } from 'moment'
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
 import createError from 'http-errors'
-import getSlotConnection from '../../../db'
+import getSlotConnection, { query, queryScalar } from '../../../db'
 import { SpinData , WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
 import { setGameUserSpinData , getGameUserLastSpinDate } from '../../meta/meta.repo/gameUser.repo'
@@ -16,6 +16,7 @@ import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import { getSetting } from './settings.service'
 import { getWallet, updateWallet } from './wallet.service'
+import { Card } from './card.service'
 
 
 const randomNumbers: number[] = []
@@ -28,7 +29,7 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   const tutorialComplete = (user.tutorialComplete || 0 as number) === 1
   if (!tutorialComplete) return await getSpinDataForIncompleteTutorial()
   
-  if(!userIsDev && await spinWasToQuickly(user)) throw createError(BAD_REQUEST, 'Spin was to quickly')
+  if(!userIsDev && await spinWasToQuickly(user)) throw createError(StatusCodes.BAD_REQUEST, 'Spin was to quickly')
 
   const wallet = await getWallet(user)
   if (!wallet) throw createError(createError.BadRequest, 'Something went wrong, Wallet not found for this user, someting went wrong')
@@ -51,7 +52,11 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   } else if (isWin) {
     const eventMultiplier = getActiveEventMultiplier(user)
     winAmount = winAmount * eventMultiplier
-    wallet[`${winType}s`] += (winAmount)
+    if(String(winType).toLocaleLowerCase() === 'card'){
+      console.log('wintype is card' )
+      const card = await getWiningCard(user.languageCode)
+      console.log('winning card', card)
+    } else  {wallet[`${winType}s`] += (winAmount)}
   }
   const spinCount = await setGameUserSpinData(user.id)
   await updateWallet(user, wallet)
@@ -59,6 +64,28 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
 
   if (isWin) returnData.winData = { type: winType, amount: winAmount }
   return returnData
+}
+const getWiningCard = async (languageCode: string): Promise<Card> => {
+  const languageId = await queryScalar(`select id from language where language_code = ?`, [languageCode])
+  const maxStars = Number(await queryScalar(`select max(stars) as maxStars from card`))
+  const cards = await query(`
+    select cs.reward_amount, cs.reward_type, c.stars, c.thumb_url,
+        (select coalesce(text, 'No localization for this card') 
+          from localization l where l.item = 'card' and l.item_id = c.id and l.language_id = '${Number(languageId)}'
+        ) as title
+      from card c
+          inner join card_set cs on c.card_set_id = cs.id
+    order by c.stars desc
+  `)
+  const randomNumber = getRandomNumber(1, maxStars)
+  let floor = 0
+  const winningCard = cards.find((row) =>
+  {
+    const isWin = ((randomNumber > floor) && (randomNumber <= floor + Number(row.stars)))
+    floor += Number(row.stars)
+    return isWin
+  })
+  return winningCard
 }
 const getSpinDataForIncompleteTutorial = async (): Promise<any> => {
   const coins = Number(await getSetting('initialWalletCoins', '10'))

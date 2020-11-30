@@ -3,7 +3,7 @@ import crypto, { Utf8AsciiLatin1Encoding } from 'crypto'
 import queryString from 'querystring'
 import { format } from 'util'
 import createHttpError from 'http-errors'
-import { BAD_REQUEST } from 'http-status-codes'
+import { StatusCodes } from 'http-status-codes'
 import { queryExec } from '../../../db'
 import { getGameUserById } from '../../meta/meta.repo/gameUser.repo'
 import { WebSocketMessage, wsServer } from './webSocket/ws.service'
@@ -12,9 +12,9 @@ export type QueryParams = {user_id: number,  amount: number, paymentType: 'coins
 export async function appodealCallbackPlain(queryParams: QueryParams): Promise<any> {
   console.log('queryParams', queryParams)
   if (!queryParams || !queryParams['user_id'] || !queryParams['paymentType'] || !queryParams['amount'])
-    throw createHttpError(BAD_REQUEST, 'You have an error in the body')
+    throw createHttpError(StatusCodes.BAD_REQUEST, 'You have an error in the body')
   if (!['spins', 'coins', 'tickets'].includes(queryParams['paymentType']))
-    throw createHttpError(BAD_REQUEST, 'paymentType is incorrect')
+    throw createHttpError(StatusCodes.BAD_REQUEST, 'paymentType is incorrect')
   queryParams['currency'] = queryParams['paymentType']
   await appodealCallback(undefined, undefined, queryParams)
   return {status: 'ok'}
@@ -22,7 +22,7 @@ export async function appodealCallbackPlain(queryParams: QueryParams): Promise<a
 
 export async function appodealCallback(data1?: string, data2?: string, queryParams?: QueryParams): Promise<any> {
   if ((!data1 || !data2) && !queryParams)
-    throw createHttpError(BAD_REQUEST, 'Please check the parámeters')
+    throw createHttpError(StatusCodes.BAD_REQUEST, 'Please check the parámeters')
   if (data1 && data2) {
     const encryptionKey = "encryptionKeyForAppodeal9405"
     const keyBytes = crypto.createHash('sha256').update(encryptionKey, 'utf-8' as Utf8AsciiLatin1Encoding).digest()
@@ -50,7 +50,7 @@ export async function appodealCallback(data1?: string, data2?: string, queryPara
 
   if (queryParams || (hashString && (<string>hash).toUpperCase() === hashString.toUpperCase())){
     const user = await getGameUserById(Number(userId))
-    if (!user) throw createHttpError(BAD_REQUEST, 'User not found')
+    if (!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found')
     
     const wsMessage: WebSocketMessage = {
       code: 200,
