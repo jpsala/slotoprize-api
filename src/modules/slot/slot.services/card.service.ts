@@ -197,13 +197,10 @@ export const postCardForCrud = async (_fields: any, files): Promise<any> => {
   if(!fields.stars || fields.stars > 5) throw createHttpError(StatusCodes.BAD_REQUEST, 'Stars has to be less or equal to 5')
 
   
-  if(!isNew){
     const languages: Language[] = camelcaseKeys(await query(`select * from language`))
     if(!fields.localizations || fields.localizations.length !== languages.length) throw createHttpError(StatusCodes.BAD_REQUEST, 'Missing Card Set Localizations')
     for (const localization of fields.localizations) 
       if(localization.text === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Card localizations can not be empty')
-
-  }
 
   let response: ResultSetHeader
   const cardExists = await queryOne(`select id from card where id = ${fields.id}`)
