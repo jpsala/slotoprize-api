@@ -245,6 +245,7 @@ export const postCardForCrud = async (_fields: any, files): Promise<any> => {
 }
 export const deleteCardForCrud = async (cardId: number): Promise<void> => { 
   if(!cardId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card ID param is required')
+  await queryExec(`delete from localization where item = 'card' and item_id = ${cardId}`)
   const resp = await queryExec(`delete from card where id = ${cardId}`)
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardId))
   console.log('resp', resp)
@@ -252,8 +253,13 @@ export const deleteCardForCrud = async (cardId: number): Promise<void> => {
 export const deleteCardSetForCrud = async (cardSetId: number): Promise<void> => { 
   console.log('cardSetId', cardSetId)
   if(!cardSetId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set ID param is required')
-  let resp = await queryExec(`delete from card where card_set_id = ${cardSetId}`)
-
+  const cards = await query(`select id from card where card_set_id = ?`, [String(cardSetId)])
+  for (const card of cards) 
+    await queryExec(`delete from localization where item = 'card' and item_id = ${String(card.id)}`)
+    
+    let resp = await queryExec(`delete from card where card_set_id = ${cardSetId}`)
+    
+  await queryExec(`delete from localization where item = 'cardSet' and item_id = ${String(cardSetId)}`)
   if(!resp) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardSetId))
   resp = await queryExec(`delete from card_set where id = ${cardSetId}`)
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card set ' + String(cardSetId))
