@@ -5,7 +5,6 @@ import { StatusCodes } from "http-status-codes"
 import { ResultSetHeader } from "mysql2"
 import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar } from "../../../db"
 import { isValidPaymentType, saveFile } from "../../../helpers"
-import { log } from "../../../log"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
 export type CardSet = {id: number, rewardType: string, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[]}
@@ -92,7 +91,8 @@ export const getCardSetsForCrud = async (): Promise<{ cardSets: CardSet[], langu
         item: "card",
         languageCode: language.languageCode,
         languageId: language.id,
-        text: `${language.languageCode} localization`,
+        text: '',
+        // text: `${language.languageCode} localization`,
       }
   )
   newCard.textureUrl = 'https://assets.slotoprizes.tagadagames.com/img/missing.png'
@@ -100,6 +100,7 @@ export const getCardSetsForCrud = async (): Promise<{ cardSets: CardSet[], langu
   
   const newCardSet: CardSet = await queryGetEmpty('select * from card_set where id = -1', true)
   newCardSet.localizations = []
+  newCardSet.cards = []
   for (const language of languages) 
   newCardSet.localizations.push(
     {
@@ -107,7 +108,8 @@ export const getCardSetsForCrud = async (): Promise<{ cardSets: CardSet[], langu
       item: "cardSet",
       languageCode: language.languageCode,
       languageId: language.id,
-      text: `${language.languageCode} localization`,
+      text: '',
+      // text: `${language.languageCode} localization`,
     }
     )
     
@@ -123,12 +125,12 @@ export const postCardSetsForCrud = async (cardSet: CardSet): Promise<any> => {
   if(!isValidPaymentType(`${cardSet.rewardType}s`)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Type is invalid')
   
   const languages: Language[] = camelcaseKeys(await query(`select * from language`))
-  if(!isNew){
+  // if(!isNew){
     if(!cardSet.localizations || cardSet.localizations.length !== languages.length) throw createHttpError(StatusCodes.BAD_REQUEST, 'Missing Card Set Localizations')
     for (const localization of cardSet.localizations) 
       if(localization.text === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set localizations can not be empty')
 
-  }
+  // }
   const cardSetExists = await queryOne(`select id from card_set where id = ${cardSet.id}`)
   let response: ResultSetHeader
   if(cardSetExists)
@@ -170,7 +172,7 @@ export const postCardSetsForCrud = async (cardSet: CardSet): Promise<any> => {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const postCardForCrud = async (_fields: any, files): Promise<any> => {
   type Fields = {
-    cardSetId: number, id: number, localizations: Localization[], stars: number, textureUrl?: string, thumbUrl?: string
+    cardSetId: number, id: number, localizations: Localization[], stars: number, textureUrl?: string, thumbUrl?: string, cards: []
   }
   type UploadedFile = { path: string; name: string; }
   let fields: Fields
@@ -187,6 +189,7 @@ export const postCardForCrud = async (_fields: any, files): Promise<any> => {
   if(isNew) {
     fields.textureUrl = undefined
     fields.thumbUrl = undefined
+    // fields.cards = []
   }
 
   if ((!textureFile && !fields.textureUrl)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Select a card image')
@@ -247,5 +250,15 @@ export const deleteCardForCrud = async (cardId: number): Promise<void> => {
   if(!cardId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card ID param is required')
   const resp = await queryExec(`delete from card where id = ${cardId}`)
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardId))
+  console.log('resp', resp)
+}
+export const deleteCardSetForCrud = async (cardSetId: number): Promise<void> => { 
+  console.log('cardSetId', cardSetId)
+  if(!cardSetId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set ID param is required')
+  let resp = await queryExec(`delete from card where card_set_id = ${cardSetId}`)
+
+  if(!resp) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardSetId))
+  resp = await queryExec(`delete from card_set where id = ${cardSetId}`)
+  if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card set ' + String(cardSetId))
   console.log('resp', resp)
 }
