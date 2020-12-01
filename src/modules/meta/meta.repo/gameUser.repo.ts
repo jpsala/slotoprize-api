@@ -4,13 +4,11 @@ import camelcaseKeys from 'camelcase-keys'
 import { classToPlain } from "class-transformer"
 import { RowDataPacket } from 'mysql2'
 import createHttpError from 'http-errors'
-import { BAD_REQUEST } from 'http-status-codes'
 import * as metaService from '../../meta/meta-services/meta.service'
 import getConnection, {queryOne, queryExec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
 import { log } from '../../../log'
-import { CardForSpin } from '../../slot/slot.services/spin.service'
 import { addHostToPath } from './../../../helpers'
 import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
@@ -139,7 +137,7 @@ export async function getWinRaffle(userId: number): Promise<Partial<RafflePrizeD
     order by rh.id desc limit 1
   `)
 
-  if(!winData) throw createHttpError(BAD_REQUEST, 'getWinRaffle, winData not found')
+  if(!winData) throw createHttpError(httpStatusCodes.StatusCodes.BAD_REQUEST, 'getWinRaffle, winData not found')
 
   const rafflePrizeData: Partial <RafflePrizeData> = {
     id: winData.id, name: winData.name, description: winData.description,
@@ -170,7 +168,7 @@ export async function getHaveWinJackpot(userId: number): Promise<boolean> {
 }
 export async function getHaveProfile(userId: number): Promise<boolean> {
   const profileData = await getGameUserById(userId)
-  if(!profileData) throw createHttpError(BAD_REQUEST, 'User not found in getHaveProfile')
+  if(!profileData) throw createHttpError(httpStatusCodes.StatusCodes.BAD_REQUEST, 'User not found in getHaveProfile')
   console.log('profileData', profileData)
   return profileData.lastName !== "" &&
          profileData.firstName !== "" &&
@@ -301,8 +299,8 @@ export const unMarkGameUserForEventWhenProfileGetsFilled = async (user: GameUser
     update game_user set sendWinJackpotEventWhenProfileFilled = null where id = ${user.id}
   `)
 }
-export const assignCardToUser = async (user: GameUser, card: CardForSpin): Promise<void> => {
+export const assignCardToUser = async (userId:number, cardId: number): Promise<void> => {
   await queryExec(`
     insert into game_user_card(game_user_id, card_id) values(?, ?)
-  `, [user.id, card.id])
+  `, [userId, cardId])
 }

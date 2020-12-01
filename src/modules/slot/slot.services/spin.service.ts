@@ -3,12 +3,11 @@ import { utc } from 'moment'
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
 import createHttpError from 'http-errors'
-import getSlotConnection, { query, queryScalar } from '../../../db'
-import { SpinData , WinType } from "../slot.types"
+import getSlotConnection from '../../../db'
+import { CardData, SpinData, WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
 import { setGameUserSpinData , getGameUserLastSpinDate, assignCardToUser } from '../../meta/meta.repo/gameUser.repo'
 import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
-import { cardDropRateTableGet } from '../slot.controller'
 import { GameUser } from './../../meta/meta.types'
 
 import * as jackpotService from './jackpot.service'
@@ -17,9 +16,8 @@ import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import { getSetting } from './settings.service'
 import { getWallet, updateWallet } from './wallet.service'
-import { getCardDropRateTable } from './card.service'
+import { getWiningCard } from './spin-card.service'
 
-export type CardForSpin = {id: number, rewardAmount: number, rewardType: string, title: string, stars: number}
 
 const randomNumbers: number[] = []
 //@URGENT userIsDev is only when the user is dev, not dev-request
@@ -47,6 +45,7 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   if (winType === 'jackpot' || winType === 'ticket') multiplier = 1
   let winAmount = winPoints * multiplier
 
+  let cardData: CardData | undefined = undefined
   // siempre se descuenta el costo del spin
   wallet.spins -= bet
   if (winType === 'jackpot') {
@@ -57,53 +56,22 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
     winAmount = winAmount * eventMultiplier
     if(String(winType).toLocaleLowerCase() === 'card'){
       console.log('wintype is card' )
-      const card = await getWiningCard(user.languageCode)
-      await assignCardToUser(user, card)
-      console.log('winning card', card)
-    } else  {wallet[`${winType}s`] += (winAmount)}
+      cardData = await getWiningCard(user.languageCode)
+      // {id: number, rewardAmount: number, rewardType: string, title: string, stars: number}
+      await assignCardToUser(user.id, cardData.id)
+      console.log('winning card', cardData)
+    } else  {
+      wallet[`${winType}s`] += (winAmount)
+    }
   }
   const spinCount = await setGameUserSpinData(user.id)
   await updateWallet(user, wallet)
   const returnData: SpinData = { symbolsData, isWin, walletData: wallet, spinCount }
-
   if (isWin) returnData.winData = { type: winType, amount: winAmount }
+  if(cardData) returnData.cardData = cardData
   return returnData
 }
-const getWiningCard = async (languageCode: string): Promise<CardForSpin> => {
-  // toma las estrellas de la tabla de probabilidades en base a un numero al azar, como se hace en el spin
-  // me va a devolver una cantidad de estrellas de la carta que va a ganar
-  // tomo todas las cartas que tengan ese número de estrellas
-  // sortéo una de ellas y la devuelvo
-  const languageId = await queryScalar(`select id from language where language_code = ?`, [languageCode])
-  const cardropRateTable = await getCardDropRateTable({order: 'probability', orderDirection: 'desc'})
-  const randomNumberToObtainRowWithStars = getRandomNumber(1, 100)
-  let floor = 0
-  const dropRateTableRow = cardropRateTable.find((row) =>
-  {
-    const isWin = ((randomNumberToObtainRowWithStars > floor) && (randomNumberToObtainRowWithStars <= floor + Number(row.probability)))
-    floor += Number(row.probability)
-    return isWin
-  })
-  if(!dropRateTableRow) throw createHttpError(StatusCodes.BAD_REQUEST, 'Error getting winning card')
-  console.log('select stars = ', dropRateTableRow.stars)
-  const stars = dropRateTableRow.stars
-  const cardWithThisStars = await query(`
-    select c.id, cs.reward_amount, cs.reward_type, c.stars, c.thumb_url,
-          (select coalesce(text, 'No localization for this card') 
-            from localization l where l.item = 'card' and l.item_id = c.id and l.language_id = '${Number(languageId)}'
-          ) as title
-    from card c
-        inner join card_set cs on c.card_set_id = cs.id
-    where stars = ${stars}
-  `)
-  if(!cardWithThisStars || cardWithThisStars.length === 0) throw createHttpError(StatusCodes.BAD_REQUEST, `There are not cards with ${stars} stars`)
 
-  const randomNumberToObtainCardRow = getRandomNumber(1, cardWithThisStars.length) - 1
-  const winningCard = cardWithThisStars[randomNumberToObtainCardRow]
-  console.log('card with this stars', winningCard.title)
-
-  return winningCard
-}
 const getSpinDataForIncompleteTutorial = async (): Promise<any> => {
   const coins = Number(await getSetting('initialWalletCoins', '10'))
   const spins = Number(await getSetting('initialWalletSpins', '10'))
@@ -118,7 +86,7 @@ const getSpinDataForIncompleteTutorial = async (): Promise<any> => {
     "walletData": { coins, tickets, spins },
     "spinCount": 1,
     "winData": { "type": "coin", "amount": coins }
-}
+  }
 }
 const spinWasToQuickly = async (user: GameUser): Promise<boolean> =>
 {
