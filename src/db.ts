@@ -3,16 +3,21 @@ import { hostname } from 'os'
 import {createConnection, ResultSetHeader, Connection} from 'mysql2/promise'
 import camelcaseKeys from 'camelcase-keys'
 const log = false
-const hostDefault = hostname() === 'jpnote' ? 'localhost' : 'slotoprizes.cdy8hosrrn6a.eu-west-3.rds.amazonaws.com'
-const userName = hostname() === 'jpnote' ? 'jpsala' : 'admin'
-const dbName = hostname() === 'jpnote' ? 'wopidom' : 'slotoprizes'
-export default function getConnection(host = hostDefault): Promise<Connection> {
+let dbHost
+if(hostname() === 'jpnote') dbHost = 'localhost'
+else if(hostname() === 'sloto-dev') dbHost = 'slotoprizes.cdy8hosrrn6a.eu-west-3.rds.amazonaws.com'
+else if(hostname() === 'slotoprizes') dbHost = 'slotoprizeslive.cdy8hosrrn6a.eu-west-3.rds.amazonaws.com'
+
+const userName = 'admin'
+const dbName = 'slotoprizes'
+const password = 'lani0363'
+export default function getConnection(host = dbHost): Promise<Connection> {
   // eslint-disable-next-line no-process-env
   const config = {
     // connectionLimit: 10,
     host,
     user: userName,
-    password: 'lani0363',
+    password: password,
     database: dbName,
     debug: false,
     charset: 'utf8mb4',

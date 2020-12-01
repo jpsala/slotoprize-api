@@ -27,7 +27,7 @@ import { testUser39 } from './slot.repo/spin.regeneration.repo'
 import * as slotService from './slot.services'
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
 import { appodealCallback, appodealCallbackPlain, QueryParams } from './slot.services/appodeal'
-import { deleteCardForCrud, deleteCardSetForCrud, getCardSetsForCrud, getCardsForCrud, postCardForCrud, postCardSetsForCrud } from './slot.services/card.service'
+import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetsForCrud } from './slot.services/card.service'
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
 import { callback, getVideoAdsViewCountForCrud } from './slot.services/ironsource'
 import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
@@ -499,4 +499,12 @@ export async function cardForFrontDelete(req: Request, res: Response): Promise<v
   console.log('req', req)
     const resp = await deleteCardForCrud(Number(req.query.cardId))
     res.status(200).json(resp)
+}
+export async function cardDropRateTableGet(req: Request, res: Response): Promise<void> {
+  const table = await getCardDropRateTable()
+  res.status(200).send(table)
+}
+export async function cardDropRateTablePost(req: Request, res: Response): Promise<void> {
+  const table = await postCardDropRateTable(req.body)
+  res.status(200).send({'status': 'ok'})
 }

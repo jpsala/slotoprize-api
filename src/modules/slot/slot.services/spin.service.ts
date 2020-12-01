@@ -80,7 +80,15 @@ const getWiningCard = async (languageCode: string): Promise<CardForSpin> => {
     order by c.stars desc
   `)) as CardForSpin[]
   if(!cards || cards.length === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'There are not cards')
+
+  // toma el número de la tabla de probabilidades de cartas
+  // 5 registros con las probabilidades de cada estrella que tienen que sumar 100
+  // me va a devolver una cantidad de estrellas de la carta que va a ganar
   const randomNumber = getRandomNumber(1, maxStars)
+  // cardDropRateTable
+  // lógica:
+  // tomo todas las cartas que tengan ese número de estrellas
+  // sortéo una de ellas
   let floor = 0
   const winningCard = cards.find((row) =>
   {

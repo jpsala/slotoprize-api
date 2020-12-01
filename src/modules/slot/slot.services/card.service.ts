@@ -265,3 +265,25 @@ export const deleteCardSetForCrud = async (cardSetId: number): Promise<void> => 
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card set ' + String(cardSetId))
   console.log('resp', resp)
 }
+export type CardDropRateTable = {id: number, stars: number, probability: number}
+export const postCardDropRateTable = async (table: CardDropRateTable[]): Promise<void> => {
+  if(!table) throw createHttpError(StatusCodes.BAD_REQUEST, 'Table can not be empty')
+  await queryExec(`delete from card_drop_rate`)
+  for (const row of table) 
+    await queryExec(`insert into card_drop_rate set ?`, row)
+  
+}
+export const getCardDropRateTable = async (): Promise<CardDropRateTable[]> => {
+  let table =  (await query(`select * from card_drop_rate order by stars desc`)) as CardDropRateTable[]
+  console.log(table)
+  
+  if(!table || table.length === 0)
+    table = [
+      {id: 0, stars: 5, probability: 2},
+      {id: 1, stars: 4, probability: 8},
+      {id: 2, stars: 3, probability: 10},
+      {id: 3, stars: 2, probability: 30},
+      {id: 4, stars: 1, probability: 50},
+    ]
+  return table
+}
