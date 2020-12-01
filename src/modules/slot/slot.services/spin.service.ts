@@ -2,11 +2,11 @@ import { StatusCodes } from 'http-status-codes'
 import { utc } from 'moment'
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
-import createError from 'http-errors'
+import createHttpError from 'http-errors'
 import getSlotConnection, { query, queryScalar } from '../../../db'
 import { SpinData , WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
-import { setGameUserSpinData , getGameUserLastSpinDate } from '../../meta/meta.repo/gameUser.repo'
+import { setGameUserSpinData , getGameUserLastSpinDate, assignCardToUser } from '../../meta/meta.repo/gameUser.repo'
 import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { GameUser } from './../../meta/meta.types'
 
@@ -16,8 +16,8 @@ import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import { getSetting } from './settings.service'
 import { getWallet, updateWallet } from './wallet.service'
-import { Card } from './card.service'
 
+export type CardForSpin = {id: number, rewardAmount: number, rewardType: string, title: string, stars: number}
 
 const randomNumbers: number[] = []
 //@URGENT userIsDev is only when the user is dev, not dev-request
@@ -25,17 +25,18 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
   const user = await getOrSetGameUserByDeviceId(deviceId)
-
   const tutorialComplete = (user.tutorialComplete || 0 as number) === 1
   if (!tutorialComplete) return await getSpinDataForIncompleteTutorial()
   
-  if(!userIsDev && await spinWasToQuickly(user)) throw createError(StatusCodes.BAD_REQUEST, 'Spin was to quickly')
+  if(!userIsDev && await spinWasToQuickly(user)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Spin was to quickly')
 
   const wallet = await getWallet(user)
-  if (!wallet) throw createError(createError.BadRequest, 'Something went wrong, Wallet not found for this user, someting went wrong')
+  console.log('wallet', wallet, user)
+  
+  if (!wallet) throw createHttpError(createHttpError.BadRequest, 'Something went wrong, Wallet not found for this user, someting went wrong')
   const { spins: spinsInWallet } = wallet
   const { bet, enoughSpins } = getBetAndCheckFunds(multiplier, spinsInWallet)
-  if (!enoughSpins) throw createError(400, 'Insufficient funds')
+  if (!enoughSpins) throw createHttpError(400, 'Insufficient funds')
 
   const {id: jackpotRowId, isJackpot} = await jackpotService.addSpinsToJackpotAndReturnIfIsJackpot(multiplier, user)
   // eslint-disable-next-line prefer-const
@@ -55,6 +56,7 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
     if(String(winType).toLocaleLowerCase() === 'card'){
       console.log('wintype is card' )
       const card = await getWiningCard(user.languageCode)
+      await assignCardToUser(user, card)
       console.log('winning card', card)
     } else  {wallet[`${winType}s`] += (winAmount)}
   }
@@ -65,18 +67,19 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
   if (isWin) returnData.winData = { type: winType, amount: winAmount }
   return returnData
 }
-const getWiningCard = async (languageCode: string): Promise<Card> => {
+const getWiningCard = async (languageCode: string): Promise<CardForSpin> => {
   const languageId = await queryScalar(`select id from language where language_code = ?`, [languageCode])
   const maxStars = Number(await queryScalar(`select max(stars) as maxStars from card`))
-  const cards = await query(`
-    select cs.reward_amount, cs.reward_type, c.stars, c.thumb_url,
+  const cards = (await query(`
+    select c.id, cs.reward_amount, cs.reward_type, c.stars, c.thumb_url,
         (select coalesce(text, 'No localization for this card') 
           from localization l where l.item = 'card' and l.item_id = c.id and l.language_id = '${Number(languageId)}'
         ) as title
       from card c
           inner join card_set cs on c.card_set_id = cs.id
     order by c.stars desc
-  `)
+  `)) as CardForSpin[]
+  if(!cards || cards.length === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'There are not cards')
   const randomNumber = getRandomNumber(1, maxStars)
   let floor = 0
   const winningCard = cards.find((row) =>
@@ -85,6 +88,7 @@ const getWiningCard = async (languageCode: string): Promise<Card> => {
     floor += Number(row.stars)
     return isWin
   })
+  if(!winningCard) throw createHttpError(StatusCodes.BAD_REQUEST, 'Error getting winning card')
   return winningCard
 }
 const getSpinDataForIncompleteTutorial = async (): Promise<any> => {
@@ -198,10 +202,10 @@ const getWinRow = (table) => {
   return winRow
 }
 async function checkParamsAndThrowErrorIfFail(deviceId: string, multiplier: number): Promise<void> {
-  if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
-  if (!multiplier) throw createError(createError.BadRequest, 'multiplier is a required parameter')
+  if (!deviceId) throw createHttpError(StatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
+  if (!multiplier) throw createHttpError(StatusCodes.BAD_REQUEST, 'multiplier is a required parameter')
   const maxMultiplier = Number(await getSetting('maxMultiplier', '1'))
-  if (multiplier > maxMultiplier) throw createError(createError[502], `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`)
+  if (multiplier > maxMultiplier) throw createHttpError(502, `multiplayer (${multiplier}) is bigger than maxMultiplier setting (${maxMultiplier})`)
 
 }
 export function getBetAndCheckFunds(multiplier: number, spins: number): { bet: number, enoughSpins: boolean } {

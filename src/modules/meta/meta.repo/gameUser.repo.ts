@@ -10,6 +10,7 @@ import getConnection, {queryOne, queryExec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
 import { log } from '../../../log'
+import { CardForSpin } from '../../slot/slot.services/spin.service'
 import { addHostToPath } from './../../../helpers'
 import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
@@ -299,4 +300,11 @@ export const unMarkGameUserForEventWhenProfileGetsFilled = async (user: GameUser
   await queryExec(`
     update game_user set sendWinJackpotEventWhenProfileFilled = null where id = ${user.id}
   `)
+}
+export const assignCardToUser = async (user: GameUser, card: CardForSpin): Promise<void> => {
+  console.log('assignCardToUser card', card)
+  const resp = await queryExec(`
+    insert into game_user_card(game_user_id, card_id) values(?, ?)
+  `, [user.id, card.id])
+  console.log('assignCardToUser resp', resp)
 }
