@@ -272,9 +272,13 @@ export const postCardDropRateTable = async (table: CardDropRateTable[]): Promise
   for (const row of table) 
     await queryExec(`insert into card_drop_rate set ?`, row)
   
-}
-export const getCardDropRateTable = async (): Promise<CardDropRateTable[]> => {
-  let table =  (await query(`select * from card_drop_rate order by stars desc`)) as CardDropRateTable[]
+}//function sayName({ first, last = 'Smith' }: {first: string; last?: string }): void {
+export const getCardDropRateTable = async (
+    {order = 'stars', orderDirection = 'asc'}: {order?: 'stars'|'probability', orderDirection?: 'asc'|'desc'} = {}
+    ): Promise<CardDropRateTable[]> =>
+{
+  const orderBy = order === 'stars' ? `stars ${orderDirection}` : `probability ${orderDirection}`
+  let table =  (await query(`select * from card_drop_rate order by ${orderBy}`)) as CardDropRateTable[]
   console.log(table)
   
   if(!table || table.length === 0)

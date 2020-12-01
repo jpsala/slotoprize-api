@@ -302,9 +302,7 @@ export const unMarkGameUserForEventWhenProfileGetsFilled = async (user: GameUser
   `)
 }
 export const assignCardToUser = async (user: GameUser, card: CardForSpin): Promise<void> => {
-  console.log('assignCardToUser card', card)
-  const resp = await queryExec(`
+  await queryExec(`
     insert into game_user_card(game_user_id, card_id) values(?, ?)
   `, [user.id, card.id])
-  console.log('assignCardToUser resp', resp)
 }
