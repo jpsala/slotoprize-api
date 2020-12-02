@@ -8,7 +8,7 @@ import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar }
 import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl } from "../../../helpers"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
-import { Atlas, buildAtlas } from "../../meta/meta-services/atlas"
+import { Atlas, buildAtlas, getAtlas, saveAtlasToDB } from "../../meta/meta-services/atlas"
 import { getSetting } from "./settings.service"
 
 export type CardSet = {id: number, rewardType: string, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[]}
@@ -403,7 +403,17 @@ const getCardSetAtlasData = async (cardSet: CollectibleCardSetDataCL): Promise<A
   for (const cardRow of cardsForThumb) 
     thumbs.push({name: cardRow.id, image: join(basePath, getUrlWithoutHost(cardRow.thumbUrl))})
   
-  const atlas = await buildAtlas(thumbs, cardSet.title)
+  // const atlas = await buildAtlas(thumbs, cardSet.title)
+  let atlas: Atlas 
+  try {
+    atlas = await getAtlas(cardSet.title) 
+    console.log('yessss', atlas)
+  } catch (error) {
+    atlas = await buildAtlas(thumbs, cardSet.title)
+    await saveAtlasToDB(atlas)
+    console.log('maaal', atlas)
+  }
+  console.log('atlas', atlas)
   return atlas
 }
 const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
@@ -421,7 +431,15 @@ const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
     thumbs.push({name: cardForThumb.id, image: join(basePath, getUrlWithoutHost(cardForThumb.thumbUrl))})
 
   }
-  const atlas = await buildAtlas(thumbs, 'cardSets')
+  let atlas: Atlas 
+  try {
+    atlas = await getAtlas('cardSets') 
+    console.log('yessss', atlas)
+  } catch (error) {
+    atlas = await buildAtlas(thumbs, 'cardSets')
+    await saveAtlasToDB(atlas)
+    console.log('maaal', atlas)
+  }
   console.log('atlas', atlas)
   console.log('cardSet, images', cardSets, thumbs)
   return atlas

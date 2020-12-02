@@ -94,9 +94,7 @@ export async function buildAtlas(
   })
   return atlas
 }
-function isImageObj(obj: any): obj is {name:string,image:string}{
-  return obj.name !== undefined 
-}
+
 export async function saveAtlasToDB(data: Atlas): Promise<void> {
   const atlasInDB = await queryOne(`select id from atlas where name = '${data.name}'`)
   const jsonData = JSON.stringify(data)
