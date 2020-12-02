@@ -391,28 +391,35 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
    
   return cardCollectionsDataCL
 }
-const basePath = getAssetsPath()
 const getCardSetAtlasData = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas> => {
+  const basePath = getAssetsPath()
 
-  const cardsForThumb = await query(`select thumb_url as thumbUrl from card where card_set_id = ${cardSet.id}`)
-  const thumbs: string[] = []
+  const cardsForThumb = await query(`
+    select c.id, c.thumb_url as thumbUrl
+    from card c where c.card_set_id = ${cardSet.id}
+  `)
+  const thumbs: {name: string, image: string}[] = []
   // const thumbRows = (await query(`select thumb_texture as thumbTexture from card where card_set_id = ${cardSet.id}`))
   for (const cardRow of cardsForThumb) 
-    thumbs.push(join(basePath, getUrlWithoutHost(cardRow.thumbUrl)))
+    thumbs.push({name: cardRow.id, image: join(basePath, getUrlWithoutHost(cardRow.thumbUrl))})
   
   const atlas = await buildAtlas(thumbs, cardSet.title)
   return atlas
 }
 const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
+  const basePath = getAssetsPath()
   const cardSets: CardSet[] = camelcaseKeys(await query(`
     select id, theme_color, reward_type, reward_amount from card_set
   `))
-  const thumbs: string[] = []
+  const thumbs: {name: string, image: string}[] = []
+
   for (const cardSet of cardSets) {
-    const cardForThumb = (await queryScalar(`
-      select thumb_url as thumbUrl from card c where card_set_id = ${cardSet.id} order by id desc limit 1
-    `)) as string
-    thumbs.push(join(basePath, getUrlWithoutHost(cardForThumb)))
+    const cardForThumb = (await queryOne(`
+      select id, thumb_url as thumbUrl from card c where card_set_id = ${cardSet.id} order by id desc limit 1
+    `))
+    // thumbs.push(join(basePath, getUrlWithoutHost(cardForThumb)))
+    thumbs.push({name: cardForThumb.id, image: join(basePath, getUrlWithoutHost(cardForThumb.thumbUrl))})
+
   }
   const atlas = await buildAtlas(thumbs, 'cardSets')
   console.log('atlas', atlas)

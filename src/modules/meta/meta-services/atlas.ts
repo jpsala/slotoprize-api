@@ -2,10 +2,10 @@
 import { writeFileSync } from 'fs'
 import { basename, extname, join } from 'path'
 import createHttpError from 'http-errors'
-import { BAD_REQUEST } from 'http-status-codes'
+import { StatusCodes } from 'http-status-codes'
 import Spritesmith from 'spritesmith'
 import pixelsmith from 'pixelsmith'
-import { publicPath, getAssetsUrl } from '../../../helpers'
+import { getAssetsUrl, publicPath } from '../../../helpers'
 import { buildSymbolsAtlas } from '../../slot/slot.services/symbol.service'
 import { queryOne, queryExec } from '../../../db'
 
@@ -42,11 +42,19 @@ type AtlasOptions = {
 }
 // #endregion
 
-export async function buildAtlas(images: string[], name: string, padding?: number, quality?: number): Promise < Atlas > {
+export async function buildAtlas(
+  images: string[] | {name:string,image:string}[], name: string, padding?: number, quality?: number):
+   Promise < Atlas > 
+{
   const finalOutput = join(publicPath(), 'assets', `atlas/${name}.png`)
   const atlas: Atlas = await new Promise(done => {
+    const _images: string[] = []
+    for (const image of images) 
+      if(typeof image === 'string') _images.push(image) 
+      else _images.push(image.image)
+    
     const options: AtlasOptions = {
-      src: images,
+      src: _images,
       exportOpts: {},
       engineOpts: { imagemagick: true },
       engine: pixelsmith
@@ -63,14 +71,15 @@ export async function buildAtlas(images: string[], name: string, padding?: numbe
 
       // Output the image
       writeFileSync(finalOutput, result.image)
+      
       const spritesData: AtlasSprite[] = []
+      let entryIdx = 0
       for (const entry of Object.entries(result.coordinates)) {
         const extension = extname(basename(entry[0]))
-        const name = basename(basename(entry[0]), extension)
-        spritesData.push({
-          name,
-          coordinates: entry[1] as AtlasSpriteCoordinates
-        })
+        let name = basename(basename(entry[0]), extension)
+        const imageObjOrString = images[entryIdx++]
+        if(typeof(imageObjOrString) !== 'string') name = imageObjOrString.name
+        spritesData.push({ name, coordinates: entry[1] as AtlasSpriteCoordinates })
       }
       done(
         {
@@ -84,6 +93,9 @@ export async function buildAtlas(images: string[], name: string, padding?: numbe
     })
   })
   return atlas
+}
+function isImageObj(obj: any): obj is {name:string,image:string}{
+  return obj.name !== undefined 
 }
 export async function saveAtlasToDB(data: Atlas): Promise<void> {
   const atlasInDB = await queryOne(`select id from atlas where name = '${data.name}'`)
@@ -107,7 +119,7 @@ export async function getAtlas(name: string): Promise<Atlas> {
    else if (name.toLocaleLowerCase() === 'symbols') 
     jsonData = await buildSymbolsAtlas()
   
-  if(!jsonData)throw createHttpError(BAD_REQUEST, `Requested atlas "${name}" not implemented`)
+  if(!jsonData)throw createHttpError(StatusCodes.BAD_REQUEST, `Requested atlas "${name}" not implemented`)
   jsonData.textureUrl = getAssetsUrl() + jsonData.textureUrl
   return jsonData
 }
