@@ -25,3 +25,4 @@
  - [ ] create card_set and card in db
  - [ ] remove yarn.lock
  - [ ] yarn update
+ - [ ] create card (3) tables

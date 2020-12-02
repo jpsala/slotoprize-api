@@ -34,6 +34,7 @@ router.route('/sendmail').post(checkDeviceId, checkToken, checkmaintenanceMode, 
 router.route('/localization').get(checkDeviceId, checkToken, checkmaintenanceMode, checkToken, slot.localization)
 router.route('/legals').get(checkDeviceId, checkToken, checkmaintenanceMode, checkToken, slot.legalsGet)
 router.route('/wallet').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.walletGet)
+router.route('/card-collections').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.cardCollectionsCLGet)
 
 router.route('/appodeal').get(slot.appodeal)
 router.route('/tapjoy').get(slot.tapjoy)

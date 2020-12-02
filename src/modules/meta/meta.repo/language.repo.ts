@@ -7,7 +7,7 @@ import camelcaseKeys from 'camelcase-keys'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { queryExec, query, queryOne } from '../../../db'
-import { getUrlWithoutHost, saveFile, urlBase } from '../../../helpers'
+import { getUrlWithoutHost, saveFile, getAssetsUrl } from '../../../helpers'
 import { LanguageData } from '../meta.types'
 import { getSetting } from '../../slot/slot.services/settings.service'
 
@@ -21,7 +21,7 @@ export const getDefaultLanguage = async (): Promise<LanguageData> => {
     return row
   }
 export async function getLanguages(): Promise<LanguageData[]> {
-    const url = urlBase()
+    const url = getAssetsUrl()
 
     const localizationData = await query(
         `
@@ -53,7 +53,7 @@ export async function getLanguagesForCrud(): Promise<any> {
     const localizationSpreadsheetUrlDev = await getSetting('localizationSpreadsheetUrlDev', 'https://docs.google.com/spreadsheets/d/1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ/edit#gid=1259474418')
     const localizationSpreadsheetUrlLive = await getSetting('localizationSpreadsheetUrlLive', 'https://docs.google.com/spreadsheets/d/1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ/edit#gid=1117868095')
     const localizationJsonUrl = await getSetting('localizationJsonUrl', 'https://script.google.com/macros/s/AKfycbzkBJBlnS7HfHMj5rlZvAcLTEuoHHBP6848nJ2mfnBzfQ2xge0w/exec?ssid=1zHwpbks-VsttadBy9LRdwQW7E9aDGBc0e80Gw2ALNuQ&sheet=<environment>&langCode=<languageCode>')
-    const url = urlBase()
+    const url = getAssetsUrl()
     const data = await query(`
         select id, language_code,
             concat('${url}', texture_url) as texture_url,
@@ -120,7 +120,7 @@ export async function postLanguageForCrud(fields, files): Promise<any> {
             languageId
         ])
     }
-    const url = urlBase()
+    const url = getAssetsUrl()
     return camelcaseKeys(
         await queryOne(
             `select

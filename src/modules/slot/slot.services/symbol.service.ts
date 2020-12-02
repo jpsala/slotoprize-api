@@ -6,7 +6,7 @@ import createHttpError from "http-errors"
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "http-status-codes"
 import { query, queryExec } from '../../../db'
 import { Atlas, AtlasSprite, buildAtlas, saveAtlasToDB } from "../../meta/meta-services/atlas"
-import { urlBase , getRandomNumber, addHostToPath, getUrlWithoutHost, publicPath } from './../../../helpers'
+import { getAssetsUrl , getRandomNumber, addHostToPath, getUrlWithoutHost, publicPath } from './../../../helpers'
 
 export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
 
@@ -27,7 +27,7 @@ export const getReelsData = async (): Promise<any> =>
 export const symbolsInFS = (): string[] =>
 {
   const rawFiles = readdirSync('/var/www/html/public/assets/symbols/live')
-  const url = urlBase()
+  const url = getAssetsUrl()
   const imgFiles = rawFiles
     .map(imgFile => `${url}/${imgFile}`)
   return imgFiles
@@ -35,7 +35,7 @@ export const symbolsInFS = (): string[] =>
 export const symbolsInDB = async (): Promise<any> =>
 {
   try {
-    const url = urlBase()
+    const url = getAssetsUrl()
     const symbolsRows = await query(
       'SELECT * FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)'
     )
@@ -153,7 +153,7 @@ export const deleteSymbol = async (id: string): Promise<any> =>
 }
 export const getSymbols = async (): Promise<any> =>
 {
-  const url = urlBase()
+  const url = getAssetsUrl()
   const symbols = await query(
     `SELECT id, concat('${url}', texture_url) as texture_url, payment_type, symbol_name from symbol`
   )

@@ -5,7 +5,7 @@ import { formatDistanceStrict, differenceInSeconds , parse, add, format } from '
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { GameUser } from '../../../meta/meta.types'
-import { isNotebook, urlBase } from './../../../../helpers'
+import { isNotebook, getAssetsUrl } from './../../../../helpers'
 import { query } from './../../../../db'
 import { createEvent, Event, EventDTO, EventPayload, Rule} from './event'
 if(isNotebook()) later.date.localTime()
@@ -19,7 +19,7 @@ export const init = async (): Promise<void> =>
 }
 export  function processEvents(eventsFromDB: EventDTO[]): void 
 { 
-  const url = urlBase()
+  const url = getAssetsUrl()
   for (const ruleFromDb of eventsFromDB) {
     const savedEventIdx = allEvents.findIndex(_event => Number((_event.payload).id) === Number(ruleFromDb.id))
     const savedEvent = allEvents[savedEventIdx]

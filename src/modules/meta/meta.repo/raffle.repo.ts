@@ -11,7 +11,7 @@ import moment from "moment"
 import { query, queryOne, queryExec } from '../../../db'
 import { LocalizationData, RafflePrizeData, GameUser, RaffleRecordData } from '../meta.types'
 import { getGameUserByDeviceId } from "../meta-services/meta.service"
-import { addHostToPath, getRandomNumber, getUrlWithoutHost, isNotebook, saveFile , urlBase } from "../../../helpers"
+import { addHostToPath, getRandomNumber, getUrlWithoutHost, isNotebook, saveFile , getAssetsUrl } from "../../../helpers"
 import { updateWallet, getWallet } from '../../slot/slot.services/wallet.service'
 import ParamRequiredException from '../../../error'
 import { Wallet } from "../../slot/slot.types"
@@ -62,7 +62,7 @@ async function getRaffleLocalizationData(user: GameUser,raffleId: number): Promi
   return camelcaseKeys(localizationData) as LocalizationData
 }
 export async function getRaffles(user: GameUser, onlyLive = false): Promise<RafflePrizeData[]> {
-  const url = urlBase()
+  const url = getAssetsUrl()
   const where = onlyLive ? ' CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date ' : ' true '
     
     const raffles = await query(`
@@ -95,7 +95,7 @@ export async function prizeNotified(raffleId: number): Promise<string> {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function getRafflesForCrud(id?: number)
 {
-  const url = urlBase()
+  const url = getAssetsUrl()
   const languageCode = await getSetting('languageCode', 'fr-FR')
 
   const where = id ? ` where r.id = ${id} ` : ''
@@ -145,7 +145,7 @@ export async function getRafflesForCrud(id?: number)
       "localization": await query(`select l.language_code, '' name, '' description from language l`)
     }
 
-    const url = urlBase()
+    const url = getAssetsUrl()
     const languages = await query(`select id, language_code,
         concat('${url}',texture_url) as texture_url
          from language`)
@@ -156,7 +156,7 @@ export async function getRafflesForCrud(id?: number)
 }
 export async function getRaffle(id: number,
   fieldsToExclude: string[] | undefined = undefined, camelCased = true, rawAllFields = false): Promise<RafflePrizeData> {
-  const url = urlBase()
+  const url = getAssetsUrl()
   const languageCode = await getSetting('languageCode', 'fr-FR')
 
   const select = rawAllFields
@@ -387,7 +387,7 @@ async function saveWinner(raffleHistoryId: number): Promise<void> {
 */
 export const getWinners = async (): Promise<any[]> =>
 {
-  const url = urlBase()
+  const url = getAssetsUrl()
   const winners = await query(`
   select concat(gu.first_name, ', ', gu.last_name) as winnerName,
     rh.closing_date as date , concat('${url}', r.texture_url) as textureUrl,

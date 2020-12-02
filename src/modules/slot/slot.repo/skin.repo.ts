@@ -2,7 +2,7 @@
 import createError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
-import { getUrlWithoutHost, saveFile, urlBase } from '../../../helpers'
+import { getUrlWithoutHost, saveFile, getAssetsUrl } from '../../../helpers'
 import { query, queryOne, queryExec } from './../../../db'
 
 // #endregion
@@ -11,7 +11,7 @@ export interface Skin {
     machineBgColor: string;
 }
 export const getSkins = async (id?: number): Promise<Skin[]> => {
-    const url = urlBase()
+    const url = getAssetsUrl()
     const where = id ? ` id = ${id} ` : ' true '
     const rows = await query(
         `select id, concat('${url}', machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name from skin where ` +
@@ -28,7 +28,7 @@ export const getSkins = async (id?: number): Promise<Skin[]> => {
     return skins
 }
 export const getSkinsForCrud = async (): Promise<any> => {
-    const url = urlBase()
+    const url = getAssetsUrl()
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return await query(
         `select id, concat('${url}', machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name from skin`
@@ -75,7 +75,7 @@ export async function postSkinForCrud(fields, files): Promise<any> {
             skinId
         ])
     }
-    const url = urlBase()
+    const url = getAssetsUrl()
 
     const respSkin = await queryOne(`
     select id, concat('${url}', machineSkinTextureUrl) as machineSkinTextureUrl, machineBgColor, name

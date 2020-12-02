@@ -69,7 +69,9 @@ export const unique = (
 ): string => {
     return String(getRandomNumber(min, max)).padStart(padLength, padChar)
 }
-
+export const getAssetsPath = ():string => {
+    return `/var/www/html/public/assets/`
+}
 export function saveFile(options: {
     file: { path: string, name: string },
     path?: string,
@@ -87,7 +89,7 @@ export function saveFile(options: {
     if (!options.file) throw new Error('options.file is required')
 
     const uniqueName = unique()
-    const basePath = `/var/www/html/public/assets/`
+    const basePath = getAssetsPath()
     const baseUrl = `/`
     const extension = options.file.name.split('.').pop() || ''
     const url = baseUrl + (options.path ? options.path : 'img')
@@ -124,9 +126,9 @@ export function saveFile(options: {
 
     writeFileSync(newPath, rawData)
     unlinkSync(oldPath)
-    return { newPath, fileName, url: `${url}/${fileName}`, fullUrl: `${urlBase()}${url}/${fileName}` }
+    return { newPath, fileName, url: `${url}/${fileName}`, fullUrl: `${getAssetsUrl()}${url}/${fileName}` }
 }
-export const urlBase = (): string => {
+export const getAssetsUrl = (): string => {
     const _hostname = hostname()
 
     if (isNotebook()) return 'http://localhost/public/assets'
@@ -145,9 +147,9 @@ export const sleep = async (time: number): Promise<void> => {
 }
 export const getUrlWithoutHost = (url: string): string => {
     if(!url) return ''
-    const _urlBase = urlBase()
+    const assetsUrl = getAssetsUrl()
     let retUrl: string
-    if (url.startsWith(_urlBase)) retUrl = url.substr(_urlBase.length)
+    if (url.startsWith(assetsUrl)) retUrl = url.substr(assetsUrl.length)
     else retUrl = url
     if (!retUrl || retUrl.toLocaleUpperCase() === 'UNDEFINED' || retUrl === '' || retUrl.toUpperCase() === 'NULL') retUrl = ''
     return retUrl
@@ -156,7 +158,7 @@ export const getUrlWithoutHost = (url: string): string => {
 export const addHostToPath = (path: string): string => {
     console.log('addHostToPath path', path)
     if(!path || path.toLocaleUpperCase() === 'UNDEFINED' || path === '' || path.toUpperCase() === 'NULL') return ''
-    return urlBase() + path
+    return getAssetsUrl() + path
 }
 export const publicPath = (): string => {
     if(isNotebook()) return '/www/public/'

@@ -1,12 +1,16 @@
 // #region imports and types
+import { join } from "path"
 import camelcaseKeys from "camelcase-keys"
 import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import { ResultSetHeader } from "mysql2"
 import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar } from "../../../db"
-import { isValidPaymentType, saveFile } from "../../../helpers"
+import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath } from "../../../helpers"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
+import { Atlas, buildAtlas } from "../../meta/meta-services/atlas"
+import { getSetting } from "./settings.service"
+
 export type CardSet = {id: number, rewardType: string, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[]}
 export type Card = { id: number, stars: number, localizations: Localization[], textureUrl: string, thumbUrl: string, cardSet }
 // #endregion
@@ -272,12 +276,11 @@ export const postCardDropRateTable = async (table: CardDropRateTable[]): Promise
   for (const row of table) 
     await queryExec(`insert into card_drop_rate set ?`, row)
   
-}//function sayName({ first, last = 'Smith' }: {first: string; last?: string }): void {
+}
 export const getCardDropRateTable = async (
     {order = 'stars', orderDirection = 'asc'}: {order?: 'stars'|'probability', orderDirection?: 'asc'|'desc'} = {}
-    ): Promise<CardDropRateTable[]> =>
-{
-  const orderBy = order === 'stars' ? `stars ${orderDirection}` : `probability ${orderDirection}`
+    ): Promise<CardDropRateTable[]> => {
+  const orderBy = ` ${order} ${orderDirection} `
   let table =  (await query(`select * from card_drop_rate order by ${orderBy}`)) as CardDropRateTable[]
   console.log(table)
   
@@ -290,4 +293,130 @@ export const getCardDropRateTable = async (
       {id: 4, stars: 1, probability: 50},
     ]
   return table
+}
+
+//  For client
+
+// #region Types
+export type CardCollectionsDataCL = {
+    collectibleCardSets: CollectibleCardSetDataCL[];
+    atlasData: Atlas; // compuesto por los thumbnails de la imagen que va a ser front de cada set, como name paso el string(id)
+    tradeData: CollectibleCardsTradeDataCL;
+  }
+  export type CollectibleCardSetDataCL = {
+    id: number;
+    title: string;
+    themeColor: string;
+    cards: CollectibleCardDataCL[];
+    rewardType: string;
+    rewardAmount: number;
+    ownedQuantity: number;
+    rewardClaimed: boolean;
+    atlasData: Atlas; // todas los thumbnails de ese album, como name paso el string(id)
+}
+export type CollectibleCardDataCL = {
+    id: number;
+    title: string;
+    stars: number;
+    textureUrl: string;
+    ownedQuantity: number;
+}
+export type  RewardChest = {
+  priceAmount: number;
+  priceCurrency: string;
+  rewards: RewardDataCL[]
+}
+export type CollectibleCardsTradeDataCL = {
+  starsForTrade: number;
+  chestRegular: RewardChest;
+  chestPremium: RewardChest;
+}
+export type RewardDataCL = {
+  amount: number;
+  type: string;
+}
+// #endregion
+
+export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL> => {
+  let starsForTrade = 0
+  const languageId = Number((await queryScalar(`
+    select l.id from language l
+      inner join game_user gu on gu.language_code = l.language_code and gu.id = ${userId}
+  `)))
+  const collectibleCardSetDataAtlas = await getAtlasForCollectibleCardSets()
+ console.log('collectibleCardSetDataAtlas', collectibleCardSetDataAtlas)
+  const cardSets: CollectibleCardSetDataCL[] = camelcaseKeys(
+    
+      await query(`
+      select cs.id, 
+          (select text from localization where item = 'cardSet' and item_id = cs.id and language_id = ?) as title,
+          cs.theme_color, cs.reward_type, cs.reward_amount
+        from card_set cs
+      `, [String(languageId)]
+      )
+  )
+
+  for (const cardSet of cardSets) {
+    cardSet.ownedQuantity = 0
+    cardSet.rewardClaimed = false
+    cardSet.atlasData = await getCardSetAtlasData(cardSet)
+    // cardSet.atlasData = {} as Atlas
+    cardSet.cards = <CollectibleCardDataCL[]> camelcaseKeys(await query(`
+      select c.id, c.texture_url, c.stars,
+        (select text from localization where item = 'card' and item_id = c.id and language_id = ${languageId}) as title,
+        (select count(*) from game_user_card gc where gc.game_user_id = ${userId} and gc.card_id = c.id) as ownedQuantity
+      from card c where c.card_set_id = ${cardSet.id}
+    `))
+    for (const card of cardSet.cards) {
+      cardSet.ownedQuantity += (card.ownedQuantity > 0 ? 1 : 0)
+      if(card.ownedQuantity > 1) starsForTrade += ((card.ownedQuantity - 1) * card.stars)
+    }
+  }
+  const reward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
+  const chestRegularString = await getSetting('chestRegularRewards', JSON.stringify(reward))
+  const chestPremiumString = await getSetting('chestPremiumRewards', JSON.stringify(reward))
+  const chestRegular: RewardChest = JSON.parse(chestRegularString) as RewardChest
+  const chestPremium: RewardChest = JSON.parse(chestPremiumString) as RewardChest
+  const tradeData: CollectibleCardsTradeDataCL = {
+    starsForTrade,
+    chestRegular,
+    chestPremium
+  }
+  const cardCollectionsDataCL: CardCollectionsDataCL = {
+    collectibleCardSets: cardSets,
+    atlasData: {} as Atlas,
+    tradeData
+  }
+   
+  return cardCollectionsDataCL
+}
+const basePath = getAssetsPath()
+const getCardSetAtlasData = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas> => {
+
+  const cardsForThumb = await query(`select thumb_url as thumbUrl from card where card_set_id = ${cardSet.id}`)
+  const thumbs: string[] = []
+  // const thumbRows = (await query(`select thumb_texture as thumbTexture from card where card_set_id = ${cardSet.id}`))
+  for (const cardRow of cardsForThumb) 
+    thumbs.push(join(basePath, getUrlWithoutHost(cardRow.thumbUrl)))
+  
+    const atlas = await buildAtlas(thumbs, cardSet.title)
+  console.log('atlas', atlas)
+  console.log('cardsForThumb, images', cardsForThumb, thumbs)
+  return atlas
+}
+const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
+  const cardSets: CardSet[] = camelcaseKeys(await query(`
+    select id, theme_color, reward_type, reward_amount from card_set
+  `))
+  const thumbs: string[] = []
+  for (const cardSet of cardSets) {
+    const cardForThumb = (await queryScalar(`
+      select thumb_url as thumbUrl from card c where card_set_id = ${cardSet.id} order by id desc limit 1
+    `)) as string
+    thumbs.push(join(basePath, getUrlWithoutHost(cardForThumb)))
+  }
+  const atlas = await buildAtlas(thumbs, 'cardSets')
+  console.log('atlas', atlas)
+  console.log('cardSet, images', cardSets, thumbs)
+  return atlas
 }

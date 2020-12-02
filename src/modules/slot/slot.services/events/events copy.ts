@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 import later from '@breejs/later'
 import { formatDistanceStrict, differenceInSeconds } from 'date-fns'
-import { urlBase } from './../../../../helpers'
+import { getAssetsUrl } from './../../../../helpers'
 import { getSkin } from './../../slot.repo/skin.repo'
 import { query } from './../../../../db'
 import { createEvent, Event, EventDTO, EventPayload} from './event'
@@ -14,7 +14,7 @@ export const init = async (): Promise<void> =>
 {
   testEvent.run()
   const rulesFromDB = await query('select * from event where active = 1')
-  const url = urlBase()
+  const url = getAssetsUrl()
   let idx = 0
   for (const ruleFromDb of rulesFromDB) {
     ruleFromDb.skin = await getSkin(ruleFromDb.skinId)

@@ -4,7 +4,7 @@ import { BAD_REQUEST } from 'http-status-codes'
 import camelcaseKeys from 'camelcase-keys'
 // import createError from 'http-errors'
 import {Country, State} from '../meta.types'
-import { saveFile , urlBase } from '../../../helpers'
+import { saveFile , getAssetsUrl } from '../../../helpers'
 
 import { queryOne, query } from './../../../db'
 
@@ -26,7 +26,7 @@ export async function getCountries(): Promise<Country[] | Partial<Country>> {
 }
 export async function getCountriesForCrud(): Promise<any>
 {
-  const url = urlBase()
+  const url = getAssetsUrl()
   const countries = await query(`
     select id, name, phone_prefix, language_id, currency,
       concat('${url}', texture_url) as texture_url,
