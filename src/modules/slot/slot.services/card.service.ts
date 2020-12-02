@@ -403,13 +403,13 @@ const getCardSetAtlasData = async (cardSet: CollectibleCardSetDataCL): Promise<A
   for (const cardRow of cardsForThumb) 
     thumbs.push({name: cardRow.id, image: join(basePath, getUrlWithoutHost(cardRow.thumbUrl))})
   
-  // const atlas = await buildAtlas(thumbs, cardSet.title)
+  // const atlas = await buildAtlas(thumbs, cardSet.id)
   let atlas: Atlas 
   try {
-    atlas = await getAtlas(cardSet.title) 
+    atlas = await getAtlas(`cardSet_${cardSet.id}`) 
     console.log('yessss', atlas)
   } catch (error) {
-    atlas = await buildAtlas(thumbs, cardSet.title)
+    atlas = await buildAtlas(thumbs, `cardSet_${cardSet.id}`)
     await saveAtlasToDB(atlas)
     console.log('maaal', atlas)
   }
