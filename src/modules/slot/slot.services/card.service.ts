@@ -5,7 +5,7 @@ import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import { ResultSetHeader } from "mysql2"
 import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar } from "../../../db"
-import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath } from "../../../helpers"
+import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl } from "../../../helpers"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
 import { Atlas, buildAtlas } from "../../meta/meta-services/atlas"
@@ -344,7 +344,7 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
       inner join game_user gu on gu.language_code = l.language_code and gu.id = ${userId}
   `)))
   const collectibleCardSetDataAtlas = await getAtlasForCollectibleCardSets()
- console.log('collectibleCardSetDataAtlas', collectibleCardSetDataAtlas)
+  collectibleCardSetDataAtlas.textureUrl = getAssetsUrl() + collectibleCardSetDataAtlas.textureUrl
   const cardSets: CollectibleCardSetDataCL[] = camelcaseKeys(
     
       await query(`
@@ -360,6 +360,7 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
     cardSet.ownedQuantity = 0
     cardSet.rewardClaimed = false
     cardSet.atlasData = await getCardSetAtlasData(cardSet)
+    cardSet.atlasData.textureUrl =  getAssetsUrl() + cardSet.atlasData.textureUrl
     // cardSet.atlasData = {} as Atlas
     cardSet.cards = <CollectibleCardDataCL[]> camelcaseKeys(await query(`
       select c.id, c.texture_url, c.stars,
@@ -384,7 +385,7 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
   }
   const cardCollectionsDataCL: CardCollectionsDataCL = {
     collectibleCardSets: cardSets,
-    atlasData: {} as Atlas,
+    atlasData: collectibleCardSetDataAtlas,
     tradeData
   }
    
@@ -399,9 +400,7 @@ const getCardSetAtlasData = async (cardSet: CollectibleCardSetDataCL): Promise<A
   for (const cardRow of cardsForThumb) 
     thumbs.push(join(basePath, getUrlWithoutHost(cardRow.thumbUrl)))
   
-    const atlas = await buildAtlas(thumbs, cardSet.title)
-  console.log('atlas', atlas)
-  console.log('cardsForThumb, images', cardsForThumb, thumbs)
+  const atlas = await buildAtlas(thumbs, cardSet.title)
   return atlas
 }
 const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
