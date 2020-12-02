@@ -423,10 +423,10 @@ const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
   }
   let atlas: Atlas 
   try {
-    atlas = await getAtlas('cardSets') 
+    atlas = await getAtlas('card_sets') 
     console.log('yessss', atlas)
   } catch (error) {
-    atlas = await buildAtlas(thumbs, 'cardSets')
+    atlas = await buildAtlas(thumbs, 'card_sets')
     await saveAtlasToDB(atlas)
     console.log('maaal', atlas)
   }
