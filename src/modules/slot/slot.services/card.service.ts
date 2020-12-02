@@ -78,7 +78,6 @@ export const getCardsForCrud = async (): Promise<{ cards: Card[], languages: Lan
   const languages: Language[] = camelcaseKeys(await query(`select * from language`))
   // const newCard: Card = { id: -1, localizations: [], textureUrl: '', cardSet: undefined }
   const newCard: Card = await queryGetEmpty('select * from card where id = -1')
-  console.log('newCard', newCard)
   return {cards, languages, newCard}
 }
 export const getCardSetsForCrud = async (): Promise<{ cardSets: CardSet[], languages: Language[], newCardSet: CardSet, newCard: Card }> => {
@@ -121,9 +120,6 @@ export const getCardSetsForCrud = async (): Promise<{ cardSets: CardSet[], langu
   return {cardSets, languages, newCardSet, newCard}
 }
 export const postCardSetsForCrud = async (cardSet: CardSet): Promise<any> => {
-  console.log('cardSet', cardSet )
-  const isNew = cardSet.id === -1
-  console.log('isnew', isNew, typeof cardSet.id)
   if(cardSet.rewardAmount === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Amount can not be empty')
   if(cardSet.themeColor === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Theme Color can not be empty')
   if(!isValidPaymentType(`${cardSet.rewardType}s`)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Type is invalid')
@@ -212,7 +208,6 @@ export const postCardForCrud = async (_fields: any, files): Promise<any> => {
     {response = await queryExec(` update card set stars = ? where id = ${fields.id}`, [fields.stars] )}
   else {
     delete (fields as any).id
-    console.log('fields', fields)
     response = (await queryExec(`insert into card(stars, card_set_id) values (?, ?)`, [fields.stars, fields.cardSetId]) )
     fields.id = response.insertId
   }
@@ -252,10 +247,8 @@ export const deleteCardForCrud = async (cardId: number): Promise<void> => {
   await queryExec(`delete from localization where item = 'card' and item_id = ${cardId}`)
   const resp = await queryExec(`delete from card where id = ${cardId}`)
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardId))
-  console.log('resp', resp)
 }
 export const deleteCardSetForCrud = async (cardSetId: number): Promise<void> => { 
-  console.log('cardSetId', cardSetId)
   if(!cardSetId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set ID param is required')
   const cards = await query(`select id from card where card_set_id = ?`, [String(cardSetId)])
   for (const card of cards) 
@@ -267,7 +260,6 @@ export const deleteCardSetForCrud = async (cardSetId: number): Promise<void> => 
   if(!resp) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardSetId))
   resp = await queryExec(`delete from card_set where id = ${cardSetId}`)
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card set ' + String(cardSetId))
-  console.log('resp', resp)
 }
 export type CardDropRateTable = {id: number, stars: number, probability: number}
 export const postCardDropRateTable = async (table: CardDropRateTable[]): Promise<void> => {
@@ -282,7 +274,6 @@ export const getCardDropRateTable = async (
     ): Promise<CardDropRateTable[]> => {
   const orderBy = ` ${order} ${orderDirection} `
   let table =  (await query(`select * from card_drop_rate order by ${orderBy}`)) as CardDropRateTable[]
-  console.log(table)
   
   if(!table || table.length === 0)
     table = [
@@ -406,14 +397,13 @@ const getCardSetAtlasData = async (cardSet: CollectibleCardSetDataCL): Promise<A
   // const atlas = await buildAtlas(thumbs, cardSet.id)
   let atlas: Atlas 
   try {
-    atlas = await getAtlas(`cardSet_${cardSet.id}`) 
+    atlas = await getAtlas(`card_set_${cardSet.id}`) 
     console.log('yessss', atlas)
   } catch (error) {
-    atlas = await buildAtlas(thumbs, `cardSet_${cardSet.id}`)
+    atlas = await buildAtlas(thumbs, `card_set_${cardSet.id}`)
     await saveAtlasToDB(atlas)
     console.log('maaal', atlas)
   }
-  console.log('atlas', atlas)
   return atlas
 }
 const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
@@ -440,7 +430,5 @@ const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
     await saveAtlasToDB(atlas)
     console.log('maaal', atlas)
   }
-  console.log('atlas', atlas)
-  console.log('cardSet, images', cardSets, thumbs)
   return atlas
 }

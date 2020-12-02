@@ -5,7 +5,7 @@ import createHttpError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
 import Spritesmith from 'spritesmith'
 import pixelsmith from 'pixelsmith'
-import { getAssetsUrl, publicPath } from '../../../helpers'
+import { getAssetsUrl, getUrlWithoutHost, publicPath } from '../../../helpers'
 import { buildSymbolsAtlas } from '../../slot/slot.services/symbol.service'
 import { queryOne, queryExec } from '../../../db'
 
@@ -113,11 +113,12 @@ export async function getAtlas(name: string): Promise<Atlas> {
   const atlasInDB = await queryOne(`select id, json from atlas where name = '${name}'`)
   let jsonData: Atlas | undefined = undefined
   if (atlasInDB) 
-    jsonData = JSON.parse(atlasInDB.json) as Atlas
-   else if (name.toLocaleLowerCase() === 'symbols') 
+    {jsonData = JSON.parse(atlasInDB.json) as Atlas}
+   else if (name.toLocaleLowerCase() === 'symbols') {
     jsonData = await buildSymbolsAtlas()
+    jsonData.textureUrl = getAssetsUrl() + getUrlWithoutHost(jsonData.textureUrl)
+   }
   
   if(!jsonData)throw createHttpError(StatusCodes.BAD_REQUEST, `Requested atlas "${name}" not implemented`)
-  jsonData.textureUrl = getAssetsUrl() + jsonData.textureUrl
   return jsonData
 }

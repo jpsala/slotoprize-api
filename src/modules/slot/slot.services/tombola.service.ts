@@ -5,7 +5,7 @@ import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { getAtlas } from '../../meta/meta-services/atlas'
 import { getGameUserSpinData } from '../../meta/meta.repo/gameUser.repo'
 import { GameUser } from '../../meta/meta.types'
-import { getAssetsUrl } from './../../../helpers'
+import { urlBase } from './../../../helpers'
 import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
 import { buildSymbolsAtlas, getReelsData, getSymbols, SymbolDTO } from './symbol.service'
@@ -13,7 +13,7 @@ import { getPayTable } from './spin.service'
 
 type PayTableDTO = {id: number, symbol_id: number, symbol_amount: number, probability: number, points: number, symbol: SymbolDTO}
 export const getPayTableForCrud = async (): Promise<any> => {
-  const url = getAssetsUrl()
+  const url = urlBase()
   const payTable: PayTableDTO[] = await query(`
   select * from pay_table
     order by probability asc`)
