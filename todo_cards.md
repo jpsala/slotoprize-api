@@ -44,3 +44,13 @@ Carta:
         public string textureUrl;
         public int ownedQuantity;
     }
+
+
+
+se reclama con album completo
+
+- [x] que esta completo
+- [x] que no se haya hecho el claimed anteriormente
+- [ ] si se cumplen rewardClaimed en true y otorgarle los rewards en la billetera
+
+card_set_completed deviceId sessionToken setId

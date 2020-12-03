@@ -27,7 +27,7 @@ import { testUser39 } from './slot.repo/spin.regeneration.repo'
 import * as slotService from './slot.services'
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
 import { appodealCallback, appodealCallbackPlain, QueryParams } from './slot.services/appodeal'
-import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetsForCrud } from './slot.services/card.service'
+import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, getCardSetClaim, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetsForCrud } from './slot.services/card.service'
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
 import { getVideoAdsViewCountForCrud } from './slot.services/ironsource'
 import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
@@ -511,4 +511,8 @@ export async function cardDropRateTablePost(req: Request, res: Response): Promis
 export async function cardCollectionsCLGet(req: Request, res: Response): Promise<void> {
   const cards = await getCardsCL(req.user.id)
   res.status(200).send(cards)
+}
+export async function cardSetClaimGet(req: Request, res: Response): Promise<void> {
+  await getCardSetClaim(Number(req.query.setId), req.user.id)
+  res.status(200).send({'status': 'ok'})
 }

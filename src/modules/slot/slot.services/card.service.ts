@@ -11,7 +11,7 @@ import { Language } from "../../meta/models"
 import { Atlas, buildAtlas, getAtlas } from "../../meta/meta-services/atlas"
 import { getSetting } from "./settings.service"
 
-export type CardSet = {id: number, rewardType: string, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number }
+export type CardSet = {id: number, rewardType: string, rewardClaimed: boolean, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number }
 export type Card = { id: number, stars: number, localizations: Localization[], textureUrl: string, thumbUrl: string, cardSet }
 // #endregion
 // #region comments
@@ -368,8 +368,8 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
     // cardSet.atlasData = {} as Atlas
     cardSet.cards = <CollectibleCardDataCL[]> camelcaseKeys(await query(`
       select c.id, card_set_id as setId, c.texture_url, c.stars,
-      (select text from localization where item = 'card' and item_id = c.id and language_id = ${languageId}) as title,
-      (select count(*) from game_user_card gc where gc.game_user_id = ${userId} and gc.card_id = c.id) as ownedQuantity
+        (select text from localization where item = 'card' and item_id = c.id and language_id = ${languageId}) as title,
+        (select count(*) from game_user_card gc where gc.game_user_id = ${userId} and gc.card_id = c.id) as ownedQuantity
       from card c where c.card_set_id = ${cardSet.id}
     `))
     for (const card of cardSet.cards) {
@@ -449,4 +449,50 @@ async function getCardSetImagesForAtlas(cardSetId: number) {
   for (const cardRow of cardsForThumb)
     thumbs.push({ name: cardRow.id, image: join(basePath, getUrlWithoutHost(cardRow.thumbUrl)) })
   return thumbs
+}
+export async function getCardSetClaim(setId: number, userId: number): Promise<void> {
+  if(!setId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Missing setId')
+  const cardSetExists = Number(await queryScalar(`
+    select count(*) as cardSetCount from card_set where id = ${setId}
+  `)) > 0
+  if(!cardSetExists) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set does not exists')
+  const cardSetCompleted = await getCardSetCompleted(setId, userId)
+  if(!cardSetCompleted) throw createHttpError(StatusCodes.BAD_REQUEST, 'The Set is not completed')
+  const claimed = await getCardSetClaimed(setId, userId)
+  if(claimed) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward for this set already claimed')
+  await queryExec(`insert into card_set_claim (game_user_id, card_set_id) value(?,?)`, [
+    userId, setId
+  ])
+  console.log('claimed', claimed)
+}
+
+export const getCardSetCompleted = async (cardSetId: number, userId: number): Promise<boolean> => {
+  // const cardSet = camelcaseKeys(await queryOne(`
+  //   select id, theme_color, reward_type, reward_amount, front_card_id from card_set where id = ${cardSetId}
+  // `)) as CardSet
+  const cards: Card[] = (await query(`
+    select id, card_set_id, texture_url, stars, thumb_url from card where card_set_id = ${cardSetId}
+  `))
+  let completed = true
+  for (const card of cards) {
+    const owned = await getCardOwned(userId, card.id)
+    if(!owned){
+      completed = false
+      break
+    }
+  }
+  return completed
+}
+async function getCardSetClaimed(setId: number, userId: number) {
+  return Number(await queryScalar(`
+    select count(*) from card_set_claim where card_set_id = ${setId} and game_user_id = ${userId}
+  `)) > 0
+}
+
+async function getCardOwned(userId: number, cardId: number) {
+  const ownedCart = Number(await queryScalar(`
+      select count(*) as cardsOwned from game_user_card guc
+      where guc.game_user_id = ${userId} and guc.card_id = ${cardId} 
+  `))
+  return ownedCart > 0
 }
