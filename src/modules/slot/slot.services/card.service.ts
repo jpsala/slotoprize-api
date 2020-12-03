@@ -211,16 +211,15 @@ export const postCardForCrud = async (_fields: any, files): Promise<any> => {
     response = (await queryExec(`insert into card(stars, card_set_id) values (?, ?)`, [fields.stars, fields.cardSetId]) )
     fields.id = response.insertId
   }
-  await buildCardSetAtlas(fields.cardSetId)
   // save localizations
   if (fields.localizations && fields.localizations.length > 0){
     const conn = await getConnection()
     await conn.beginTransaction()
     try {
       await conn.query(`delete from localization where item = 'card' and item_id = ${fields.id}`)
-        for (const localization of fields.localizations) 
-        await conn.query(`insert into localization(language_id, item, item_id, text) values(?,?,?,?)`,
-        [localization.languageId, 'card', fields.id, localization.text])
+      for (const localization of fields.localizations) 
+      await conn.query(`insert into localization(language_id, item, item_id, text) values(?,?,?,?)`,
+      [localization.languageId, 'card', fields.id, localization.text])
       await conn.commit()
     } catch(error) {
       await conn.rollback()
@@ -238,7 +237,8 @@ export const postCardForCrud = async (_fields: any, files): Promise<any> => {
     fields.thumbUrl = saveFile({ file: thumbFile, path: 'cards', id: `thumb_${String(fields.id)}`, delete: true }).fullUrl
     await query(`update card set thumb_url = ? where id = ?`, [ fields.thumbUrl, String(fields.id) ])
   }
-
+  await buildCardSetAtlas(fields.cardSetId)
+  
   return fields
 }
 export const deleteCardForCrud = async (cardId: number): Promise<void> => { 
@@ -403,6 +403,7 @@ const getCardSetAtlas = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas
 }
 const buildCardSetAtlas = async (cardSetId: number): Promise<Atlas> => {
   const thumbs: { name: string; image: string} [] = await getCardSetImagesForAtlas(cardSetId)
+  console.log('thumbs', thumbs)
   const atlas = await buildAtlas(thumbs,`card_set_${cardSetId}`)
   // await saveAtlasToDB(atlas)
   return atlas

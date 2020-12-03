@@ -139,9 +139,9 @@ export const getAssetsUrl = (): string => {
     else throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, 'hostname unrecognized')
 }
 export const getAssetsUrls = (): string[] => {
-    return ['https://assets.dev.slotoprizes.tagadagames.com',
-        'https://assets.dev.slotoprizes.tagadagames.com',
-        'https://assets.slotoprizes.tagadagames.com'
+    return ['http://localhost/public/assets',
+            'https://assets.dev.slotoprizes.tagadagames.com',
+         'https://assets.slotoprizes.tagadagames.com'
 ]
 }
 export const sleep = async (time: number): Promise<void> => {
@@ -155,10 +155,9 @@ export const getUrlWithoutHost = (url: string): string => {
     if(!url) return ''
     let retUrl = url
     const assetsUrls= getAssetsUrls()
-    for (const assetsUrl of assetsUrls) 
-        
+    for (const assetUrl of assetsUrls)
         // const assetsUrl = getAssetsUrl()
-        if (url.startsWith(assetsUrl)) retUrl = url.substr(assetsUrl.length)
+        if (url.startsWith(assetUrl)) retUrl = url.substr(assetUrl.length)
     
     if (!retUrl || retUrl.toLocaleUpperCase() === 'UNDEFINED' || retUrl === '' || retUrl.toUpperCase() === 'NULL') retUrl = ''
     return retUrl
