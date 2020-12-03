@@ -6,7 +6,7 @@ import { getRandomNumber } from "../../../helpers"
 import { CardForSpin } from "../slot.types"
 import { CardDropRateTable, getCardDropRateTable } from "./card.service"
 
-export const getWiningCard = async (languageCode: string): Promise<CardForSpin> => {
+export const getWinningCard = async (languageCode: string): Promise<CardForSpin> => {
   // toma las estrellas de la tabla de probabilidades en base a un numero al azar, como se hace en el spin
   // me va a devolver una cantidad de estrellas de la carta que va a ganar
   // tomo todas las cartas que tengan ese número de estrellas
@@ -26,6 +26,7 @@ export const getWiningCard = async (languageCode: string): Promise<CardForSpin> 
   const ownedQuantity = await getOwnedQuantityByCardId(winningCard.id)
   return  {
     id: winningCard.id,
+    setId: winningCard.setId,
     title: winningCard.title,
     stars: winningCard.stars,
     textureUrl: winningCard.textureUrl,
@@ -43,7 +44,7 @@ async function getOwnedQuantityByCardId(winningCardId: number) {
 async function getCardWithByStars(dropRateTableRow: CardDropRateTable, languageId: string | undefined) {
   const stars = dropRateTableRow.stars
   const cardsByByStars: CardForSpin[] = camelcaseKeys(await query(`
-    select c.id, cs.reward_amount, cs.reward_type, c.stars, c.thumb_url, texture_url,
+    select c.id, c.card_set_id as setId, cs.reward_amount, cs.reward_type, c.stars, c.thumb_url, texture_url,
           (select coalesce(text, 'No localization for this card') 
             from localization l where l.item = 'card' and l.item_id = c.id and l.language_id = '${Number(languageId)}'
           ) as title

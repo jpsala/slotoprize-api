@@ -16,7 +16,7 @@ import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import { getSetting } from './settings.service'
 import { getWallet, updateWallet } from './wallet.service'
-import { getWiningCard } from './spin-card.service'
+import { getWinningCard } from './spin-card.service'
 
 
 const randomNumbers: number[] = []
@@ -56,7 +56,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     winAmount = winAmount * eventMultiplier
     if(String(winType).toLocaleLowerCase() === 'card'){
       console.log('wintype is card' )
-      cardData = await getWiningCard(user.languageCode)
+      cardData = await getWinningCard(user.languageCode)
       await assignCardToUser(user.id, cardData.id)
       // {id: number, rewardAmount: number, rewardType: string, title: string, stars: number}
       console.log('winning card', cardData)
