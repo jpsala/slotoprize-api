@@ -308,6 +308,7 @@ export type CardCollectionsDataCL = {
 }
 export type CollectibleCardDataCL = {
     id: number;
+    cardSetId: number;
     title: string;
     stars: number;
     textureUrl: string;
@@ -362,7 +363,7 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
     cardSet.atlasData.textureUrl =  getAssetsUrl() + cardSet.atlasData.textureUrl
     // cardSet.atlasData = {} as Atlas
     cardSet.cards = <CollectibleCardDataCL[]> camelcaseKeys(await query(`
-    select c.id, c.texture_url, c.stars,
+    select c.id, card_set_id, c.texture_url, c.stars,
     (select text from localization where item = 'card' and item_id = c.id and language_id = ${languageId}) as title,
     (select count(*) from game_user_card gc where gc.game_user_id = ${userId} and gc.card_id = c.id) as ownedQuantity
     from card c where c.card_set_id = ${cardSet.id}
@@ -370,6 +371,7 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
     for (const card of cardSet.cards) {
       cardSet.ownedQuantity += (card.ownedQuantity > 0 ? 1 : 0)
       if(card.ownedQuantity > 1) starsForTrade += ((card.ownedQuantity - 1) * card.stars)
+      if(!card.ownedQuantity) card.textureUrl = ''
     }
   }
   const reward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}

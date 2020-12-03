@@ -30,8 +30,11 @@ tutorialComplete = false {
 
 
 02/12
-1) regeneracion del atlas cuando agregan o quitan una carta, cambian un thumbnail, o cambian el setting the frontCardId
-<!-- 2) frontCardId en el set, y viene en el endpoint. -->
-3) agendar el setting para definir frontCardId en cada set, en el bo
-<!-- 4) spin endpoint tweaks: quitar campos del set, agregar textureUrl -->
-5) assign a front card for all the card sets and remove the code in getCardsCL where cardSet.frontCardId is assigned when is undefined, an exception has to be raised if not frontCardId is assigned instead
+- [ ] regeneracion del atlas cuando agregan o quitan una carta, cambian un thumbnail, o cambian el setting the frontCardId
+- x] frontCardId en el set, y viene en el endpoint.
+- [ ] agendar el setting para definir frontCardId en cada set, en el bo
+- [x] spin endpoint tweaks: quitar campos del set, agregar textureUrl
+- [ ] assign a front card for all the card sets and remove the code in getCardsCL where cardSet.frontCardId is assigned when is undefined, an exception has to be raised if not frontCardId is assigned instead
+
+- [x] en cardset.cards el set id
+- [ ] en cardcollection si una carta no tiene quantity no mando el texture
