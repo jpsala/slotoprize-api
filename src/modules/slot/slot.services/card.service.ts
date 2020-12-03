@@ -352,7 +352,7 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
     //URGENT the line below is temporary, I have to assign a front card for all the card sets 
     if(!cardSet.frontCardId ){
       const frontCardId = Number(await queryScalar(`select id from card where card_set_id = ${cardSet.id} order by id desc limit 1`))
-      await queryExec(`update card_set set front_card_id = ${frontCardId}`)
+      await queryExec(`update card_set set id = ${cardSet.id}`)
       cardSet.frontCardId = frontCardId
       console.log('added cardSet.frontCardId ', cardSet.frontCardId )
     }
