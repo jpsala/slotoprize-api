@@ -27,7 +27,7 @@ import { testUser39 } from './slot.repo/spin.regeneration.repo'
 import * as slotService from './slot.services'
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
 import { appodealCallback, appodealCallbackPlain, QueryParams } from './slot.services/appodeal'
-import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, cardSetClaim, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetsForCrud } from './slot.services/card.service'
+import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, cardSetClaim, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetsForCrud, getCardTrade } from './slot.services/card.service'
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
 import { getVideoAdsViewCountForCrud } from './slot.services/ironsource'
 import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
@@ -515,4 +515,8 @@ export async function cardCollectionsCLGet(req: Request, res: Response): Promise
 export async function cardSetClaimGet(req: Request, res: Response): Promise<void> {
   await cardSetClaim(Number(req.query.setId), req.user.id)
   res.status(200).send({'status': 'ok'})
+}
+export async function cardTradeGet(req: Request, res: Response): Promise<void> {
+  const cardTradeData = await getCardTrade(req.query.regular as string, req.user.id)
+  res.status(200).send(cardTradeData)
 }

@@ -36,6 +36,7 @@ router.route('/legals').get(checkDeviceId, checkToken, checkmaintenanceMode, che
 router.route('/wallet').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.walletGet)
 router.route('/card_collections').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.cardCollectionsCLGet)
 router.route('/card_set_completed').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.cardSetClaimGet)
+router.route('/card_trade').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.cardTradeGet)
 
 router.route('/appodeal').get(slot.appodeal)
 router.route('/tapjoy').get(slot.tapjoy)

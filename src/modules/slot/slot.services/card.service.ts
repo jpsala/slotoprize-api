@@ -5,12 +5,13 @@ import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import { ResultSetHeader } from "mysql2"
 import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar } from "../../../db"
-import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl } from "../../../helpers"
+import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl, getRandomNumber } from "../../../helpers"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
 import { Atlas, buildAtlas, getAtlas } from "../../meta/meta-services/atlas"
 import { getGameUserById } from "../../meta/meta.repo/gameUser.repo"
 import { GameUser } from "../../meta/meta.types"
+import { Wallet } from "../slot.types"
 import { getSetting } from "./settings.service"
 import { updateWallet } from "./wallet.service"
 
@@ -456,7 +457,7 @@ async function getCardSetImagesForAtlas(cardSetId: number) {
 export async function cardSetClaim(setId: number, userId: number): Promise<void> {
   if(!setId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Missing setId')
   const cardSetExists = Number(await queryScalar(`
-    select count(*) as cardSetCount from card_set where id = ${setId}
+  select count(*) as cardSetCount from card_set where id = ${setId}
   `)) > 0
   if(!cardSetExists) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set does not exists')
   const cardSetCompleted = await getCardSetCompleted(setId, userId)
@@ -467,7 +468,7 @@ export async function cardSetClaim(setId: number, userId: number): Promise<void>
     userId, setId
   ])
   const cardSet = camelcaseKeys(await queryOne(`
-    select id, theme_color, reward_type, reward_amount, front_card_id from card_set where id = ${setId}
+  select id, theme_color, reward_type, reward_amount, front_card_id from card_set where id = ${setId}
   `)) as {rewardType: string, rewardAmount: string}
   const {rewardType, rewardAmount} = cardSet
   const user = await getGameUserById(userId) as GameUser
@@ -485,7 +486,7 @@ export const getCardSetCompleted = async (cardSetId: number, userId: number): Pr
   //   select id, theme_color, reward_type, reward_amount, front_card_id from card_set where id = ${cardSetId}
   // `)) as CardSet
   const cards: Card[] = (await query(`
-    select id, card_set_id, texture_url, stars, thumb_url from card where card_set_id = ${cardSetId}
+  select id, card_set_id, texture_url, stars, thumb_url from card where card_set_id = ${cardSetId}
   `))
   let completed = true
   for (const card of cards) {
@@ -497,15 +498,125 @@ export const getCardSetCompleted = async (cardSetId: number, userId: number): Pr
   }
   return completed
 }
+
+export const getCardTrade = async (regularStr: string | undefined, userId: number):Promise<any> => {
+
+  if(regularStr === undefined || regularStr === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'regular parameter is undefined')
+
+  const regular = (regularStr.toLocaleLowerCase() === 'true')
+  const chestStr = regular ? 'chestRegularRewards' : 'chestPremiumRewards'
+  const defaultReward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
+  const chestRegularString = await getSetting(chestStr, JSON.stringify(defaultReward))
+  
+  const chest: RewardChest = JSON.parse(chestRegularString) as RewardChest
+  //URGENT quitar linea abajo
+  chest.rewards.push({amount: 10, type: 'coin'})
+
+  const repeatedCards = await getRepeatedCards(userId)
+
+  const starsAvail = repeatedCards.reduce((prev, card) => {return prev + Number(card.stars)}, 0)
+
+  if(Number(chest.priceAmount) > starsAvail) throw createHttpError(StatusCodes.BAD_REQUEST, 'Insufficient founds')
+
+  const user = await getGameUserById(userId) as GameUser
+
+  const repeatedCardsFull: Card[] = camelcaseKeys(await query(`
+      select guc.id as user_card_id, c.id, c.stars,
+      (select count(*)
+          from game_user_card guc2 inner join card c2 on guc2.card_id = c2.id
+          where guc2.game_user_id = guc.game_user_id and guc2.card_id = guc.card_id)-1 as repeatedCards
+      from card c
+          inner join game_user_card guc on guc.card_id = c.id
+      where guc.game_user_id = ${userId} and (select count(*)
+          from game_user_card guc2 inner join card c2 on guc2.card_id = c2.id
+          where guc2.game_user_id = guc.game_user_id and guc2.card_id = guc.card_id)-1 > 0
+  `))
+  for (const repeatedCard of repeatedCards) {
+    const index = repeatedCardsFull.findIndex(_card => {
+      return _card.id === repeatedCard.id
+    })
+    if(index === -1) throw createHttpError(StatusCodes.BAD_REQUEST, 'getCardTrade carta no encontrada')
+    repeatedCardsFull.splice(index, 1)
+  }
+
+  const wallet = user.wallet as Wallet
+  for (const reward of chest.rewards) 
+    wallet[`${reward.type}s`] += Number(reward.amount)
+  
+  await updateWallet(user, wallet)
+
+  let remainingPrice = chest.priceAmount
+  while(remainingPrice > 0) {
+    const randomNumber = getRandomNumber(0, repeatedCardsFull.length - 1)
+    const card = repeatedCardsFull[randomNumber]
+    console.log('card', card)
+    remainingPrice -= card.stars
+    await removeCardFromPlayer((card as any).userCardId)
+  }
+  if(remainingPrice < 0) {
+    console.log('remainingPrice < 0')
+    const missingStars = Math.abs(remainingPrice)
+    await grantPlayerCardByStars(missingStars, userId)
+  }
+  const starsAvailUpdated = repeatedCards.reduce((prev, card) => {return prev + card.stars}, 0)
+  const cards = await getCardsCL(userId)
+  return {
+    collectibleCardSets: cards,
+    tradeData: {
+      starsForTrade: starsAvailUpdated
+  }
+  }
+}
+async function grantPlayerCardByStars(missingStars: number, userId: number): Promise<void>{
+  const ownedCardByStars = camelcaseKeys(await queryOne(`
+    select card_id as id
+      from game_user_card guc
+          inner join card c on guc.card_id = c.id
+    where guc.game_user_id = ${userId} and c.stars = ${missingStars} limit 1
+  `)) as Card
+
+  if(ownedCardByStars){
+    const resp = await queryExec(`
+      insert into game_user_card(game_user_id, card_id) values (?, ?)
+  `, [userId, ownedCardByStars.id])
+    console.log('resp', resp)
+  } else {
+    const card = camelcaseKeys(await queryOne(`
+      select * from card where stars = ${missingStars} limit 1
+    `)) as Card
+    await queryExec(`insert into game_user_card(game_user_id, card_id) values (?, ?)`, [userId, card.id])
+    await queryExec(`insert into game_user_card(game_user_id, card_id) values (?, ?)`, [userId, card.id])
+  }
+}
+
+async function removeCardFromPlayer(userCardId: number): Promise<void>{
+  await queryExec(`delete from game_user_card where id = ${userCardId}`)
+}
+
+async function getRepeatedCards(userId: number):Promise<{id:number, stars: number, repeated:number}[]>{
+  return camelcaseKeys(await query(`
+      select c.id, c.stars,
+      (select count(*)
+      from game_user_card guc2 inner join card c2 on guc2.card_id = c2.id
+      where guc2.game_user_id = guc.game_user_id and guc2.card_id = guc.card_id)-1 as repeatedCards
+    from card c
+      inner join game_user_card guc on guc.card_id = c.id
+    where guc.game_user_id = ${userId} and
+        (select count(*)
+      from game_user_card guc2 inner join card c2 on guc2.card_id = c2.id
+      where guc2.game_user_id = guc.game_user_id and guc2.card_id = guc.card_id) > 1
+    group by c.id
+  `)) as {id:number, stars: number, repeated:number}[]
+}
 async function getCardSetClaimed(setId: number, userId: number) {
   return Number(await queryScalar(`
-    select count(*) from card_set_claim where card_set_id = ${setId} and game_user_id = ${userId}
+  select count(*) from card_set_claim where card_set_id = ${setId} and game_user_id = ${userId}
   `)) > 0
 }
 async function getCardOwned(userId: number, cardId: number) {
   const ownedCart = Number(await queryScalar(`
-      select count(*) as cardsOwned from game_user_card guc
-      where guc.game_user_id = ${userId} and guc.card_id = ${cardId} 
+  select count(*) as cardsOwned from game_user_card guc
+  where guc.game_user_id = ${userId} and guc.card_id = ${cardId} 
   `))
   return ownedCart > 0
 }

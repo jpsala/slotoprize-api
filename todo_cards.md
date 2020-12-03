@@ -51,6 +51,24 @@ se reclama con album completo
 
 - [x] que esta completo
 - [x] que no se haya hecho el claimed anteriormente
-- [ ] si se cumplen rewardClaimed en true y otorgarle los rewards en la billetera
+- [x] si se cumplen rewardClaimed en true y otorgarle los rewards en la billetera
 
 card_set_completed deviceId sessionToken setId
+
+305109
+
+endpoint card_trade params: regular: bool
+
+- [x] que chest es de acuerdo a param regular
+- [x recuento de estrellitas igual al de card collections chequeo que sean suficientes para comprar el chest selecionado
+- [x] le otorgo la recompensa de ese chest
+- [ ] falta sacar las cartas equiv a las estrellitas que gastó
+- [ ] devuelvo:
+collective card sets
+trade data: cantidad actuliza del starsfortrade actualizada
+"tradeData": {
+    "starsForTrade": 0,
+}
+
+
+- [ ] en el BO definición de los cofres regular y premium
