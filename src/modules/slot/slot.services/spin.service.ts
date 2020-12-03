@@ -21,14 +21,14 @@ import { getWiningCard } from './spin-card.service'
 
 const randomNumbers: number[] = []
 //@URGENT userIsDev is only when the user is dev, not dev-request
-export async function spin(deviceId: string, multiplier: number, userIsDev: boolean): Promise<SpinData> {
+export async function spin(deviceId: string, multiplier: number): Promise<SpinData> {
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
   const user = await getOrSetGameUserByDeviceId(deviceId)
   const tutorialComplete = (user.tutorialComplete || 0 as number) === 1
   if (!tutorialComplete) return await getSpinDataForIncompleteTutorial()
   
-  if(!userIsDev && await spinWasToQuickly(user)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Spin was to quickly')
+  if(!user.isDev && await spinWasToQuickly(user)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Spin was to quickly')
 
   const wallet = await getWallet(user)
   console.log('wallet', wallet, user)
@@ -57,8 +57,8 @@ export async function spin(deviceId: string, multiplier: number, userIsDev: bool
     if(String(winType).toLocaleLowerCase() === 'card'){
       console.log('wintype is card' )
       cardData = await getWiningCard(user.languageCode)
-      // {id: number, rewardAmount: number, rewardType: string, title: string, stars: number}
       await assignCardToUser(user.id, cardData.id)
+      // {id: number, rewardAmount: number, rewardType: string, title: string, stars: number}
       console.log('winning card', cardData)
     } else  {
       wallet[`${winType}s`] += (winAmount)

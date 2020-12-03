@@ -26,11 +26,11 @@ export const getWiningCard = async (languageCode: string): Promise<CardForSpin> 
   const ownedQuantity = await getOwnedQuantityByCardId(winningCard.id)
   return  {
     id: winningCard.id,
-    rewardType: winningCard.rewardType,
-    rewardAmount: winningCard.rewardAmount,
     title: winningCard.title,
     stars: winningCard.stars,
-    ownedQuantity: Number(ownedQuantity || 0)
+    textureUrl: winningCard.textureUrl,
+    // the +1 below is here because the card is assigned to the user after this method
+    ownedQuantity: Number(ownedQuantity || 0) + 1 
   }
 }
 
@@ -43,7 +43,7 @@ async function getOwnedQuantityByCardId(winningCardId: number) {
 async function getCardWithByStars(dropRateTableRow: CardDropRateTable, languageId: string | undefined) {
   const stars = dropRateTableRow.stars
   const cardsByByStars: CardForSpin[] = camelcaseKeys(await query(`
-    select c.id, cs.reward_amount, cs.reward_type, c.stars, c.thumb_url,
+    select c.id, cs.reward_amount, cs.reward_type, c.stars, c.thumb_url, texture_url,
           (select coalesce(text, 'No localization for this card') 
             from localization l where l.item = 'card' and l.item_id = c.id and l.language_id = '${Number(languageId)}'
           ) as title

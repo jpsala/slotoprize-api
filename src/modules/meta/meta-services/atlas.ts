@@ -5,7 +5,7 @@ import createHttpError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
 import Spritesmith from 'spritesmith'
 import pixelsmith from 'pixelsmith'
-import { getAssetsUrl, getUrlWithoutHost, publicPath } from '../../../helpers'
+import { getAssetsUrl, publicPath } from '../../../helpers'
 import { buildSymbolsAtlas } from '../../slot/slot.services/symbol.service'
 import { queryOne, queryExec } from '../../../db'
 
@@ -109,13 +109,18 @@ export async function saveAtlasToDB(data: Atlas): Promise<void> {
     `, [data.name, jsonData])
   console.log('atlas saved to DB', resp )
 }
-export async function getAtlas(name: string): Promise<Atlas> {
+export async function getAtlas(name: string, images?: string[] | {name:string,image:string}[]): Promise<Atlas> {
   const atlasInDB = await queryOne(`select id, json from atlas where name = '${name}'`)
   let jsonData: Atlas | undefined = undefined
   if (atlasInDB) 
-    jsonData = JSON.parse(atlasInDB.json) as Atlas
+    {jsonData = JSON.parse(atlasInDB.json) as Atlas}
    else if (name.toLocaleLowerCase() === 'symbols') 
-    jsonData = await buildSymbolsAtlas()
+    {jsonData = await buildSymbolsAtlas()}
+  else if(images){
+     const atlas = await buildAtlas(images, name)
+     await saveAtlasToDB(atlas)
+     return atlas
+  }
   
   if (jsonData && name.toLocaleLowerCase() === 'symbols') jsonData.textureUrl = getAssetsUrl() + jsonData.textureUrl
   

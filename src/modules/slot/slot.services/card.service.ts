@@ -8,10 +8,10 @@ import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar }
 import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl } from "../../../helpers"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
-import { Atlas, buildAtlas, getAtlas, saveAtlasToDB } from "../../meta/meta-services/atlas"
+import { Atlas, buildAtlas, getAtlas } from "../../meta/meta-services/atlas"
 import { getSetting } from "./settings.service"
 
-export type CardSet = {id: number, rewardType: string, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[]}
+export type CardSet = {id: number, rewardType: string, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number }
 export type Card = { id: number, stars: number, localizations: Localization[], textureUrl: string, thumbUrl: string, cardSet }
 // #endregion
 // #region comments
@@ -212,7 +212,6 @@ export const postCardForCrud = async (_fields: any, files): Promise<any> => {
     fields.id = response.insertId
   }
 
-
   // save localizations
   if (fields.localizations && fields.localizations.length > 0){
     const conn = await getConnection()
@@ -259,6 +258,7 @@ export const deleteCardSetForCrud = async (cardSetId: number): Promise<void> => 
   await queryExec(`delete from localization where item = 'cardSet' and item_id = ${String(cardSetId)}`)
   if(!resp) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardSetId))
   resp = await queryExec(`delete from card_set where id = ${cardSetId}`)
+  
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card set ' + String(cardSetId))
 }
 export type CardDropRateTable = {id: number, stars: number, probability: number}
@@ -303,6 +303,7 @@ export type CardCollectionsDataCL = {
     rewardAmount: number;
     ownedQuantity: number;
     rewardClaimed: boolean;
+    frontCardId: number;
     atlasData: Atlas; // todas los thumbnails de ese album, como name paso el string(id)
 }
 export type CollectibleCardDataCL = {
@@ -339,7 +340,7 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
   const cardSets: CollectibleCardSetDataCL[] = camelcaseKeys(
     
       await query(`
-      select cs.id, 
+      select cs.id, front_card_id,
           (select text from localization where item = 'cardSet' and item_id = cs.id and language_id = ?) as title,
           cs.theme_color, cs.reward_type, cs.reward_amount
         from card_set cs
@@ -348,16 +349,23 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
   )
 
   for (const cardSet of cardSets) {
+    //URGENT the line below is temporary, I have to assign a front card for all the card sets 
+    if(!cardSet.frontCardId ){
+      const frontCardId = Number(await queryScalar(`select id from card where card_set_id = ${cardSet.id} order by id desc limit 1`))
+      await queryExec(`update card_set set front_card_id = ${frontCardId}`)
+      cardSet.frontCardId = frontCardId
+      console.log('added cardSet.frontCardId ', cardSet.frontCardId )
+    }
     cardSet.ownedQuantity = 0
     cardSet.rewardClaimed = false
-    cardSet.atlasData = await getCardSetAtlasData(cardSet)
+    cardSet.atlasData = await getCardSetAtlas(cardSet)
     cardSet.atlasData.textureUrl =  getAssetsUrl() + cardSet.atlasData.textureUrl
     // cardSet.atlasData = {} as Atlas
     cardSet.cards = <CollectibleCardDataCL[]> camelcaseKeys(await query(`
-      select c.id, c.texture_url, c.stars,
-        (select text from localization where item = 'card' and item_id = c.id and language_id = ${languageId}) as title,
-        (select count(*) from game_user_card gc where gc.game_user_id = ${userId} and gc.card_id = c.id) as ownedQuantity
-      from card c where c.card_set_id = ${cardSet.id}
+    select c.id, c.texture_url, c.stars,
+    (select text from localization where item = 'card' and item_id = c.id and language_id = ${languageId}) as title,
+    (select count(*) from game_user_card gc where gc.game_user_id = ${userId} and gc.card_id = c.id) as ownedQuantity
+    from card c where c.card_set_id = ${cardSet.id}
     `))
     for (const card of cardSet.cards) {
       cardSet.ownedQuantity += (card.ownedQuantity > 0 ? 1 : 0)
@@ -382,28 +390,14 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
    
   return cardCollectionsDataCL
 }
-const getCardSetAtlasData = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas> => {
-  const basePath = getAssetsPath()
-
-  const cardsForThumb = await query(`
-    select c.id, c.thumb_url as thumbUrl
-    from card c where c.card_set_id = ${cardSet.id}
-  `)
-  const thumbs: {name: string, image: string}[] = []
-  // const thumbRows = (await query(`select thumb_texture as thumbTexture from card where card_set_id = ${cardSet.id}`))
-  for (const cardRow of cardsForThumb) 
-    thumbs.push({name: cardRow.id, image: join(basePath, getUrlWithoutHost(cardRow.thumbUrl))})
-  
-  // const atlas = await buildAtlas(thumbs, cardSet.id)
-  let atlas: Atlas 
-  try {
-    atlas = await getAtlas(`card_set_${cardSet.id}`) 
-    console.log('yessss', atlas)
-  } catch (error) {
-    atlas = await buildAtlas(thumbs, `card_set_${cardSet.id}`)
-    await saveAtlasToDB(atlas)
-    console.log('maaal', atlas)
-  }
+const getCardSetAtlas = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas> => {
+  const thumbs: { name: string; image: string} [] = await getCardSetImagesForAtlas(cardSet)
+  const atlas = await getAtlas(`card_set_${cardSet.id}`, thumbs)
+  return atlas
+}
+const buildCardSetAtlas = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas> => {
+  const thumbs: { name: string; image: string} [] = await getCardSetImagesForAtlas(cardSet)
+  const atlas = await buildAtlas(thumbs,`card_set_${cardSet.id}`)
   return atlas
 }
 const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
@@ -421,14 +415,21 @@ const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
     thumbs.push({name: cardForThumb.id, image: join(basePath, getUrlWithoutHost(cardForThumb.thumbUrl))})
 
   }
-  let atlas: Atlas 
-  try {
-    atlas = await getAtlas('card_sets') 
-    console.log('yessss', atlas)
-  } catch (error) {
-    atlas = await buildAtlas(thumbs, 'card_sets')
-    await saveAtlasToDB(atlas)
-    console.log('maaal', atlas)
-  }
+  const atlas = await getAtlas('card_sets', thumbs) 
+
   return atlas
+}
+
+async function getCardSetImagesForAtlas(cardSet: CollectibleCardSetDataCL) {
+  const basePath = getAssetsPath()
+
+  const cardsForThumb = await query(`
+    select c.id, c.thumb_url as thumbUrl
+    from card c where c.card_set_id = ${cardSet.id}
+  `)
+  const thumbs: { name: string; image: string} [] = []
+  // const thumbRows = (await query(`select thumb_texture as thumbTexture from card where card_set_id = ${cardSet.id}`))
+  for (const cardRow of cardsForThumb)
+    thumbs.push({ name: cardRow.id, image: join(basePath, getUrlWithoutHost(cardRow.thumbUrl)) })
+  return thumbs
 }
