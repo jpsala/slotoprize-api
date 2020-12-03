@@ -211,7 +211,7 @@ export const postCardForCrud = async (_fields: any, files): Promise<any> => {
     response = (await queryExec(`insert into card(stars, card_set_id) values (?, ?)`, [fields.stars, fields.cardSetId]) )
     fields.id = response.insertId
   }
-
+  await buildCardSetAtlas(fields.cardSetId)
   // save localizations
   if (fields.localizations && fields.localizations.length > 0){
     const conn = await getConnection()
@@ -243,23 +243,28 @@ export const postCardForCrud = async (_fields: any, files): Promise<any> => {
 }
 export const deleteCardForCrud = async (cardId: number): Promise<void> => { 
   if(!cardId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card ID param is required')
+  const cardSetId = Number(await queryScalar(`select card_set_id from card where id = ${cardId}`))
+  await buildCardSetAtlas(cardSetId)
   await queryExec(`delete from localization where item = 'card' and item_id = ${cardId}`)
   const resp = await queryExec(`delete from card where id = ${cardId}`)
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardId))
 }
-export const deleteCardSetForCrud = async (cardSetId: number): Promise<void> => { 
+export const deleteCardSetForCrud = async (cardSetId: number): Promise<void> => {
   if(!cardSetId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set ID param is required')
   const cards = await query(`select id from card where card_set_id = ?`, [String(cardSetId)])
   for (const card of cards) 
-    await queryExec(`delete from localization where item = 'card' and item_id = ${String(card.id)}`)
-    
-    let resp = await queryExec(`delete from card where card_set_id = ${cardSetId}`)
-    
+  await queryExec(`delete from localization where item = 'card' and item_id = ${String(card.id)}`)
+  
+  let resp = await queryExec(`delete from card where card_set_id = ${cardSetId}`)
+  
   await queryExec(`delete from localization where item = 'cardSet' and item_id = ${String(cardSetId)}`)
   if(!resp) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardSetId))
   resp = await queryExec(`delete from card_set where id = ${cardSetId}`)
   
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card set ' + String(cardSetId))
+  // await deleteAtlas(`card_set_${cardSetId}`)
+  // await getAtlasForCollectibleCardSets(true) // para regenerar el atlas de los thumbs
+  await buildCardSetAtlasThumbs()
 }
 export type CardDropRateTable = {id: number, stars: number, probability: number}
 export const postCardDropRateTable = async (table: CardDropRateTable[]): Promise<void> => {
@@ -287,7 +292,6 @@ export const getCardDropRateTable = async (
 }
 
 //  For client
-
 // #region Types
 export type CardCollectionsDataCL = {
     collectibleCardSets: CollectibleCardSetDataCL[];
@@ -393,41 +397,52 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
   return cardCollectionsDataCL
 }
 const getCardSetAtlas = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas> => {
-  const thumbs: { name: string; image: string} [] = await getCardSetImagesForAtlas(cardSet)
+  const thumbs: { name: string; image: string} [] = await getCardSetImagesForAtlas(cardSet.id)
   const atlas = await getAtlas(`card_set_${cardSet.id}`, thumbs)
   return atlas
 }
-const buildCardSetAtlas = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas> => {
-  const thumbs: { name: string; image: string} [] = await getCardSetImagesForAtlas(cardSet)
-  const atlas = await buildAtlas(thumbs,`card_set_${cardSet.id}`)
+const buildCardSetAtlas = async (cardSetId: number): Promise<Atlas> => {
+  const thumbs: { name: string; image: string} [] = await getCardSetImagesForAtlas(cardSetId)
+  const atlas = await buildAtlas(thumbs,`card_set_${cardSetId}`)
+  // await saveAtlasToDB(atlas)
   return atlas
 }
-const getAtlasForCollectibleCardSets = async (): Promise<Atlas> => {
+const buildCardSetAtlasThumbs = async (): Promise<Atlas> => {
+  const thumbs: { name: string; image: string} [] = await getThumbsImagesForAtlas()
+  const atlas = await buildAtlas(thumbs, 'card_sets') 
+  console.log('buildCardSetAtlasThumbs', atlas)
+  return atlas
+}
+const getAtlasForCollectibleCardSets = async (rebuild = false): Promise<Atlas> => {
+  const thumbs: { name: string; image: string} [] = await getThumbsImagesForAtlas()
+  const atlas = await getAtlas('card_sets', thumbs, rebuild) 
+
+  return atlas
+}
+async function getThumbsImagesForAtlas() {
   const basePath = getAssetsPath()
   const cardSets: CardSet[] = camelcaseKeys(await query(`
     select id, theme_color, reward_type, reward_amount from card_set
   `))
-  const thumbs: {name: string, image: string}[] = []
+  const thumbs: { name: string; image: string} [] = []
 
   for (const cardSet of cardSets) {
     const cardForThumb = (await queryOne(`
       select id, thumb_url as thumbUrl from card c where card_set_id = ${cardSet.id} order by id desc limit 1
     `))
     // thumbs.push(join(basePath, getUrlWithoutHost(cardForThumb)))
-    thumbs.push({name: cardForThumb.id, image: join(basePath, getUrlWithoutHost(cardForThumb.thumbUrl))})
+    thumbs.push({ name: cardForThumb.id, image: join(basePath, getUrlWithoutHost(cardForThumb.thumbUrl)) })
 
   }
-  const atlas = await getAtlas('card_sets', thumbs) 
-
-  return atlas
+  return thumbs
 }
 
-async function getCardSetImagesForAtlas(cardSet: CollectibleCardSetDataCL) {
+async function getCardSetImagesForAtlas(cardSetId: number) {
   const basePath = getAssetsPath()
 
   const cardsForThumb = await query(`
     select c.id, c.thumb_url as thumbUrl
-    from card c where c.card_set_id = ${cardSet.id}
+    from card c where c.card_set_id = ${cardSetId}
   `)
   const thumbs: { name: string; image: string} [] = []
   // const thumbRows = (await query(`select thumb_texture as thumbTexture from card where card_set_id = ${cardSet.id}`))

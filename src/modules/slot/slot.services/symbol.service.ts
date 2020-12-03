@@ -5,7 +5,7 @@ import toCamelCase from 'camelcase-keys'
 import createHttpError from "http-errors"
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "http-status-codes"
 import { query, queryExec } from '../../../db'
-import { Atlas, AtlasSprite, buildAtlas, saveAtlasToDB } from "../../meta/meta-services/atlas"
+import { Atlas, AtlasSprite, buildAtlas } from "../../meta/meta-services/atlas"
 import { getAssetsUrl , getRandomNumber, addHostToPath, getUrlWithoutHost, publicPath } from './../../../helpers'
 
 export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
@@ -138,7 +138,7 @@ export const buildSymbolsAtlas = async (padding?: number, quality?: number): Pro
     symbol.name = symbolInDB.name
   }
 
-  await saveAtlasToDB(atlas)
+  // await saveAtlasToDB(atlas)
 
   return atlas
 }
