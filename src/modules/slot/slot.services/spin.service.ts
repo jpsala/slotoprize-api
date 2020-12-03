@@ -58,7 +58,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
       console.log('wintype is card' )
       cardsData = []
       for (let index = 0; index < multiplier; index++) {
-        const data: CardData = await getWinningCard(user.languageCode)
+        const data: CardData = await getWinningCard(user.languageCode, user.id)
         await assignCardToUser(user.id, data.id)
         console.log('winning card', data)
         // if(!cardData) cardData = [data]

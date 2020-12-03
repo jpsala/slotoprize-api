@@ -29,7 +29,7 @@ import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/a
 import { appodealCallback, appodealCallbackPlain, QueryParams } from './slot.services/appodeal'
 import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetsForCrud } from './slot.services/card.service'
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
-import { callback, getVideoAdsViewCountForCrud } from './slot.services/ironsource'
+import { getVideoAdsViewCountForCrud } from './slot.services/ironsource'
 import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
 import { getLegals, getLegalsForCrud, postLegalsForCrud } from './slot.services/legals.service'
 import { getMiscSettingsForCrud, postMiscSettingsForCrud } from './slot.services/miscSettings'
@@ -387,27 +387,27 @@ export async function testRegSpinsUSer39(req: Request, res: Response): Promise<a
   await testUser39(Number(req.query.spins))
   res.status(200).json({status: 'ok'})
 }
-export async function ironsource(req: Request, res: Response): Promise<any>{
-  const { 'dev-request': dev } = req.headers
-  const addressParts = (req.connection.remoteAddress as string).split(':')
-  let ipAddr
-  if(addressParts.length >= 4)
-    ipAddr = addressParts[3]
-  const resp = await callback(req.query as {
-    USER_ID: 'string';
-    EVENT_ID: 'string';
-    rewards: 'string';
-    currency: 'string';
-    DELIVERY_TYPE: 'string';
-    AD_PROVIDER: 'string';
-    publisherSubId: 'string';
-    timestamp: 'string';
-    signature: 'string';
-    country: 'string';
-    negativeCallback: 'string';
-  }, ipAddr, dev === 'true')
-  res.status(200).send(resp)
-}
+// export async function ironsource(req: Request, res: Response): Promise<any>{
+//   const { 'dev-request': dev } = req.headers
+//   const addressParts = (req.connection.remoteAddress as string).split(':')
+//   let ipAddr
+//   if(addressParts.length >= 4)
+//     ipAddr = addressParts[3]
+//   const resp = await callback(req.query as {
+//     USER_ID: 'string';
+//     EVENT_ID: 'string';
+//     rewards: 'string';
+//     currency: 'string';
+//     DELIVERY_TYPE: 'string';
+//     AD_PROVIDER: 'string';
+//     publisherSubId: 'string';
+//     timestamp: 'string';
+//     signature: 'string';
+//     country: 'string';
+//     negativeCallback: 'string';
+//   }, ipAddr, dev === 'true')
+//   res.status(200).send(resp)
+// }
 export async function appodeal(req: Request, res: Response): Promise<void>{
   // const { 'dev-request': dev } = req.headers
   let resp

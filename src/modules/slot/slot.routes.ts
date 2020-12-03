@@ -25,7 +25,7 @@ router.route('/toggleLog').post(checkDeviceId, checkToken, checkmaintenanceMode,
 router.route('/daily_reward_claim').get(checkDeviceId, checkToken, checkmaintenanceMode, checkToken, slot.dailyRewardClaimGet)
 router.route('/daily_reward_info').get(checkDeviceId, checkToken, checkmaintenanceMode, checkToken, slot.dailyRewardInfoGet)
 router.route('/all_events').get(checkDeviceId, checkToken, checkmaintenanceMode, checkToken, slot.allEvents)
-router.route('/ironsource').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.ironsource)
+// router.route('/ironsource').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.ironsource)
 router.route('/atlas').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.atlasGet)
 router.route('/slot-data').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.slotDataGet)
 router.route('/reset-settings').post(checkDeviceId, checkToken, checkmaintenanceMode, slot.resetSettingsPost)

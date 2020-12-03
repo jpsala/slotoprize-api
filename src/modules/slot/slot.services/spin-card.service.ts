@@ -6,7 +6,7 @@ import { getRandomNumber } from "../../../helpers"
 import { CardForSpin } from "../slot.types"
 import { CardDropRateTable, getCardDropRateTable } from "./card.service"
 
-export const getWinningCard = async (languageCode: string): Promise<CardForSpin> => {
+export const getWinningCard = async (languageCode: string, userId: number): Promise<CardForSpin> => {
   // toma las estrellas de la tabla de probabilidades en base a un numero al azar, como se hace en el spin
   // me va a devolver una cantidad de estrellas de la carta que va a ganar
   // tomo todas las cartas que tengan ese número de estrellas
@@ -23,7 +23,7 @@ export const getWinningCard = async (languageCode: string): Promise<CardForSpin>
 
   const randomNumberToObtainCardRow = getRandomNumber(1, cardsByByStars.length) - 1
   const winningCard = cardsByByStars[randomNumberToObtainCardRow]
-  const ownedQuantity = await getOwnedQuantityByCardId(winningCard.id)
+  const ownedQuantity = await getOwnedQuantityByCardId(winningCard.id, userId)
   return  {
     id: winningCard.id,
     setId: winningCard.setId,
@@ -35,10 +35,10 @@ export const getWinningCard = async (languageCode: string): Promise<CardForSpin>
   }
 }
 
-async function getOwnedQuantityByCardId(winningCardId: number) {
+async function getOwnedQuantityByCardId(winningCardId: number, userId: number) {
   return await queryScalar(`
-    select count(*) from game_user_card where card_id = ?
-  `, [winningCardId])
+    select count(*) from game_user_card where card_id = ? and game_user_id = ?
+  `, [winningCardId, userId])
 }
 
 async function getCardWithByStars(dropRateTableRow: CardDropRateTable, languageId: string | undefined) {
