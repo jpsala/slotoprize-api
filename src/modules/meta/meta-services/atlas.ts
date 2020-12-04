@@ -1,5 +1,5 @@
 // #region imports and types
-import { existsSync, readFile, writeFileSync } from 'fs'
+import { existsSync, writeFileSync } from 'fs'
 import { basename, extname, join } from 'path'
 import createHttpError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
@@ -17,8 +17,7 @@ export type AtlasSpriteCoordinates = {
   y: number
 }
 export type AtlasSprite = {
-  name?: string,
-  symbolName?: string,
+  id: string,
   coordinates: AtlasSpriteCoordinates
 }
 export type Atlas = {
@@ -44,7 +43,7 @@ type AtlasOptions = {
 // #endregion
 
 export async function buildAtlas(
-  images: string[] | {name:string,image:string}[], name: string, padding?: number, quality?: number):
+  images: string[] | {id:string,image:string}[], name: string, padding?: number, quality?: number):
    Promise < Atlas > 
 {
   const finalOutput = join(publicPath(), 'assets', `atlas/${name}.png`)
@@ -82,10 +81,10 @@ export async function buildAtlas(
           let entryIdx = 0
           for (const entry of Object.entries(result.coordinates)) {
             const extension = extname(basename(entry[0]))
-            let name = basename(basename(entry[0]), extension)
+            let id = basename(basename(entry[0]), extension)
             const imageObjOrString = images[entryIdx++]
-            if(typeof(imageObjOrString) !== 'string') name = imageObjOrString.name
-            spritesData.push({ name, coordinates: entry[1] as AtlasSpriteCoordinates })
+            if(typeof(imageObjOrString) !== 'string') id = imageObjOrString.id
+            spritesData.push({ id, coordinates: entry[1] as AtlasSpriteCoordinates })
           }
           done(
             {
@@ -120,7 +119,7 @@ export async function saveAtlasToDB(data: Atlas): Promise<void> {
   else
     await queryExec(`insert into atlas(name, json) values(?, ?) `, [data.name, jsonData])
 }
-export async function getAtlas(name: string, images?: string[] | {name:string,image:string}[], rebuild = false): Promise<Atlas> {
+export async function getAtlas(name: string, images?: string[] | {id:string,image:string}[], rebuild = false): Promise<Atlas> {
   const atlasInDB = await queryOne(`select id, json from atlas where name = '${name}'`)
   let jsonData: Atlas | undefined = undefined
   if (atlasInDB) {

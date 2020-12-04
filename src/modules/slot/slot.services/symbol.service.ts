@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { readdirSync, readFileSync, readdir, unlinkSync, writeFileSync, existsSync } from "fs"
-import path, { basename, extname, join } from 'path'
+import path, { join } from 'path'
 import toCamelCase from 'camelcase-keys'
 import createHttpError from "http-errors"
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "http-status-codes"
 import { query, queryExec } from '../../../db'
-import { Atlas, AtlasSprite, buildAtlas } from "../../meta/meta-services/atlas"
+import { Atlas, buildAtlas } from "../../meta/meta-services/atlas"
 import { getAssetsUrl , getRandomNumber, addHostToPath, getUrlWithoutHost, publicPath } from './../../../helpers'
 
 export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
@@ -14,7 +14,7 @@ const assetsPath = join(publicPath(), 'assets/')
 export const getReelsData = async (): Promise<any> =>
 {
   try {
-    const symbolsData = await query(`SELECT s.payment_type, s.symbol_name FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)`)
+    const symbolsData = await query(`SELECT s.id, s.payment_type, s.symbol_name FROM symbol s WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)`)
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++)
       reels.push({ symbolsData: toCamelCase(symbolsData) })
@@ -111,32 +111,35 @@ export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): P
     })
   }
 }
+export async function deleteSymbolsAtlas(): Promise<void> {
+  await queryExec('delete from atlas where name = "symbols"')
+}
 export const buildSymbolsAtlas = async (padding?: number, quality?: number): Promise<Atlas> => {
 
-  const symbols:{image: string, name: string}[] = await query(`
-    select distinct s.texture_url as image, symbol_name as name
+  const symbols:{image: string, id: string}[] = await query(`
+    select distinct s.id, s.texture_url as image
     from pay_table pt
         inner join symbol s on pt.symbol_id = s.id`
   )
   if(!symbols || symbols.length < 1) throw createHttpError(INTERNAL_SERVER_ERROR, 'There are no symbols in DBs')
 
-  const spritesData: string[] = []
+  const spritesData: {id: string, image: string}[] = []
   symbols.forEach(_symbol => {
     const file = `${assetsPath}${_symbol.image}`
     if(!existsSync(file)) throw createHttpError(BAD_REQUEST, `buildSymbolsAtlas: ${file} does not exists`)
-    spritesData.push(file)
+    spritesData.push({image: file, id:_symbol.id})
   })
 
   const atlas = await buildAtlas(spritesData, 'symbols', padding, quality)
   
-  for (const symbol of atlas.spritesData) {
+  // for (const symbol of atlas.spritesData) {
 
-    const symbolInDB = getSymbolInDB(symbols, symbol)
+  //   const symbolInDB = getSymbolInDB(symbols, symbol)
 
-    if (!symbolInDB) throw createHttpError(INTERNAL_SERVER_ERROR, 'Symbol not found')
+  //   if (!symbolInDB) throw createHttpError(INTERNAL_SERVER_ERROR, 'Symbol not found')
     
-    symbol.name = symbolInDB.name
-  }
+  //   symbol.name = symbolInDB.name
+  // }
 
   // await saveAtlasToDB(atlas)
 
@@ -160,11 +163,11 @@ export const getSymbols = async (): Promise<any> =>
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return symbols
 }
-function getSymbolInDB(symbols: { image: string; name: string }[], symbol: AtlasSprite) {
-  return symbols.find(_symbol => {
-    const extension = extname(basename(_symbol.image))
-    const name = basename(basename(_symbol.image), extension)
-    return name === symbol.name
-  })
-}
+// function getSymbolInDB(symbols: { image: string; name: string }[], symbol: AtlasSprite) {
+//   return symbols.find(_symbol => {
+//     const extension = extname(basename(_symbol.image))
+//     const name = basename(basename(_symbol.image), extension)
+//     return name === symbol.name
+//   })
+// }
 

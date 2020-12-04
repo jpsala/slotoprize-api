@@ -1,6 +1,6 @@
 import toCamelCase from 'camelcase-keys'
 import createHttpError from 'http-errors'
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'http-status-codes'
+import { StatusCodes } from 'http-status-codes'
 import {LanguageData, GameUser} from "../../../meta/meta.types"
 import * as languageRepo from "../../../meta/meta.repo/language.repo"
 import {getOrSetGameUserByDeviceId} from "../../../meta/meta-services/meta.service"
@@ -9,15 +9,14 @@ import {getHaveWinRaffle, setGameUserLogin, getWinRaffle, resetPendingPrize } fr
 import {getWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import { gameUserToProfile } from "../profile.service"
-import { queryExec } from '../../../../db'
 import { getLastSpinDays } from './dailyReward.spin'
 import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaimed } from './../../slot.repo/dailyReward.repo'
 export async function gameInit(deviceId: string): Promise<any> {
   try {
-    await deleteSymbolsAtlas()
+    // await deleteSymbolsAtlas()
     let rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
     const tutorialComplete = (rawUser.tutorialComplete || 0 as number) === 1
-    if(Number(rawUser.banned) === 1) throw createHttpError(BAD_REQUEST, 'Forbidden Error')
+    if(Number(rawUser.banned) === 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Forbidden Error')
     const wallet = tutorialComplete ?
       await getWallet(rawUser as GameUser) :
       {spins: 1, coins: 0, tickets: 0}
@@ -79,10 +78,8 @@ export async function gameInit(deviceId: string): Promise<any> {
     if(!rafflePrizeData) delete initData.rafflePrizeData
     return initData
   } catch (error) {
-    throw createHttpError(INTERNAL_SERVER_ERROR, error)
+    throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, error)
   }
 }
-async function deleteSymbolsAtlas() {
-  await queryExec('delete from atlas where name = "symbols"')
-}
+
 

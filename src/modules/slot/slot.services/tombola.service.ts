@@ -8,7 +8,7 @@ import { GameUser } from '../../meta/meta.types'
 import { getAssetsUrl } from './../../../helpers'
 import { getSetting, setSetting } from './settings.service'
 import getConnection, { query, queryOne } from './../../../db'
-import { buildSymbolsAtlas, getReelsData, getSymbols, SymbolDTO } from './symbol.service'
+import { deleteSymbolsAtlas, getReelsData, getSymbols, SymbolDTO } from './symbol.service'
 import { getPayTable } from './spin.service'
 
 type PayTableDTO = {id: number, symbol_id: number, symbol_amount: number, probability: number, points: number, symbol: SymbolDTO}
@@ -56,7 +56,7 @@ export const postTombolaForCrud = async (body: any): Promise<any> =>
       }])
     }
     await conn.commit()
-    await buildSymbolsAtlas()
+    await deleteSymbolsAtlas()
   }catch (err) {
     await conn.rollback()
     throw err

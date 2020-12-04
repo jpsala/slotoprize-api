@@ -413,23 +413,23 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
   return cardCollectionsDataCL
 }
 const getCardSetAtlas = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas> => {
-  const thumbs: { name: string; image: string} [] = await getCardSetImagesForAtlas(cardSet.id)
+  const thumbs: { id: string; image: string} [] = await getCardSetImagesForAtlas(cardSet.id)
   const atlas = await getAtlas(`card_set_${cardSet.id}`, thumbs)
   return atlas
 }
 const buildCardSetAtlas = async (cardSetId: number): Promise<Atlas> => {
-  const thumbs: { name: string; image: string} [] = await getCardSetImagesForAtlas(cardSetId)
+  const thumbs: { id: string; image: string} [] = await getCardSetImagesForAtlas(cardSetId)
   const atlas = await buildAtlas(thumbs,`card_set_${cardSetId}`)
   // await saveAtlasToDB(atlas)
   return atlas
 }
 const buildCardSetAtlasThumbs = async (): Promise<Atlas> => {
-  const thumbs: { name: string; image: string} [] = await getThumbsImagesForAtlas()
+  const thumbs: { id: string; image: string} [] = await getThumbsImagesForAtlas()
   const atlas = await buildAtlas(thumbs, 'card_sets') 
   return atlas
 }
 const getAtlasForCollectibleCardSets = async (rebuild = false): Promise<Atlas> => {
-  const thumbs: { name: string; image: string} [] = await getThumbsImagesForAtlas()
+  const thumbs: { id: string; image: string} [] = await getThumbsImagesForAtlas()
   const atlas = await getAtlas('card_sets', thumbs, rebuild) 
 
   return atlas
@@ -439,14 +439,14 @@ async function getThumbsImagesForAtlas() {
   const cardSets: CardSet[] = camelcaseKeys(await query(`
     select id, theme_color, reward_type, reward_amount, front_card_id from card_set
   `))
-  const thumbs: { name: string; image: string} [] = []
+  const thumbs: { id: string; image: string} [] = []
 
   for (const cardSet of cardSets) {
     const cardForThumb = (await queryOne(`
       select id, thumb_url as thumbUrl from card c where id = ${cardSet.frontCardId}
     `))
     // thumbs.push(join(basePath, getUrlWithoutHost(cardForThumb)))
-    thumbs.push({ name: cardForThumb.id, image: join(basePath, getUrlWithoutHost(cardForThumb.thumbUrl)) })
+    thumbs.push({ id: cardForThumb.id, image: join(basePath, getUrlWithoutHost(cardForThumb.thumbUrl)) })
 
   }
   return thumbs
@@ -458,10 +458,10 @@ async function getCardSetImagesForAtlas(cardSetId: number) {
     select c.id, c.thumb_url as thumbUrl
     from card c where c.card_set_id = ${cardSetId}
   `)
-  const thumbs: { name: string; image: string} [] = []
+  const thumbs: { id: string; image: string} [] = []
   // const thumbRows = (await query(`select thumb_texture as thumbTexture from card where card_set_id = ${cardSet.id}`))
   for (const cardRow of cardsForThumb)
-    thumbs.push({ name: cardRow.id, image: join(basePath, getUrlWithoutHost(cardRow.thumbUrl)) })
+    thumbs.push({ id: cardRow.id, image: join(basePath, getUrlWithoutHost(cardRow.thumbUrl)) })
   return thumbs
 }
 export async function cardSetClaim(setId: number, userId: number): Promise<void> {
@@ -581,7 +581,7 @@ async function grantPlayerCardByStars(missingStars: number, userId: number): Pro
   `)) as Card
 
   if(ownedCardByStars){
-    const resp = await queryExec(`
+    await queryExec(`
       insert into game_user_card(game_user_id, card_id) values (?, ?)
   `, [userId, ownedCardByStars.id])
   } else {
