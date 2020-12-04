@@ -12,7 +12,7 @@ import { Atlas, buildAtlas, getAtlas } from "../../meta/meta-services/atlas"
 import { getGameUserById } from "../../meta/meta.repo/gameUser.repo"
 import { GameUser } from "../../meta/meta.types"
 import { Wallet } from "../slot.types"
-import { getSetting } from "./settings.service"
+import { getSetting, setSetting } from "./settings.service"
 import { updateWallet } from "./wallet.service"
 
 export type CardSet = {id: number, rewardType: string, rewardClaimed: boolean, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number }
@@ -258,6 +258,9 @@ export const deleteCardForCrud = async (cardId: number): Promise<void> => {
   await queryExec(`delete from localization where item = 'card' and item_id = ${cardId}`)
   const resp = await queryExec(`delete from card where id = ${cardId}`)
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardId))
+}
+export const postChestForFront = async (name: string, chest: RewardChest): Promise<void> => {
+  await setSetting(name, JSON.stringify(chest))
 }
 export const deleteCardSetForCrud = async (cardSetId: number): Promise<void> => {
   if(!cardSetId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set ID param is required')
