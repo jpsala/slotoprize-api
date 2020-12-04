@@ -131,18 +131,6 @@ export const buildSymbolsAtlas = async (padding?: number, quality?: number): Pro
   })
 
   const atlas = await buildAtlas(spritesData, 'symbols', padding, quality)
-  
-  // for (const symbol of atlas.spritesData) {
-
-  //   const symbolInDB = getSymbolInDB(symbols, symbol)
-
-  //   if (!symbolInDB) throw createHttpError(INTERNAL_SERVER_ERROR, 'Symbol not found')
-    
-  //   symbol.name = symbolInDB.name
-  // }
-
-  // await saveAtlasToDB(atlas)
-
   return atlas
 }
 
@@ -163,11 +151,3 @@ export const getSymbols = async (): Promise<any> =>
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return symbols
 }
-// function getSymbolInDB(symbols: { image: string; name: string }[], symbol: AtlasSprite) {
-//   return symbols.find(_symbol => {
-//     const extension = extname(basename(_symbol.image))
-//     const name = basename(basename(_symbol.image), extension)
-//     return name === symbol.name
-//   })
-// }
-

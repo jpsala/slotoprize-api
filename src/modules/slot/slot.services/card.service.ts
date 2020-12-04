@@ -519,12 +519,15 @@ export const getCardTrade = async (regularStr: string | undefined, userId: numbe
   chest.rewards.push({amount: 10, type: 'coin'})
 
   const repeatedCards = await getRepeatedCards(userId)
+  const user = await getGameUserById(userId) as GameUser
 
   const starsAvail = repeatedCards.reduce((prev, card) => {return prev + (Number(card.stars) * (card as any).repeatedCards)}, 0)
+  let msgError: string
+  if (user.languageCode === 'fr-FR') msgError = await getSetting('insufficient-founds-for-card-trade-fr', 'Frances')
+  else if (user.languageCode === 'en-US') msgError =  await getSetting('insufficient-founds-for-card-trade-en', 'Ingles')
+  else msgError = `LanguageCode ${user.languageCode} not found`
 
-  if(Number(chest.priceAmount) > starsAvail) throw createHttpError(StatusCodes.BAD_REQUEST, 'Insufficient founds')
-
-  const user = await getGameUserById(userId) as GameUser
+  if(Number(chest.priceAmount) > starsAvail) throw createHttpError(402, msgError)
 
   const repeatedCardsFull: Card[] = camelcaseKeys(await query(`
       select guc.id as user_card_id, c.id, c.stars,
