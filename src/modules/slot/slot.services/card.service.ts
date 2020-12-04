@@ -514,7 +514,8 @@ export const getCardTrade = async (regularStr: string | undefined, userId: numbe
 
   const repeatedCards = await getRepeatedCards(userId)
 
-  const starsAvail = repeatedCards.reduce((prev, card) => {return prev + Number(card.stars)}, 0)
+  const starsAvail = repeatedCards.reduce((prev, card) => {return prev + (Number(card.stars) * (card as any).repeatedCards)}, 0)
+  console.log('starsAvail', starsAvail)
 
   if(Number(chest.priceAmount) > starsAvail) throw createHttpError(StatusCodes.BAD_REQUEST, 'Insufficient founds')
 
@@ -558,7 +559,8 @@ export const getCardTrade = async (regularStr: string | undefined, userId: numbe
     const missingStars = Math.abs(remainingPrice)
     await grantPlayerCardByStars(missingStars, userId)
   }
-  const starsAvailUpdated = repeatedCards.reduce((prev, card) => {return prev + card.stars}, 0)
+  const repeatedCardsUpdated = await getRepeatedCards(userId)
+  const starsAvailUpdated = repeatedCardsUpdated.reduce((prev, card) => {return prev + (card.stars*(card as any).repeatedCards)}, 0)
   const cards = await getCardsCL(userId)
   return {
     collectibleCardSets: cards,
