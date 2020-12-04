@@ -1,3 +1,4 @@
+ - [ ] delete devicePlataform after pull and verify that the profile post uses device_plataform instead
  - [x] create atlas table in DB
  - [x] add isDev en user table
  - [x] remove advertisingId field from game_user
@@ -18,11 +19,23 @@
 - [x] call yarn to update
 - [x] apt install zip
 
- - [ ] delete devicePlataform after pull and verify that the profile post uses device_plataform instead
+
  - [ ] add updated_at field to language table
  - [ ] add agreements field to game_user table and set default to what marcos talks with rodrigo, el nuevo campo del profile, "agreements" va en false para los usuarios existentes tambien
  - [ ] copy apache options from dev
- - [ ] create card_set and card in db
  - [ ] remove yarn.lock
  - [ ] yarn update
- - [ ] create card (3) tables
+ - [ ] borrar todos los atlas de la db
+ - [ ] hacer un backup de la base actual de live y pasarla a slotoprizes_live
+ - [ ] create card (r) tables on db (card card_set card_set_claim game_user_card )
+ - [ ] asegurarse de que todas las tablas tiene id con primary key, autoincrement y los foreign keys que correspondan
+ - [ ] guardar en settings [
+  {
+    "name": "insufficient-founds-for-card-trade-en",
+    "value": "Insufficient funds"
+  },
+  {
+    "name": "insufficient-founds-for-card-trade-fr",
+    "value": "Fonds insuffisants"
+  }
+]

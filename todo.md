@@ -38,3 +38,5 @@ tutorialComplete = false {
 
 - [x] en cardset.cards el set id
 - [ ] en cardcollection si una carta no tiene quantity no mando el texture
+//URGENT arreglar esto!!!!
+- [ ] rules en eventos no funcionan si son mayores 20 dias
