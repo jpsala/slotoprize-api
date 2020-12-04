@@ -561,9 +561,9 @@ export const getCardTrade = async (regularStr: string | undefined, userId: numbe
   }
   const repeatedCardsUpdated = await getRepeatedCards(userId)
   const starsAvailUpdated = repeatedCardsUpdated.reduce((prev, card) => {return prev + (card.stars*(card as any).repeatedCards)}, 0)
-  const cards = await getCardsCL(userId)
+  const collectibleCardSets = await getCardsCL(userId)
   return {
-    collectibleCardSets: cards,
+    collectibleCardSets: collectibleCardSets.collectibleCardSets,
     tradeData: {
       starsForTrade: starsAvailUpdated
   }
