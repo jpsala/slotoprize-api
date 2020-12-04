@@ -15,7 +15,8 @@ import { Wallet } from "../slot.types"
 import { getSetting, setSetting } from "./settings.service"
 import { updateWallet } from "./wallet.service"
 
-export type CardSet = {id: number, rewardType: string, rewardClaimed: boolean, themeColor: string, rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number }
+export type CardSet = {id: number, rewardType: string, rewardClaimed: boolean, themeColor: string,
+            rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number }
 export type Card = { id: number, stars: number, localizations: Localization[], textureUrl: string, thumbUrl: string, cardSet }
 // #endregion
 // #region comments
@@ -129,7 +130,7 @@ export const getCardSetsForCrud = async ():
     
   return {cardSets, languages, newCardSet, newCard, chestRegular, chestPremium}
 }
-export const postCardSetsForCrud = async (cardSet: CardSet): Promise<any> => {
+export const postCardSetForCrud = async (cardSet: CardSet): Promise<any> => {
   if(cardSet.rewardAmount === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Amount can not be empty')
   if(cardSet.themeColor === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Theme Color can not be empty')
   if(!isValidPaymentType(`${cardSet.rewardType}s`)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Type is invalid')
@@ -148,9 +149,10 @@ export const postCardSetsForCrud = async (cardSet: CardSet): Promise<any> => {
         update card_set set 
           reward_amount = ?,
           reward_type = ?,
-          theme_color = ?
+          theme_color = ?,
+          front_card_id = ?
         where id = ${cardSet.id}`, 
-      [cardSet.rewardAmount, cardSet.rewardType, cardSet.themeColor]
+      [cardSet.rewardAmount, cardSet.rewardType, cardSet.themeColor, cardSet.frontCardId]
     )
   else 
     response = (await queryExec(`insert into card_set(reward_amount,reward_type,theme_color) values (?, ?, ?)`,
@@ -176,13 +178,14 @@ export const postCardSetsForCrud = async (cardSet: CardSet): Promise<any> => {
     }
   }
 
-
+  await buildCardSetAtlasThumbs()
   return cardSet
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const postCardForCrud = async (_fields: any, files): Promise<any> => {
   type Fields = {
-    cardSetId: number, id: number, localizations: Localization[], stars: number, textureUrl?: string, thumbUrl?: string, cards: []
+    cardSetId: number, id: number, localizations: Localization[], stars: number,
+    textureUrl?: string, thumbUrl?: string, cards: [], frontCardId: number
   }
   type UploadedFile = { path: string; name: string; }
   let fields: Fields
@@ -248,6 +251,7 @@ export const postCardForCrud = async (_fields: any, files): Promise<any> => {
     await query(`update card set thumb_url = ? where id = ?`, [ fields.thumbUrl, String(fields.id) ])
   }
   await buildCardSetAtlas(fields.cardSetId)
+  await buildCardSetAtlasThumbs()
   
   return fields
 }
@@ -372,7 +376,6 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
       const frontCardId = Number(await queryScalar(`select id from card where card_set_id = ${cardSet.id} order by id desc limit 1`))
       await queryExec(`update card_set set front_card_id = ${frontCardId} where id = ${cardSet.id}`)
       cardSet.frontCardId = frontCardId
-      console.log('added cardSet.frontCardId ', cardSet.frontCardId )
     }
     cardSet.ownedQuantity = 0
     cardSet.rewardClaimed = await getCardSetClaimed(cardSet.id, userId)
@@ -416,7 +419,6 @@ const getCardSetAtlas = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas
 }
 const buildCardSetAtlas = async (cardSetId: number): Promise<Atlas> => {
   const thumbs: { name: string; image: string} [] = await getCardSetImagesForAtlas(cardSetId)
-  console.log('thumbs', thumbs)
   const atlas = await buildAtlas(thumbs,`card_set_${cardSetId}`)
   // await saveAtlasToDB(atlas)
   return atlas
@@ -424,7 +426,6 @@ const buildCardSetAtlas = async (cardSetId: number): Promise<Atlas> => {
 const buildCardSetAtlasThumbs = async (): Promise<Atlas> => {
   const thumbs: { name: string; image: string} [] = await getThumbsImagesForAtlas()
   const atlas = await buildAtlas(thumbs, 'card_sets') 
-  console.log('buildCardSetAtlasThumbs', atlas)
   return atlas
 }
 const getAtlasForCollectibleCardSets = async (rebuild = false): Promise<Atlas> => {
@@ -482,13 +483,9 @@ export async function cardSetClaim(setId: number, userId: number): Promise<void>
   const {rewardType, rewardAmount} = cardSet
   const user = await getGameUserById(userId) as GameUser
   if(user?.wallet) {
-    console.log(user.wallet, rewardType, rewardAmount, user.wallet[`${rewardType}s`])
     user.wallet[`${rewardType}s`] += Number(rewardAmount)
-    console.log(user.wallet)
     await updateWallet(user, user.wallet)
   }
-  const user2 = await getGameUserById(userId) as GameUser
-  if(user2?.wallet) console.log(user2.wallet)
 }
 export const getCardSetCompleted = async (cardSetId: number, userId: number): Promise<boolean> => {
   // const cardSet = camelcaseKeys(await queryOne(`
@@ -524,7 +521,6 @@ export const getCardTrade = async (regularStr: string | undefined, userId: numbe
   const repeatedCards = await getRepeatedCards(userId)
 
   const starsAvail = repeatedCards.reduce((prev, card) => {return prev + (Number(card.stars) * (card as any).repeatedCards)}, 0)
-  console.log('starsAvail', starsAvail)
 
   if(Number(chest.priceAmount) > starsAvail) throw createHttpError(StatusCodes.BAD_REQUEST, 'Insufficient founds')
 
@@ -559,12 +555,10 @@ export const getCardTrade = async (regularStr: string | undefined, userId: numbe
   while(remainingPrice > 0) {
     const randomNumber = getRandomNumber(0, repeatedCardsFull.length - 1)
     const card = repeatedCardsFull[randomNumber]
-    console.log('card', card)
     remainingPrice -= card.stars
     await removeCardFromPlayer((card as any).userCardId)
   }
   if(remainingPrice < 0) {
-    console.log('remainingPrice < 0')
     const missingStars = Math.abs(remainingPrice)
     await grantPlayerCardByStars(missingStars, userId)
   }
@@ -590,7 +584,6 @@ async function grantPlayerCardByStars(missingStars: number, userId: number): Pro
     const resp = await queryExec(`
       insert into game_user_card(game_user_id, card_id) values (?, ?)
   `, [userId, ownedCardByStars.id])
-    console.log('resp', resp)
   } else {
     const card = camelcaseKeys(await queryOne(`
       select * from card where stars = ${missingStars} limit 1

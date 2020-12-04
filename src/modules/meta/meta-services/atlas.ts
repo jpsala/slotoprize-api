@@ -60,16 +60,9 @@ export async function buildAtlas(
       engineOpts: { imagemagick: true },
       engine: pixelsmith
     }
-    for (const image of _images) {
-      console.log('image',image )
+    for (const image of _images) 
       if(!existsSync(image)) throw createHttpError(StatusCodes.BAD_REQUEST, 'file does not exists')
-      readFile(image, (err, fileData) => {
-        if (err) 
-            throw err
-         else 
-            console.log('of file ' + image)
-      })
-    }
+    
     if (padding) options.padding = padding
     if (quality) {
       options.exportOpts.quality = quality

@@ -27,7 +27,7 @@ import { testUser39 } from './slot.repo/spin.regeneration.repo'
 import * as slotService from './slot.services'
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
 import { appodealCallback, appodealCallbackPlain, QueryParams } from './slot.services/appodeal'
-import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, cardSetClaim, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetsForCrud, getCardTrade, postChestForFront, RewardChest } from './slot.services/card.service'
+import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, cardSetClaim, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetForCrud, getCardTrade, postChestForFront, RewardChest } from './slot.services/card.service'
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
 import { getVideoAdsViewCountForCrud } from './slot.services/ironsource'
 import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
@@ -492,7 +492,7 @@ export async function cardSetsForFrontGet(req: Request, res: Response): Promise<
   res.status(200).send(cards)
 }
 export async function cardSetForFrontPost(req: Request, res: Response): Promise<void> {
-  const cards = await postCardSetsForCrud(req.body)
+  const cards = await postCardSetForCrud(req.body)
   res.status(200).send(cards)
 }
 export async function cardForFrontPost(req: Request, res: Response): Promise<void> {
