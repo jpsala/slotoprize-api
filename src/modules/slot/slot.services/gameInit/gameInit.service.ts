@@ -14,7 +14,7 @@ import { getLastSpinDays } from './dailyReward.spin'
 import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaimed } from './../../slot.repo/dailyReward.repo'
 export async function gameInit(deviceId: string): Promise<any> {
   try {
-    await queryExec('delete from atlas where name = "symbols"')
+    await deleteSymbolsAtlas()
     let rawUser = (await getOrSetGameUserByDeviceId(deviceId)) as Partial<GameUser>
     const tutorialComplete = (rawUser.tutorialComplete || 0 as number) === 1
     if(Number(rawUser.banned) === 1) throw createHttpError(BAD_REQUEST, 'Forbidden Error')
@@ -82,3 +82,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     throw createHttpError(INTERNAL_SERVER_ERROR, error)
   }
 }
+async function deleteSymbolsAtlas() {
+  await queryExec('delete from atlas where name = "symbols"')
+}
+
