@@ -84,7 +84,9 @@ export const getCardsForCrud = async (): Promise<{ cards: Card[], languages: Lan
   const newCard: Card = await queryGetEmpty('select * from card where id = -1')
   return {cards, languages, newCard}
 }
-export const getCardSetsForCrud = async (): Promise<{ cardSets: CardSet[], languages: Language[], newCardSet: CardSet, newCard: Card }> => {
+export const getCardSetsForCrud = async ():
+  Promise<{ cardSets: CardSet[], languages: Language[], newCardSet: CardSet, newCard: Card, chestRegular: RewardChest, chestPremium: RewardChest }> => 
+{
   const cardSets: CardSet[] = (await getCardSets()) || []
 
   const languages: Language[] = camelcaseKeys(await query(`select * from language`))
@@ -119,9 +121,13 @@ export const getCardSetsForCrud = async (): Promise<{ cardSets: CardSet[], langu
       // text: `${language.languageCode} localization`,
     }
     )
+    const reward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
+    const chestRegularString = await getSetting('chestRegularRewards', JSON.stringify(reward))
+    const chestPremiumString = await getSetting('chestPremiumRewards', JSON.stringify(reward))
+    const chestRegular: RewardChest = JSON.parse(chestRegularString) as RewardChest
+    const chestPremium: RewardChest = JSON.parse(chestPremiumString) as RewardChest
     
-    
-  return {cardSets, languages, newCardSet, newCard}
+  return {cardSets, languages, newCardSet, newCard, chestRegular, chestPremium}
 }
 export const postCardSetsForCrud = async (cardSet: CardSet): Promise<any> => {
   if(cardSet.rewardAmount === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Amount can not be empty')
@@ -427,13 +433,13 @@ const getAtlasForCollectibleCardSets = async (rebuild = false): Promise<Atlas> =
 async function getThumbsImagesForAtlas() {
   const basePath = getAssetsPath()
   const cardSets: CardSet[] = camelcaseKeys(await query(`
-    select id, theme_color, reward_type, reward_amount from card_set
+    select id, theme_color, reward_type, reward_amount, front_card_id from card_set
   `))
   const thumbs: { name: string; image: string} [] = []
 
   for (const cardSet of cardSets) {
     const cardForThumb = (await queryOne(`
-      select id, thumb_url as thumbUrl from card c where card_set_id = ${cardSet.id} order by id desc limit 1
+      select id, thumb_url as thumbUrl from card c where id = ${cardSet.frontCardId}
     `))
     // thumbs.push(join(basePath, getUrlWithoutHost(cardForThumb)))
     thumbs.push({ name: cardForThumb.id, image: join(basePath, getUrlWithoutHost(cardForThumb.thumbUrl)) })

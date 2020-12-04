@@ -72,3 +72,4 @@ trade data: cantidad actuliza del starsfortrade actualizada
 
 
 - [ ] en el BO definición de los cofres regular y premium
+
