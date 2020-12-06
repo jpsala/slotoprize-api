@@ -55,7 +55,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     
     delete rawUser.deviceId
     delete rawUser.languageCode
-
+    languages[0].localizationUrl = 'https://slotoprizes.tagadagames.com/localization/french_hack.json'
     const initData = {
       sessionId: token,
       gameVersion: '1.3.1',

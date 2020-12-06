@@ -25,9 +25,9 @@ export async function getLanguages(): Promise<LanguageData[]> {
 
     const localizationData = await query(
         `
-    select id, language_code,
-      concat('${url}', texture_url) as texture_url
-    from  language where deleted = 0
+            select id, language_code,
+            concat('${url}', texture_url) as texture_url
+            from  language where deleted = 0
   `,
         undefined,
         true
