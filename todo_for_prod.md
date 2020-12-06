@@ -20,17 +20,9 @@
 - [x] apt install zip
 
 
- - [ ] add updated_at field to language table
- - [ ] add agreements field to game_user table and set default to what marcos talks with rodrigo, el nuevo campo del profile, "agreements" va en false para los usuarios existentes tambien
- - [ ] copy apache options from dev
- - [ ] remove yarn.lock
- - [ ] yarn update
- - [ ] cambiar las versiones del client en settings
- - [ ] borrar todos los atlas de la db
- - [ ] hacer un backup de la base actual de live y pasarla a slotoprizes_live
- - [x] create card (r) tables on db (card card_set card_set_claim game_user_card, card_drop_rate )
- - [ ] asegurarse de que todas las tablas tiene id con primary key, autoincrement y los foreign keys que correspondan
- - [ ] guardar en settings [
+ - [x] add updated_at field to language table
+ - [x] add agreements field to game_user table and set default false para los usuarios existentes tambien
+ - [x] guardar en settings [
   {
     "name": "insufficient-founds-for-card-trade-en",
     "value": "Insufficient funds"
@@ -40,3 +32,14 @@
     "value": "Fonds insuffisants"
   }
 ]
+ - [x] copy apache options from dev
+
+
+ - [x] create card (r) tables on db (card card_set card_set_claim game_user_card, card_drop_rate )
+ - [x] hacer un backup de la base actual de live y pasarla a slotoprizes_live
+ - [x] borrar todos los atlas de la db
+ - [x] asegurarse de que todas las tablas tiene id con primary key, autoincrement y los foreign keys que correspondan
+
+ - [ ] remove yarn.lock
+ - [ ] yarn update
+ - [ ] cambiar las versiones del BO en settings
