@@ -10,7 +10,7 @@ export async function checkmaintenanceMode(req: Request, res: Response, next: Ne
   const routeIsGameInit = req.route.path === '/game_init'
   if(routeIsGameInit){
     const _user = await getGameUserByDeviceId(req.user.deviceId)
-    if(_user.isDev) return next()
+    if(_user && _user.isDev) return next()
   }
   const maintenanceMode = (await getSetting('maintenanceMode', '0')) === '1'
   if (!maintenanceMode) return next()
