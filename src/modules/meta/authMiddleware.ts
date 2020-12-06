@@ -9,7 +9,7 @@ import { getGameUserById } from './meta.repo/gameUser.repo'
 
 export async function checkToken(req: Request, res: Response, next: NextFunction): Promise<any>
 {
-  const routeIsGameInit = req.route.path === '/game_init'
+  const routeIsGameInit = req.route.path === '/game-init'
 
   
 
