@@ -6,7 +6,7 @@ import createHttpError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
 import { queryExec } from '../../../db'
 import { getGameUserById } from '../../meta/meta.repo/gameUser.repo'
-import { WebSocketMessage, wsServer } from './webSocket/ws.service'
+import { saveWsMsgForLaterSending, WebSocketMessage, wsServer } from './webSocket/ws.service'
 export type QueryParams = {user_id: number,  amount: number, paymentType: 'coins' | 'spins' | 'tickets' }
 
 export async function appodealCallbackPlain(queryParams: QueryParams): Promise<any> {
@@ -57,27 +57,18 @@ export async function appodealCallback(data1?: string, data2?: string, queryPara
       message: 'OK',
       msgType: 'adReward',
       payload: {
-        type: currency.slice(0, -1) ,
+        type: String(currency.slice(0, -1)).toLocaleLowerCase() ,
         amount
       }
     }
-    // Real time websocket event send
-    // wsServer.sendToUser(wsMessage, Number(userId))
-    // console.log('sended to user', userId)
-
-    try {
-      await queryExec(`
-        insert into user_on_connect(game_user_id, jsonMsg) values(?, ?)
-      `, [userId, JSON.stringify(wsMessage)])
-      // wsServer.sendToUser(wsMessage, Number(userId))
-    } catch (error) {
-      wsServer.sendToUser(error, userId)
-    }
+    await saveWsMsgForLaterSending(userId, wsMessage)
 
 
     // @TODO Validate amount and currency
     // @TODO Check impression_id for uniqueness
-    console.log(`appodeal user ${user.id}/${user.deviceId}, ${currency} ${amount}`)
+    // console.log(`appodeal user ${user.id}/${user.deviceId}, ${currency} ${amount}`)
     return {status: 'ok'}
   }
 }
+
+

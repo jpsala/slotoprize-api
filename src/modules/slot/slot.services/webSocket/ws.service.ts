@@ -9,6 +9,7 @@ import { EventPayload } from '../events/event'
 import { getGameUserById } from '../../../meta/meta.repo/gameUser.repo'
 import { verifyToken } from '../../../../services/jwtService'
 import { GameUser } from '../../../meta/meta.types'
+import { queryExec } from '../../../../db'
 //#region types
 export let wsServer: WsServerService
 export interface WebSocketMessage
@@ -223,6 +224,16 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     console.log('websocket shutdown')
   }
   wsServer = { server, ws, send, sendRaw, sendToUser, shutDown, updateUser }
+}
+export const saveWsMsgForLaterSending = async (userId: number, wsMessage: WebSocketMessage): Promise<void> => {
+  try {
+    await queryExec(`
+        insert into user_on_connect(game_user_id, jsonMsg) values(?, ?)
+      `, [userId, JSON.stringify(wsMessage)])
+    // wsServer.sendToUser(wsMessage, Number(userId))
+  } catch (error) {
+    wsServer.sendToUser(error, userId)
+  }
 }
 console.log('loaded ws.service.ts') 
 

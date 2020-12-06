@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import crypto from 'crypto'
 import createHttpError from 'http-errors'
-import { BAD_REQUEST } from 'http-status-codes'
+import { StatusCodes } from 'http-status-codes'
 import { queryExec, queryOne } from '../../../db'
 import { log } from '../../../log'
 import { getGameUserById } from '../../meta/meta.repo/gameUser.repo'
@@ -17,7 +17,7 @@ export async function tapjoyCallback(
   
   if (!options.snuid || !options.currency || (!isDev && !options.verifier) || !options.paymentType) {
     log.error('Please check the parámeters', options)
-    throw createHttpError(BAD_REQUEST, 'Please check the parameters')
+    throw createHttpError(StatusCodes.BAD_REQUEST, 'Please check the parameters')
   }
 
   const userId = options.snuid
@@ -48,12 +48,13 @@ export async function tapjoyCallback(
     message: 'OK',
     msgType: 'adReward',
     payload: {
-      type: paymentType.slice(0, -1),
+      type: String(paymentType.slice(0, -1)).toLocaleLowerCase(),
       amount: currency
     }
   }
 
   try {
+    // save to db and then in getEventState command is granted to the user
     await queryExec(`
       insert into user_on_connect(game_user_id, jsonMsg) values(?, ?)
     `, [userId, JSON.stringify(wsMessage)])
