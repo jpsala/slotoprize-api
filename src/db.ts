@@ -5,7 +5,7 @@ import camelcaseKeys from 'camelcase-keys'
 const log = false
 let dbHost
 if(hostname() === 'jpnote') dbHost = 'localhost'
-else if(hostname() === 'sloto-dev') dbHost = 'slotoprizes.cdy8hosrrn6a.eu-west-3.rds.amazonaws.com'
+else if(hostname() === 'sloto-dev') dbHost = 'slotoprizesdev.cdy8hosrrn6a.eu-west-3.rds.amazonaws.com'
 else if(hostname() === 'slotoprizes') dbHost = 'slotoprizeslive.cdy8hosrrn6a.eu-west-3.rds.amazonaws.com'
 
 const userName = 'admin'

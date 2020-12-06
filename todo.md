@@ -40,3 +40,4 @@ tutorialComplete = false {
 - [ ] en cardcollection si una carta no tiene quantity no mando el texture
 //URGENT arreglar esto!!!!
 - [ ] rules en eventos no funcionan si son mayores 20 dias
+- [ ] validar symbol que el nombre no esté vacio

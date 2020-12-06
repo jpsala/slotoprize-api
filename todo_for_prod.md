@@ -25,9 +25,10 @@
  - [ ] copy apache options from dev
  - [ ] remove yarn.lock
  - [ ] yarn update
+ - [ ] cambiar las versiones del client en settings
  - [ ] borrar todos los atlas de la db
  - [ ] hacer un backup de la base actual de live y pasarla a slotoprizes_live
- - [ ] create card (r) tables on db (card card_set card_set_claim game_user_card )
+ - [x] create card (r) tables on db (card card_set card_set_claim game_user_card, card_drop_rate )
  - [ ] asegurarse de que todas las tablas tiene id con primary key, autoincrement y los foreign keys que correspondan
  - [ ] guardar en settings [
   {

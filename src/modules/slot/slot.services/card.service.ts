@@ -446,7 +446,7 @@ async function getThumbsImagesForAtlas() {
       select id, thumb_url as thumbUrl from card c where id = ${cardSet.frontCardId}
     `))
     // thumbs.push(join(basePath, getUrlWithoutHost(cardForThumb)))
-    thumbs.push({ id: cardForThumb.id, image: join(basePath, getUrlWithoutHost(cardForThumb.thumbUrl)) })
+    if (cardForThumb) thumbs.push({ id: cardForThumb.id, image: join(basePath, getUrlWithoutHost(cardForThumb.thumbUrl)) })
 
   }
   return thumbs

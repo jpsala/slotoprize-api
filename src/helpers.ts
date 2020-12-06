@@ -164,7 +164,6 @@ export const getUrlWithoutHost = (url: string): string => {
     
 }
 export const addHostToPath = (path: string): string => {
-    console.log('addHostToPath path', path)
     if(!path || path.toLocaleUpperCase() === 'UNDEFINED' || path === '' || path.toUpperCase() === 'NULL') return ''
     return getAssetsUrl() + path
 }
