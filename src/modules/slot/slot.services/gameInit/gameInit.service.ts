@@ -58,6 +58,7 @@ export async function gameInit(deviceId: string): Promise<any> {
 
     const initData = {
       sessionId: token,
+      gameVersion: '1.3.1',
       currentGameVersion,
       latestMandatoryVersion,
       gameIdentifier,

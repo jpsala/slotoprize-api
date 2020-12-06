@@ -23,23 +23,14 @@
  - [x] add updated_at field to language table
  - [x] add agreements field to game_user table and set default false para los usuarios existentes tambien
  - [x] guardar en settings [
-  {
-    "name": "insufficient-founds-for-card-trade-en",
-    "value": "Insufficient funds"
-  },
-  {
-    "name": "insufficient-founds-for-card-trade-fr",
-    "value": "Fonds insuffisants"
-  }
-]
- - [x] copy apache options from dev
 
+ - [x] copy apache options from dev
 
  - [x] create card (r) tables on db (card card_set card_set_claim game_user_card, card_drop_rate )
  - [x] hacer un backup de la base actual de live y pasarla a slotoprizes_live
  - [x] borrar todos los atlas de la db
  - [x] asegurarse de que todas las tablas tiene id con primary key, autoincrement y los foreign keys que correspondan
 
- - [ ] remove yarn.lock
- - [ ] yarn update
- - [ ] cambiar las versiones del BO en settings
+ - [x] remove yarn.lock
+ - [x] yarn update
+ - [x] cambiar las versiones del BO en settings

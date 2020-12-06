@@ -44,3 +44,6 @@ tutorialComplete = false {
 
 
 - [ ] quitar todo lo que sea de ironsource, incluseo en la db
+- [ ] drop rate table da un error si cambian los ids, solo anda con el primer indice en 0
+- [ ] poner un loading spinner en los cards
+- [ ] setting game-versio no va mas!
