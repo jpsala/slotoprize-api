@@ -57,7 +57,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     if(String(winType).toLocaleLowerCase() === 'card'){
       console.log('wintype is card' )
       cardsData = []
-      for (let index = 0; index < multiplier; index++) {
+      for (let index = 0; index < eventMultiplier; index++) {
         const data: CardData = await getWinningCard(user.languageCode, user.id)
         await assignCardToUser(user.id, data.id)
         console.log('winning card', data)
