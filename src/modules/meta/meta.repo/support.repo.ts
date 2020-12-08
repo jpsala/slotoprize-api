@@ -34,7 +34,7 @@ export async function setSoporte(userId: number, body: any): Promise<any> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   const subject = `Support request from user with id ${userId}, and email ${body.email}`
   console.log('body', body)
-  const mail = await sendMail(emailSupport, subject, body.message )
+  const mail = await sendMail(emailSupport, subject, body.message, body.email )
   console.log('mail', mail)
   delete body.message
   return body

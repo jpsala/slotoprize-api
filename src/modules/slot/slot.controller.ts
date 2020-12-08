@@ -470,7 +470,7 @@ export async function languageDefaultForCrudPost(req: Request, res: Response): P
 export async function sendmail(req: Request, res: Response): Promise<void>{
   const {to, subject, html} = req.body
   console.log('to, subject, html', to, subject, html)
-  const sended = await sendMail(to, subject, html)
+  const sended = await sendMail(to, subject, html, to)
   console.log('sended', sended)
   res.status(200).send({status: 'ok'})
 }
