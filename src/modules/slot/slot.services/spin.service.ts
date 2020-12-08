@@ -60,16 +60,14 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
     const eventMultiplier = getActiveEventMultiplier(user)
     winAmount = winAmount * eventMultiplier
 
-    if(String(winType).toLocaleLowerCase() === 'card'){ // CARD
-      console.log('wintype is card' )
+    // payment type is CARD
+    if(String(winType).toLocaleLowerCase() === 'card'){
       cardsData = []
-      console.log('multiplier, eventmultiplier', multiplier, eventMultiplier)
       const cardMultiplier = multiplier * eventMultiplier
       for (let index = 0; index < cardMultiplier; index++) {
         const data: CardData = await getWinningCard(user.languageCode, user.id)
         await assignCardToUser(user.id, data.id)
         console.log('winning card', data)
-        // if(!cardData) cardData = [data]
         cardsData.push(data)
       }
       // {id: number, rewardAmount: number, rewardType: string, title: string, stars: number}
