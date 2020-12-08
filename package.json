@@ -17,8 +17,8 @@
     "dev": "concurrently \"tsc -w\" \"nodemon  --config nodemon.json build/index.js\"",
     "dev2": "cross-env NODE_ENV=development nodemon src/index.js --exec ts-node ",
     "pm2-dev": "pm2 start -n api npm -- run dev",
-    "pm2-prod": "pm2 delete api ;npm run build && cross-env NODE_ENV=production pm2 start -n api npm -- run start",
-    "pm2-restart": "npm run build && pm2 delete api && cross-env NODE_ENV=production pm2 start -n api npm -- run start"
+    "pm2-prod": "pm2 delete api -s;npm run build && cross-env NODE_ENV=production pm2 start -n api npm -- run start",
+    "pm2-restart": "npm run build && pm2 delete api -s && cross-env NODE_ENV=production pm2 start -n api npm -- run start"
   },
   "dependencies": {
     "@bevry/ansi": "^3.0.0",
