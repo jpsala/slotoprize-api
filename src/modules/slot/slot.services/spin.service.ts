@@ -46,18 +46,26 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   let winAmount = winPoints * multiplier
 
   let cardsData: CardData[] | undefined = undefined
+
   // siempre se descuenta el costo del spin
   wallet.spins -= bet
+
   if (winType === 'jackpot') {
     await jackpotService.sendJackpotWinEvent(user, <number>jackpotRowId) 
     isWin = true
-  } else if (isWin) {
+
+    // WIN
+  } else if (isWin) { 
+    
     const eventMultiplier = getActiveEventMultiplier(user)
     winAmount = winAmount * eventMultiplier
-    if(String(winType).toLocaleLowerCase() === 'card'){
+
+    if(String(winType).toLocaleLowerCase() === 'card'){ // CARD
       console.log('wintype is card' )
       cardsData = []
-      for (let index = 0; index < multiplier; index++) {
+      console.log('multiplier, eventmultiplier', multiplier, eventMultiplier)
+      const cardMultiplier = multiplier * eventMultiplier
+      for (let index = 0; index < cardMultiplier; index++) {
         const data: CardData = await getWinningCard(user.languageCode, user.id)
         await assignCardToUser(user.id, data.id)
         console.log('winning card', data)
