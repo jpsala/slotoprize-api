@@ -16,8 +16,6 @@ export const getWinningCard = async (languageCode: string, userId: number): Prom
   const dropRateTableRow = await getDropRateTableRow()
   if(!dropRateTableRow) throw createHttpError(StatusCodes.BAD_REQUEST, 'Error getting winning card')
 
-  console.log('select stars = ', dropRateTableRow.stars)
-
   const { cardsByByStars, stars }: { cardsByByStars: CardForSpin[]; stars: number } = await getCardWithByStars(dropRateTableRow, languageId)
   if(!cardsByByStars || cardsByByStars.length === 0) throw createHttpError(StatusCodes.BAD_REQUEST, `There are not cards with ${stars} stars`)
 
