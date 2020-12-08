@@ -18,7 +18,7 @@ export const getReelsData = async (): Promise<any> =>
       SELECT s.id, s.payment_type, s.symbol_name 
         FROM symbol s 
         WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)
-        order by order
+        order by reel_order
     `)
     const reels: any[] = []
     for (let reel = 1; reel < 4; reel++)
@@ -55,10 +55,10 @@ export const symbolsInDB = async (): Promise<any> =>
     return { status: 'error' }
   }
 }
-type SymbolDto = { id: number, payment_type: string, texture_url: string, order: number }
+type SymbolDto = { id: number, payment_type: string, texture_url: string, reel_order: number }
 export const setSymbol = async (symbolDto: SymbolDto, files: { image?: any }): Promise<any> =>
 {
-  symbolDto.order = ['card', 'spin', 'jackpot', 'ticket'].includes(symbolDto.payment_type) ? 1 : 0
+  symbolDto.reel_order = ['card', 'spin', 'jackpot', 'ticket'].includes(symbolDto.payment_type) ? 1 : 0
   let isNew = false
   if (String(symbolDto.id) === '-1') {
     isNew = true
