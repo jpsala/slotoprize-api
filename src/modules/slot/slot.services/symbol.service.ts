@@ -26,7 +26,6 @@ export const getReelsData = async (): Promise<any> =>
     for (let reel = 1; reel < 4; reel++){
       const sortedSybolsWithOrder0 = shuffleArray(symbolsWithOrder0)
       const symbolsForReel = sortedSybolsWithOrder0.concat(symbolsWithOrderGT0)
-      console.log('symbolsFroReel', symbolsForReel)
       reels.push({ symbolsData: toCamelCase(symbolsForReel) })
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
