@@ -175,3 +175,17 @@ export const publicPath = (): string => {
         return '/var/www/html/public/'
     else throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, 'hostname unrecognized')
 }
+export function shuffleArray(array: any[]): any[] { 
+    for (let i = array.length - 1; i > 0; i--) {  
+     
+        // Generate random number  
+        const j = Math.floor(Math.random() * (i + 1)) 
+                     
+        const temp = array[i] 
+        array[i] = array[j] 
+        array[j] = temp 
+    } 
+         
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return array 
+  } 
