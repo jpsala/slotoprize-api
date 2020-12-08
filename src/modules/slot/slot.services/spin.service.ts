@@ -42,7 +42,7 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   // eslint-disable-next-line prefer-const
   let { winPoints, winType, symbolsData, isWin } = await getWinData(isJackpot)
 
-  if (winType === 'jackpot' || winType === 'ticket') multiplier = 1
+  if (winType === 'jackpot' /* || winType === 'ticket' */) multiplier = 1
   let winAmount = winPoints * multiplier
 
   let cardsData: CardData[] | undefined = undefined
