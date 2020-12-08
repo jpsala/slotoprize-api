@@ -47,3 +47,4 @@ tutorialComplete = false {
 - [ ] drop rate table da un error si cambian los ids, solo anda con el primer indice en 0
 - [ ] poner un loading spinner en los cards
 - [ ] setting game-versio no va mas!
+- [ ] por que no estábamos teniendo en cuenta el multiplier cuando es ticket

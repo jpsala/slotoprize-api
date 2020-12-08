@@ -6,6 +6,6 @@ export async function sendMail(to = 'jpsala@gmail.com', subject: string, html: s
     port: 465,auth: {user: 'support@tagadagames.com',pass: 'wopidom-lani0363'}
   })
 
-  await transporter.sendMail({from: 'support@tagadagames.com', to, subject, html})
+  await transporter.sendMail({from: to, to, subject, html})
 
 }
