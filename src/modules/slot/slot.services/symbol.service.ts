@@ -6,23 +6,28 @@ import createHttpError from "http-errors"
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "http-status-codes"
 import { query, queryExec } from '../../../db'
 import { Atlas, buildAtlas } from "../../meta/meta-services/atlas"
-import { getAssetsUrl , getRandomNumber, addHostToPath, getUrlWithoutHost, publicPath } from './../../../helpers'
+import { getAssetsUrl , getRandomNumber, addHostToPath, getUrlWithoutHost, publicPath, shuffleArray } from './../../../helpers'
 
-export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string}
+export type SymbolDTO = {id: number, payment_type: string, texture_url: string, symbolName: string, reelOrder: number}
 
 const assetsPath = join(publicPath(), 'assets/')
 export const getReelsData = async (): Promise<any> =>
 {
   try {
     const symbolsData = await query(`
-      SELECT s.id, s.payment_type, s.symbol_name 
+      SELECT s.id, s.payment_type, s.symbol_name, s.reel_order as reelOrder
         FROM symbol s 
         WHERE s.id IN (SELECT s.id FROM pay_table pt WHERE pt.symbol_id = s.id)
         order by reel_order
     `)
+    const symbolsWithOrderGT0 = symbolsData.filter(_symbol => _symbol.reelOrder > 0)
+    const symbolsWithOrder0 = symbolsData.filter(_symbol => _symbol.reelOrder === 0)
     const reels: any[] = []
-    for (let reel = 1; reel < 4; reel++)
-      reels.push({ symbolsData: toCamelCase(symbolsData) })
+    for (let reel = 1; reel < 4; reel++){
+      const sortedSybolsWithOrder0 = shuffleArray(symbolsWithOrder0)
+      const symbolsForReel = sortedSybolsWithOrder0.concat(symbolsWithOrderGT0)
+      reels.push({ symbolsData: toCamelCase(symbolsForReel) })
+    }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return reels
   } catch (error) {
