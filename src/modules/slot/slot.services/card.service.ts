@@ -16,7 +16,7 @@ import { getSetting, setSetting } from "./settings.service"
 import { updateWallet } from "./wallet.service"
 
 export type CardSet = {id: number, rewardType: string, rewardClaimed: boolean, themeColor: string,
-            rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number }
+            rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number, img?: string }
 export type Card = { id: number, stars: number, localizations: Localization[], textureUrl: string, thumbUrl: string, cardSet }
 // #endregion
 // #region comments
@@ -38,6 +38,16 @@ textureUrl interno para generar el atlas
 thumbTextureUrl interno para generar el atlas
 */
 // #endregion
+export const getCard = async (cardId?: number): Promise<Card | undefined> => {
+  const card: Card = camelcaseKeys(await queryOne(`
+    select 
+      id, card_set_id, stars,
+      texture_url,
+      thumb_url
+    from card where id = ${cardId}`))    
+  card.localizations = camelcaseKeys(await getLocalizations('card', card.id))
+  return card
+}
 export const getCards = async (cardSetId?: number): Promise<Card[] | undefined> => {
   const where = cardSetId ? ` where card_set_id = ${cardSetId}`: ''
   const cards: Card[] = camelcaseKeys(await query(`
@@ -144,7 +154,7 @@ export const postCardSetForCrud = async (cardSet: CardSet): Promise<any> => {
   // }
   const cardSetExists = await queryOne(`select id from card_set where id = ${cardSet.id}`)
   let response: ResultSetHeader
-  if(cardSetExists)
+  if(cardSetExists){
     response = await queryExec(`
         update card_set set 
           reward_amount = ?,
@@ -152,12 +162,14 @@ export const postCardSetForCrud = async (cardSet: CardSet): Promise<any> => {
           theme_color = ?,
           front_card_id = ?
         where id = ${cardSet.id}`, 
-      [cardSet.rewardAmount, cardSet.rewardType, cardSet.themeColor, cardSet.frontCardId]
-    )
-  else 
-    response = (await queryExec(`insert into card_set(reward_amount,reward_type,theme_color) values (?, ?, ?)`,
+      [cardSet.rewardAmount, cardSet.rewardType, cardSet.themeColor, cardSet.frontCardId])
+      const frontCard = await getCard(cardSet.frontCardId)
+      console.log('frontCard', frontCard)
+      cardSet.img = frontCard?.thumbUrl
+  } else 
+    {response = (await queryExec(`insert into card_set(reward_amount,reward_type,theme_color) values (?, ?, ?)`,
       [cardSet.rewardAmount, cardSet.rewardType, cardSet.themeColor])
-    )
+    )}
 
   if(cardSet.id === -1) cardSet.id = response.insertId
 
@@ -516,7 +528,7 @@ export const getCardTrade = async (regularStr: string | undefined, userId: numbe
   
   const chest: RewardChest = JSON.parse(chestRegularString) as RewardChest
   //URGENT quitar linea abajo
-  chest.rewards.push({amount: 10, type: 'coin'})
+  // chest.rewards.push({amount: 10, type: 'coin'})
 
   const repeatedCards = await getRepeatedCards(userId)
   const user = await getGameUserById(userId) as GameUser
