@@ -81,7 +81,11 @@ export const setCard = async (card: Card): Promise<void> => {
       [localization.languageId, 'card', localization.item_id, localization.text])
 }
 export const getCardSets = async (): Promise<CardSet[] | undefined> => {
-  const cardSets: CardSet[] = camelcaseKeys(await query(`select * from card_set`))
+  const cardSets: CardSet[] = camelcaseKeys(await query(`
+    select cs.id, cs.theme_color, cs.reward_type, cs.reward_amount, cs.front_card_id, c.thumb_url as img
+    from card_set cs
+        left join card c on c.id = cs.front_card_id
+  `))
   for (const cardSet of cardSets) {
     cardSet.localizations = camelcaseKeys(await getLocalizations('cardSet', cardSet.id))
     cardSet.cards = (await getCards(cardSet.id))
@@ -122,25 +126,23 @@ export const getCardSetsForCrud = async ():
   newCardSet.localizations = []
   newCardSet.cards = []
   for (const language of languages) 
-  newCardSet.localizations.push(
-    {
-      id: -1,
-      item: "cardSet",
-      languageCode: language.languageCode,
-      languageId: language.id,
-      text: '',
-      // text: `${language.languageCode} localization`,
-    }
-    )
-    const reward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
-    const chestRegularString = await getSetting('chestRegularRewards', JSON.stringify(reward))
-    const chestPremiumString = await getSetting('chestPremiumRewards', JSON.stringify(reward))
-    const chestRegular: RewardChest = JSON.parse(chestRegularString) as RewardChest
-    const chestPremium: RewardChest = JSON.parse(chestPremiumString) as RewardChest
+    newCardSet.localizations.push({
+        id: -1,
+        item: "cardSet",
+        languageCode: language.languageCode,
+        languageId: language.id,
+        text: '',
+        // text: `${language.languageCode} localization`,
+    })
+  const reward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
+  const chestRegularString = await getSetting('chestRegularRewards', JSON.stringify(reward))
+  const chestPremiumString = await getSetting('chestPremiumRewards', JSON.stringify(reward))
+  const chestRegular: RewardChest = JSON.parse(chestRegularString) as RewardChest
+  const chestPremium: RewardChest = JSON.parse(chestPremiumString) as RewardChest
     
   return {cardSets, languages, newCardSet, newCard, chestRegular, chestPremium}
 }
-export const postCardSetForCrud = async (cardSet: CardSet): Promise<any> => {
+export const postCardSetForCrud =   async (cardSet: CardSet): Promise<any> => {
   if(cardSet.rewardAmount === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Amount can not be empty')
   if(cardSet.themeColor === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Theme Color can not be empty')
   if(!isValidPaymentType(`${cardSet.rewardType}s`)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Type is invalid')
