@@ -3,6 +3,8 @@ import { getSetting, setSetting } from "./settings.service"
 export const getTicketsSettingsForCrud = async (): Promise<any> => {
   const ticketPrice = Number(await getSetting('ticketPrice', '1'))
   const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
+  const nextRaffleSessionSpins = Number(await getSetting('nextRaffleSessionSpins', '7'))
+  const incomingRaffleThresholdInDays = Number(await getSetting('incomingRaffleThresholdInDays', '5'))
   const wallet = {
     tickets: await getSetting('initialWalletTickets', '10'),
     coins: await getSetting('initialWalletCoins', '10'),
@@ -10,7 +12,7 @@ export const getTicketsSettingsForCrud = async (): Promise<any> => {
   }
   const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10'))
   const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10'))
-  return { ticketPrice, wallet, interstitialsRatio, lapseForSpinRegeneration, maxSpinsForSpinRegeneration }
+  return { ticketPrice, wallet, interstitialsRatio, lapseForSpinRegeneration, maxSpinsForSpinRegeneration, nextRaffleSessionSpins, incomingRaffleThresholdInDays }
 } 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const postTicketsSettingsForCrud = async (settings: any): Promise<void> => {
@@ -21,5 +23,7 @@ export const postTicketsSettingsForCrud = async (settings: any): Promise<void> =
   await setSetting('initialWalletTickets', settings.wallet.tickets)
   await setSetting('initialWalletCoins', settings.wallet.coins)
   await setSetting('initialWalletSpins', settings.wallet.spins)
+  await setSetting('nextRaffleSessionSpins', settings.nextRaffleSessionSpins)
+  await setSetting('incomingRaffleThresholdInDays', settings.incomingRaffleThresholdInDays)
 
 } 
