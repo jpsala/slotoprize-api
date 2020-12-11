@@ -51,6 +51,8 @@ export async function gameInit(deviceId: string): Promise<any> {
     const latestMandatoryVersion = String(await getSetting('latestMandatoryVersion', '0.1'))
     const gameIdentifier = await getSetting('gameIdentifier', 'this is the gameIdentifier')
     const signupCount = Number(await getSetting('signupCount', '10'))
+    const nextRaffleSessionSpins = Number(await getSetting('nextRaffleSessionSpins', '7'))
+    const incomingRaffleThresholdInDays = Number(await getSetting('incomingRaffleThresholdInDays', '5'))
   rawUser = gameUserToProfile(rawUser)
     
     delete rawUser.deviceId
@@ -66,6 +68,8 @@ export async function gameInit(deviceId: string): Promise<any> {
       interstitialsRatio,
       signupCount,
       hasPendingPrize,
+      nextRaffleSessionSpins,
+      incomingRaffleThresholdInDays,
       rafflePrizeData,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
