@@ -12,6 +12,7 @@ export const init = async (): Promise<void> =>
 
 export const getSetting = async (key: string, defaultValue: string): Promise<string> => {
   const setting = settings.find(_setting => _setting.name.toUpperCase() === key.toUpperCase()) as Setting
+  // const setting = settings[key] as Setting
   if (setting === undefined && defaultValue !== undefined) {
     console.warn('SettingValue for ', key, 'not found, inserting  a default value of ', defaultValue)
     const respInsert = (await queryExec('insert into setting(name, value) values (?, ?)', [key, defaultValue]))
@@ -22,21 +23,29 @@ export const getSetting = async (key: string, defaultValue: string): Promise<str
 }
 
 export const setSetting = async (key: string, value : string): Promise<void> => {
+
   const setting = settings.find(_setting => _setting.name === key) as Setting
-  //if (setting && setting.value === value) don't do anything
-  let oldMaintenanceMode
-  if (key.toLocaleLowerCase() === 'maintenancemode') oldMaintenanceMode = setting.value
+
+  const isSettingForManenanceMode = key.toLocaleLowerCase() === 'maintenancemode'
+  const oldMaintenanceMode = isSettingForManenanceMode ? setting.value : undefined
+  const runSpinRegenerationInit = ['lapseForSpinRegeneration', 'maxSpinsForSpinRegeneration', 'spinsAmountForSpinRegeneration'].includes(key)
+
   if (setting && setting.value !== value) {
     await queryExec(`update setting set value = '${value}' where name = '${key}'`)
+    console.log('setting, update setting', key, value)
     setting.value = value
   } else if (setting === undefined) {
     const respInsert = await queryExec(`insert into setting(value, name) values('${value}', '${key}')`)
     settings.push({ id: respInsert.insertId, name: key, value: value, description: '' })
+    console.log('setting, insert setting', key, value)
   }
-  if (['lapseForSpinRegeneration', 'maxSpinsForSpinRegeneration', 'spinsAmountForSpinRegeneration'].includes(key)) 
-    await spinRegenerationInit()
-  if (key.toLocaleLowerCase() === 'maintenancemode' && oldMaintenanceMode !== value) 
-    if(value === '1') await sendMaintenanceModWsEvent()
+  
+  if (runSpinRegenerationInit) await spinRegenerationInit()
+
+  if (isSettingForManenanceMode && oldMaintenanceMode !== value && value === '1') {
+    console.log('setting, sendMaintenanceModWsEvent()')
+    await sendMaintenanceModWsEvent()
+  }
   
   
   // if (['lapseForSpinRegeneration', 'maxSpinsForSpinRegeneration', 'spinsAmountForSpinRegeneration'].includes(key)) 
@@ -60,6 +69,7 @@ const sendMaintenanceModWsEvent = async (): Promise<void> => {
     msgStr.payload = payload
     const msg = JSON.stringify(wsMessage.isJson ? wsMessage : msgStr)
     client.send(msg)
+    console.log('sendMaintenanceModWsEvent, sended to ', (client as ExtWebSocket).user.id, (client as ExtWebSocket).user.deviceId)
   }
     
   
