@@ -49,7 +49,7 @@ export const validateTicketPacksData = (ticketPacksData: TicketPackData[]): void
     }
     if(!isNumber(Number(ticketPackData.tickets)) || isNaN(Number(ticketPackData.tickets)) || Number(ticketPackData.tickets) < 1){
       ticketPackData.tickets = Number(ticketPackData.tickets)
-      throw createHttpError(StatusCodes.BAD_REQUEST, 'Tickets has to be a number greater than and 1')
+      throw createHttpError(StatusCodes.BAD_REQUEST, 'Tickets has to be a number greater than 1')
     }
   }
   
