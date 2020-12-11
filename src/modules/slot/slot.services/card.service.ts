@@ -44,7 +44,7 @@ export const getCard = async (cardId?: number): Promise<Card | undefined> => {
       id, card_set_id, stars,
       texture_url,
       thumb_url
-    from card where id = ${cardId}`))    
+    from card where id = ${cardId as number}`))    
   card.localizations = camelcaseKeys(await getLocalizations('card', card.id))
   return card
 }

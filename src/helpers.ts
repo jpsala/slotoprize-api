@@ -212,7 +212,7 @@ export const checkIfToFastEndpointCall = async ({endPoint, userId, miliseconds =
     const diff = nowMoment.diff(lastMoment.utc())
     await setEndpointLastCall({endPoint, userId})
     console.log('endpoint %o userId %o mill %o diff %o', endPoint, userId, miliseconds, diff )
-    if(diff < miliseconds) throw createHttpError(StatusCodes.BAD_REQUEST, 'The call was to fast')
+    if(diff < miliseconds) throw createHttpError(StatusCodes.BAD_REQUEST, 'Unauthorized call modulation')
     return
 }
 
