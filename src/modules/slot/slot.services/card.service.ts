@@ -5,7 +5,7 @@ import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import { ResultSetHeader } from "mysql2"
 import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar } from "../../../db"
-import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl, getRandomNumber } from "../../../helpers"
+import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl, getRandomNumber, checkIfToFastEndpointCall } from "../../../helpers"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
 import { Atlas, buildAtlas, getAtlas } from "../../meta/meta-services/atlas"
@@ -522,6 +522,7 @@ export const getCardSetCompleted = async (cardSetId: number, userId: number): Pr
 export const getCardTrade = async (regularStr: string | undefined, userId: number):Promise<any> => {
 
   if(regularStr === undefined || regularStr === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'regular parameter is undefined')
+  await checkIfToFastEndpointCall({endPoint: 'card_trade', userId, miliseconds: 5000})
 
   const regular = (regularStr.toLocaleLowerCase() === 'true')
   const chestStr = regular ? 'chestRegularRewards' : 'chestPremiumRewards'
