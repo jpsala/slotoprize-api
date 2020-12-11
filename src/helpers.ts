@@ -4,6 +4,9 @@ import { hostname } from 'os'
 import {StatusCodes} from 'http-status-codes'
 import { Request, Response, NextFunction } from 'express'
 import createHttpError from 'http-errors'
+import { format } from 'date-fns'
+import { utc } from 'moment'
+import { queryExec, queryOne, queryScalar } from './db'
 export const toBoolean = (value: string | number | boolean): boolean => {
     if (typeof value === 'string')
         return value.toUpperCase() === 'TRUE' || value.toUpperCase() === '1'
@@ -189,3 +192,34 @@ export function shuffleArray(array: any[]): any[] {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return array 
   } 
+
+export const checkIfToFastEndpointCall = async ({endPoint, userId, miliseconds = 1000}:
+    {endPoint: string, userId: number, miliseconds: number}): Promise<void> => 
+{
+    const lastCall = await queryOne(`
+        select id, last, game_user_id, endpoint from endpoint_last_call 
+        where game_user_id = ? and endpoint = ?
+    `, [userId, endPoint])
+    if(!lastCall){
+        await setEndpointLastCall({endPoint, userId})
+        return
+    }
+    
+    const lastCallDate = new Date(lastCall.last)
+    const nowMoment = utc(new Date())
+    const lastMoment = utc(lastCallDate)
+
+    const diff = nowMoment.diff(lastMoment.utc())
+    await setEndpointLastCall({endPoint, userId})
+    console.log('endpoint %o userId %o mill %o diff %o', endPoint, userId, miliseconds, diff )
+    if(diff < miliseconds) throw createHttpError(StatusCodes.BAD_REQUEST, 'The call was to fast')
+    return
+}
+
+export const setEndpointLastCall = async ({endPoint, userId}: {endPoint: string, userId: number}): Promise<void> => {
+    const lastCallId = await queryScalar(`select id from endpoint_last_call where game_user_id = ? and endpoint = ?`, [userId, endPoint])
+    await queryExec(`
+        replace into endpoint_last_call set game_user_id = ?, endpoint = ?, last = ?, id = ?
+    `, [userId, endPoint, format(new Date(), 'yyyy-MM-dd HH:mm:ss'), lastCallId])
+}
+
