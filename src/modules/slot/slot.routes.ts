@@ -110,5 +110,6 @@ router.route('/card_for_crud').post(checkTokenForBO, formidableMiddleware({
 router.route('/card_for_crud').delete(checkTokenForBO, slot.cardForFrontDelete)
 router.route('/card_drop_rate_table').get(checkTokenForBO, slot.cardDropRateTableGet)
 router.route('/card_drop_rate_table').post(checkTokenForBO, slot.cardDropRateTablePost)
+router.route('/generate_atlas_front').get(checkTokenForBO, slot.generateAtlasGet)
 
 export default router

@@ -6,7 +6,7 @@ import { BAD_REQUEST } from 'http-status-codes'
 import { log } from '../../log'
 import { getNewToken, verifyToken } from '../../services/jwtService'
 import * as metaService from '../meta/meta-services'
-import { getAtlas } from '../meta/meta-services/atlas'
+import { generateAtlas, getAtlas } from '../meta/meta-services/atlas'
 import { sendMail } from '../meta/meta-services/email.service'
 import { getLocalizationJSON, getLocalizations, postLocalizations, postSettingsForLocalization, updateLocalizationJSON } from '../meta/meta-services/localization.service'
 import { getWinnersForCrud, postWinnersStatusForCrud } from '../meta/meta-services/winner.service'
@@ -523,4 +523,8 @@ export async function cardSetClaimGet(req: Request, res: Response): Promise<void
 export async function cardTradeGet(req: Request, res: Response): Promise<void> {
   const cardTradeData = await getCardTrade(req.query.regular as string, req.user.id)
   res.status(200).send(cardTradeData)
+}
+export async function generateAtlasGet(req: Request, res: Response): Promise<void> {
+  await generateAtlas(req.query.name as string)
+  res.status(200).send({status: 'ok'})
 }

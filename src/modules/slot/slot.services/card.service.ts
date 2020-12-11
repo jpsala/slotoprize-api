@@ -416,7 +416,7 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
     chestRegular,
     chestPremium
   }
-  const cardCollectionsDataCL: CardCollectionsDataCL = {
+  const cardCollectionsDataCL: CardCollectionsDataCL = { 
     collectibleCardSets: cardSets,
     atlasData: collectibleCardSetDataAtlas,
     tradeData
@@ -429,13 +429,15 @@ const getCardSetAtlas = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas
   const atlas = await getAtlas(`card_set_${cardSet.id}`, thumbs)
   return atlas
 }
-const buildCardSetAtlas = async (cardSetId: number): Promise<Atlas> => {
+export const buildCardSetAtlas = async (cardSetId: number): Promise<Atlas> => {
+  console.log('build', cardSetId)
   const thumbs: { id: string; image: string} [] = await getCardSetImagesForAtlas(cardSetId)
   const atlas = await buildAtlas(thumbs,`card_set_${cardSetId}`)
   // await saveAtlasToDB(atlas)
   return atlas
 }
-const buildCardSetAtlasThumbs = async (): Promise<Atlas> => {
+export const buildCardSetAtlasThumbs = async (): Promise<Atlas> => {
+  console.log('buildCardSetAtlasThumbs', )
   const thumbs: { id: string; image: string} [] = await getThumbsImagesForAtlas()
   const atlas = await buildAtlas(thumbs, 'card_sets') 
   return atlas
