@@ -1,4 +1,4 @@
-import { getTicketPacksData } from "./events/ticket.service"
+import { getTicketPacksData, validateTicketPacksData } from "./events/ticket.service"
 import { getSetting, setSetting } from "./settings.service"
 export const getTicketsSettingsForCrud = async (): Promise<any> => {
   const ticketPrice = Number(await getSetting('ticketPrice', '1'))
@@ -26,6 +26,7 @@ export const postTicketsSettingsForCrud = async (settings: any): Promise<void> =
   await setSetting('initialWalletSpins', settings.wallet.spins)
   await setSetting('nextRaffleSessionSpins', settings.nextRaffleSessionSpins)
   await setSetting('incomingRaffleThresholdInDays', settings.incomingRaffleThresholdInDays)
+  validateTicketPacksData(settings.ticketPacksData)
   const ticketPacksData = JSON.stringify(settings.ticketPacksData)
   await setSetting('ticketPacksData', ticketPacksData)
 } 

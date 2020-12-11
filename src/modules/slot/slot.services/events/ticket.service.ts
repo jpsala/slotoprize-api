@@ -1,3 +1,4 @@
+import { isNumber } from "class-validator"
 import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import { log } from "../../../../log"
@@ -37,4 +38,19 @@ export const getTicketPacksData = async (): Promise<TicketPackData[]> => {
     log.error(error)
     throw createHttpError(StatusCodes.BAD_REQUEST, 'Error parsing ticketPacksData from settings')
   }
+}
+
+export const validateTicketPacksData = (ticketPacksData: TicketPackData[]): void => {
+  if(ticketPacksData.length < 4) throw createHttpError(StatusCodes.BAD_REQUEST, 'There has to be 4 items in TicketPacksData')
+  for (const ticketPackData of ticketPacksData){
+    if(!isNumber(Number(ticketPackData.discount)) || isNaN(Number(ticketPackData.discount)) || Number(ticketPackData.discount) > 1){
+      ticketPackData.discount = Number(ticketPackData.discount)
+      throw createHttpError(StatusCodes.BAD_REQUEST, 'Discount has to be a floating point number between 0 and 1')
+    }
+    if(!isNumber(Number(ticketPackData.tickets)) || isNaN(Number(ticketPackData.tickets)) || Number(ticketPackData.tickets) < 1){
+      ticketPackData.tickets = Number(ticketPackData.tickets)
+      throw createHttpError(StatusCodes.BAD_REQUEST, 'Tickets has to be a number greater than and 1')
+    }
+  }
+  
 }
