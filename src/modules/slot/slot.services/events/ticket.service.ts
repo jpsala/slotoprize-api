@@ -95,7 +95,7 @@ async function getPurchaseData(packId: number, userCoins: number) {
   if(useAllCoins) {
 
     ticketsForUser = getTicketsForAllUserCoins()
-    neededCoins = ticketsForUser * ticketPrice
+    neededCoins = userCoins - ( userCoins % ticketPrice)
 
   } else {
 
