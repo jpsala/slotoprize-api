@@ -2,8 +2,10 @@ import { isNumber } from "class-validator"
 import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import { log } from "../../../../log"
+import { GameUser } from "../../../meta/meta.types"
+import { updateWallet } from "../../slot.repo/wallet.repo"
+import { Wallet } from "../../slot.types"
 import { getSetting } from "../settings.service"
-
 /*
     public class TicketPackData
     {
@@ -27,12 +29,17 @@ const getDefaultTicketPacksData = (): TicketPackData[] => {
   ]
 }
 
-export const getTicketPacksData = async (): Promise<TicketPackData[]> => {
+export const getTicketPacks = async (): Promise<TicketPackData[]> => {
   const defaultTicketPackDataJson = getDefaultTicketPacksData()
   const defaultTicketPackDataStr = JSON.stringify(defaultTicketPackDataJson)
   const ticketPacksDataStr = await getSetting('ticketPacksData', defaultTicketPackDataStr)
   try {
     const ticketPacksData = <TicketPackData[]> JSON.parse(ticketPacksDataStr)
+    for (const ticketPack of ticketPacksData) {
+      console.log('tp', ticketPack)
+      ticketPack.discount = Number(ticketPack.discount)
+      ticketPack.tickets = Number(ticketPack.tickets)
+    }
     return ticketPacksData
   } catch (error) {
     log.error(error)
@@ -53,4 +60,85 @@ export const validateTicketPacksData = (ticketPacksData: TicketPackData[]): void
     }
   }
   
+}
+
+/*
+ Endpoint: purchase_ticket_pack
+*/
+export const getPurchaseTicketPack = async (packId: number, user: GameUser): Promise<Wallet> => {
+
+  const wallet = user.wallet as Wallet
+  const userCoins = wallet.coins
+
+  const { ticketsForUser, neededCoins } = await getPurchaseData(packId, wallet.coins)
+
+  if(neededCoins > userCoins) throw createHttpError(StatusCodes.BAD_REQUEST, 'Insufficient funds')
+
+  wallet.coins -= neededCoins
+  wallet.tickets += ticketsForUser
+
+  const updatedWallet = await updateWallet(user, wallet)
+
+  return updatedWallet
+
+}
+
+
+async function getPurchaseData(packId: number, userCoins: number) {
+
+  const ticketPrice = await getTicketPrice()
+  const ticketPacks = await getTicketPacks()
+
+  let ticketsForUser = 0
+  let neededCoins = 0
+  const useAllCoins = packId === -1
+
+  if(useAllCoins) {
+
+    ticketsForUser = getTicketsForAllUserCoins()
+    neededCoins = userCoins
+
+  } else {
+
+    const pack = getTicketPackById(ticketPacks, packId)
+    console.log('pack', pack)
+    neededCoins = priceInCoins(pack)
+    ticketsForUser = pack.tickets
+
+  }
+  return { ticketsForUser, neededCoins }
+
+  function getTicketsForAllUserCoins(): number {
+
+    let discount = 0
+
+    for (const pack of ticketPacks)
+      if (userCoins > priceInCoins(pack) && pack.discount > discount)
+        discount = pack.discount
+
+    const purchasingPower = userCoins + userCoins * discount
+
+    ticketsForUser = Math.floor(purchasingPower / ticketPrice)
+
+    return ticketsForUser
+
+  }
+
+  function priceInCoins(pack: TicketPackData): number {
+
+    const packPrice = pack.tickets * ticketPrice
+    const packPriceWithDiscount = Math.floor(packPrice * (1 - pack.discount))
+
+    return packPriceWithDiscount
+  }
+}
+
+function getTicketPackById(ticketPacks: TicketPackData[], packId: number) {
+  const pack = ticketPacks.find(_pack => _pack.id === packId)
+  if(!pack) throw createHttpError(StatusCodes.BAD_REQUEST, 'Pack ID not found')
+  return pack
+}
+
+async function getTicketPrice() {
+  return Number(await getSetting('ticketPrice', '1'))
 }

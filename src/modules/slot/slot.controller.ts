@@ -29,6 +29,7 @@ import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/a
 import { appodealCallback, appodealCallbackPlain, QueryParams } from './slot.services/appodeal'
 import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, cardSetClaim, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetForCrud, getCardTrade, postChestForFront, RewardChest } from './slot.services/card.service'
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
+import { getPurchaseTicketPack } from './slot.services/events/ticket.service'
 import { getVideoAdsViewCountForCrud } from './slot.services/ironsource'
 import { getJackpotData, jackpotPost } from './slot.services/jackpot.service'
 import { getLegals, getLegalsForCrud, postLegalsForCrud } from './slot.services/legals.service'
@@ -527,4 +528,9 @@ export async function cardTradeGet(req: Request, res: Response): Promise<void> {
 export async function generateAtlasGet(req: Request, res: Response): Promise<void> {
   await generateAtlas(req.query.name as string)
   res.status(200).send({status: 'ok'})
+}
+export async function purchaseTicketPackGet(req: Request, res: Response): Promise<void> {
+  const user = await getGameUserById(req.user.id) as GameUser
+  const wallet = await getPurchaseTicketPack(Number(req.query.packId), user)
+  res.status(200).send(wallet)
 }

@@ -9,7 +9,7 @@ import {getHaveWinRaffle, setGameUserLogin, getWinRaffle, resetPendingPrize } fr
 import {getWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import { gameUserToProfile } from "../profile.service"
-import { getTicketPacksData, TicketPackData } from '../events/ticket.service'
+import { getTicketPacks, TicketPackData } from '../events/ticket.service'
 import { getLastSpinDays } from './dailyReward.spin'
 import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaimed } from './../../slot.repo/dailyReward.repo'
 export async function gameInit(deviceId: string): Promise<any> {
@@ -54,7 +54,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     const signupCount = Number(await getSetting('signupCount', '10'))
     const nextRaffleSessionSpins = Number(await getSetting('nextRaffleSessionSpins', '7'))
     const incomingRaffleThresholdInDays = Number(await getSetting('incomingRaffleThresholdInDays', '5'))
-    const ticketPacksData: TicketPackData[] = await getTicketPacksData()
+    const ticketPacksData: TicketPackData[] = await getTicketPacks()
   rawUser = gameUserToProfile(rawUser)
     
     delete rawUser.deviceId

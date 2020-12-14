@@ -1,4 +1,4 @@
-import { getTicketPacksData, validateTicketPacksData } from "./events/ticket.service"
+import { getTicketPacks, validateTicketPacksData } from "./events/ticket.service"
 import { getSetting, setSetting } from "./settings.service"
 export const getTicketsSettingsForCrud = async (): Promise<any> => {
   const ticketPrice = Number(await getSetting('ticketPrice', '1'))
@@ -12,7 +12,7 @@ export const getTicketsSettingsForCrud = async (): Promise<any> => {
   }
   const lapseForSpinRegeneration = Number(await getSetting('lapseForSpinRegeneration', '10'))
   const maxSpinsForSpinRegeneration = Number(await getSetting('maxSpinsForSpinRegeneration', '10'))
-  const ticketPacksData = await getTicketPacksData()
+  const ticketPacksData = await getTicketPacks()
   return { ticketPrice, wallet, interstitialsRatio, lapseForSpinRegeneration, maxSpinsForSpinRegeneration, nextRaffleSessionSpins, incomingRaffleThresholdInDays, ticketPacksData }
 } 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
