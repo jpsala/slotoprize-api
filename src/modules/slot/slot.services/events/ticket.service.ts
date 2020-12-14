@@ -36,7 +36,6 @@ export const getTicketPacks = async (): Promise<TicketPackData[]> => {
   try {
     const ticketPacksData = <TicketPackData[]> JSON.parse(ticketPacksDataStr)
     for (const ticketPack of ticketPacksData) {
-      console.log('tp', ticketPack)
       ticketPack.discount = Number(ticketPack.discount)
       ticketPack.tickets = Number(ticketPack.tickets)
     }
@@ -66,7 +65,7 @@ export const validateTicketPacksData = (ticketPacksData: TicketPackData[]): void
  Endpoint: purchase_ticket_pack
 */
 export const getPurchaseTicketPack = async (packId: number, user: GameUser): Promise<Wallet> => {
-
+  
   const wallet = user.wallet as Wallet
   const userCoins = wallet.coins
 
