@@ -65,7 +65,7 @@ export const validateTicketPacksData = (ticketPacksData: TicketPackData[]): void
  Endpoint: purchase_ticket_pack
 */
 export const getPurchaseTicketPack = async (packId: number, user: GameUser): Promise<Wallet> => {
-  
+
   const wallet = user.wallet as Wallet
   const userCoins = wallet.coins
 
@@ -95,12 +95,12 @@ async function getPurchaseData(packId: number, userCoins: number) {
   if(useAllCoins) {
 
     ticketsForUser = getTicketsForAllUserCoins()
-    neededCoins = userCoins
+    neededCoins = ticketsForUser * ticketPrice
 
   } else {
 
     const pack = getTicketPackById(ticketPacks, packId)
-    console.log('pack', pack)
+
     neededCoins = priceInCoins(pack)
     ticketsForUser = pack.tickets
 
@@ -124,7 +124,6 @@ async function getPurchaseData(packId: number, userCoins: number) {
   }
 
   function priceInCoins(pack: TicketPackData): number {
-
     const packPrice = pack.tickets * ticketPrice
     const packPriceWithDiscount = Math.floor(packPrice * (1 - pack.discount))
 
