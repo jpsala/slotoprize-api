@@ -9,6 +9,7 @@ import {getHaveWinRaffle, setGameUserLogin, getWinRaffle, resetPendingPrize } fr
 import {getWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import { gameUserToProfile } from "../profile.service"
+import { getTicketPacks, TicketPackData } from '../events/ticket.service'
 import { getLastSpinDays } from './dailyReward.spin'
 import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaimed } from './../../slot.repo/dailyReward.repo'
 export async function gameInit(deviceId: string): Promise<any> {
@@ -51,6 +52,9 @@ export async function gameInit(deviceId: string): Promise<any> {
     const latestMandatoryVersion = String(await getSetting('latestMandatoryVersion', '0.1'))
     const gameIdentifier = await getSetting('gameIdentifier', 'this is the gameIdentifier')
     const signupCount = Number(await getSetting('signupCount', '10'))
+    const nextRaffleSessionSpins = Number(await getSetting('nextRaffleSessionSpins', '7'))
+    const incomingRaffleThresholdInDays = Number(await getSetting('incomingRaffleThresholdInDays', '5'))
+    const ticketPacksData: TicketPackData[] = await getTicketPacks()
   rawUser = gameUserToProfile(rawUser)
     
     delete rawUser.deviceId
@@ -66,6 +70,8 @@ export async function gameInit(deviceId: string): Promise<any> {
       interstitialsRatio,
       signupCount,
       hasPendingPrize,
+      nextRaffleSessionSpins,
+      incomingRaffleThresholdInDays,
       rafflePrizeData,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
@@ -74,7 +80,8 @@ export async function gameInit(deviceId: string): Promise<any> {
       dailyRewardClaimed,
       ticketPrice,
       walletData: wallet,
-      maxAllowedBirthYear
+      maxAllowedBirthYear,
+      ticketPacksData
     }
     if(!rafflePrizeData) delete initData.rafflePrizeData
     return initData

@@ -9,6 +9,7 @@ import { getAssetsUrl, publicPath } from '../../../helpers'
 import { buildSymbolsAtlas } from '../../slot/slot.services/symbol.service'
 import { queryOne, queryExec } from '../../../db'
 import { log } from '../../../log'
+import { buildCardSetAtlasThumbs, buildCardSetAtlas } from "../../slot/slot.services/card.service"
 
 export type AtlasSpriteCoordinates = {
   height: number,
@@ -46,6 +47,7 @@ export async function buildAtlas(
   images: string[] | {id:string,image:string}[], name: string, padding?: number, quality?: number):
    Promise < Atlas > 
 {
+  console.log('builAtlas', name)
   const finalOutput = join(publicPath(), 'assets', `atlas/${name}.png`)
   const atlas: Atlas = await new Promise(done => {
     const _images: string[] = []
@@ -118,6 +120,15 @@ export async function saveAtlasToDB(data: Atlas): Promise<void> {
     await queryExec(`update atlas set json = ? where name = ? `, [jsonData, data.name])
   else
     await queryExec(`insert into atlas(name, json) values(?, ?) `, [data.name, jsonData])
+}
+export async function generateAtlas(name: string): Promise<void> {
+  console.log('generate atlas', name.toLocaleLowerCase())
+  if(name.toLocaleLowerCase() === 'symbols') await buildSymbolsAtlas()
+  else if(name.toLocaleLowerCase() === 'card_sets') await buildCardSetAtlasThumbs()
+  else if(name.toLocaleLowerCase().startsWith('card_set_')) await buildCardSetAtlas(Number(name.replace('card_set_', '')))
+  if(name.toLocaleLowerCase() === 'symbols') console.log('buildSymbolsAtlas()')
+  else if(name.toLocaleLowerCase() === 'card_sets') console.log('buildCardSetAtlasThumbs()')
+  else if(name.toLocaleLowerCase().startsWith('card_set_')) console.log('buildCardSetAtlas()')
 }
 export async function getAtlas(name: string, images?: string[] | {id:string,image:string}[], rebuild = false): Promise<Atlas> {
   const atlasInDB = await queryOne(`select id, json from atlas where name = '${name}'`)

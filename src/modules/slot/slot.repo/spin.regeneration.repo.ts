@@ -175,10 +175,10 @@ export function userChanged(user: GameUser, spins: number): void{
   if(userSpinRegenrationRecord.spins >= maxSpinsForSpinRegeneration)
     userSpinRegenrationRecord.last = new Date()
 
-  const diff = getDiff(userSpinRegenrationRecord.last)
-  console.log(`spin.regeneration.repo - userChanged() new spins %o old spins %o last %o, now %o, diff %o`,
-    spins, userSpinRegenrationRecord.spins, diff.lastMoment.format('YYYY-MM-DD HH:mm:ss'),
-    diff.nowMoment.format('YYYY-MM-DD HH:mm:ss'), diff.humanDiff)
+  // const diff = getDiff(userSpinRegenrationRecord.last)
+  // console.log(`spin.regeneration.repo - userChanged() new spins %o old spins %o last %o, now %o, diff %o`,
+    // spins, userSpinRegenrationRecord.spins, diff.lastMoment.format('YYYY-MM-DD HH:mm:ss'),
+    // diff.nowMoment.format('YYYY-MM-DD HH:mm:ss'), diff.humanDiff)
 
   userSpinRegenrationRecord.spins = spins
   userSpinRegenrationRecord.dirty = true

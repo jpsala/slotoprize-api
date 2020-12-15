@@ -1,5 +1,5 @@
 import createError from 'http-errors'
-import { INTERNAL_SERVER_ERROR } from 'http-status-codes'
+import { StatusCodes } from 'http-status-codes'
 import { queryOne, queryExec } from '../../../db'
 import {Wallet} from '../slot.types'
 import { getSetting } from './../slot.services/settings.service'
@@ -20,7 +20,7 @@ export const getWallet = async (user: GameUser): Promise<Wallet> =>
   where game_user_id = ${user.id}
   `)
   if (Number(respUpdateRow.affectedRows) !== 1)
-  throw createError( INTERNAL_SERVER_ERROR, 'Something whent wrong storing the wallet' )
+  throw createError( StatusCodes.INTERNAL_SERVER_ERROR, 'Something whent wrong storing the wallet' )
   return wallet
 }
 export async function insertWallet(user: GameUser, coins?: number, spins?: number, tickets?: number):
@@ -34,7 +34,7 @@ Promise<Wallet>
   const walletDto: WalletDto = {game_user_id: user.id, coins, spins, tickets}
   const respInsert = await queryExec(`insert into wallet set ?`, walletDto)
   if (Number(respInsert.insertId) <= 0)
-    throw createError( INTERNAL_SERVER_ERROR, 'Something whent wrong storing the wallet' )
+    throw createError( StatusCodes.INTERNAL_SERVER_ERROR, 'Something whent wrong storing the wallet' )
   walletDto.id = respInsert.insertId
   await userAdded(user, spins)
 

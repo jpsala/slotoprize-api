@@ -48,3 +48,9 @@ tutorialComplete = false {
 - [ ] poner un loading spinner en los cards
 - [ ] setting game-versio no va mas!
 - [ ] por que no estábamos teniendo en cuenta el multiplier cuando es ticket
+
+11 del 12
+- [x] 2 settings en el BO: en balance: 
+      public int incomingRaffleThresholdInDays = 5;
+      public int nextRaffleSessionSpins = 7;
+      retornar en game_init

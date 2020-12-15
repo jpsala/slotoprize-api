@@ -37,6 +37,7 @@ router.route('/wallet').get(checkDeviceId, checkToken, checkmaintenanceMode, slo
 router.route('/card_collections').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.cardCollectionsCLGet)
 router.route('/card_set_completed').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.cardSetClaimGet)
 router.route('/card_trade').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.cardTradeGet)
+router.route('/purchase_ticket_pack').get(checkDeviceId, checkToken, checkmaintenanceMode, slot.purchaseTicketPackGet)
 
 router.route('/appodeal').get(slot.appodeal)
 router.route('/tapjoy').get(slot.tapjoy)
@@ -110,5 +111,6 @@ router.route('/card_for_crud').post(checkTokenForBO, formidableMiddleware({
 router.route('/card_for_crud').delete(checkTokenForBO, slot.cardForFrontDelete)
 router.route('/card_drop_rate_table').get(checkTokenForBO, slot.cardDropRateTableGet)
 router.route('/card_drop_rate_table').post(checkTokenForBO, slot.cardDropRateTablePost)
+router.route('/generate_atlas_front').get(checkTokenForBO, slot.generateAtlasGet)
 
 export default router

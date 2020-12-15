@@ -5,7 +5,7 @@ import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import { ResultSetHeader } from "mysql2"
 import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar } from "../../../db"
-import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl, getRandomNumber } from "../../../helpers"
+import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl, getRandomNumber, checkIfToFastEndpointCall } from "../../../helpers"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
 import { Atlas, buildAtlas, getAtlas } from "../../meta/meta-services/atlas"
@@ -16,8 +16,8 @@ import { getSetting, setSetting } from "./settings.service"
 import { updateWallet } from "./wallet.service"
 
 export type CardSet = {id: number, rewardType: string, rewardClaimed: boolean, themeColor: string,
-            rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number }
-export type Card = { id: number, stars: number, localizations: Localization[], textureUrl: string, thumbUrl: string, cardSet }
+            rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number, img?: string }
+export type Card = { id: number, stars: number, localizations: Localization[], textureUrl: string, thumbUrl: string, cardSet, userCardId?: number }
 // #endregion
 // #region comments
 /*
@@ -38,6 +38,16 @@ textureUrl interno para generar el atlas
 thumbTextureUrl interno para generar el atlas
 */
 // #endregion
+export const getCard = async (cardId?: number): Promise<Card | undefined> => {
+  const card: Card = camelcaseKeys(await queryOne(`
+    select 
+      id, card_set_id, stars,
+      texture_url,
+      thumb_url
+    from card where id = ${cardId as number}`))    
+  card.localizations = camelcaseKeys(await getLocalizations('card', card.id))
+  return card
+}
 export const getCards = async (cardSetId?: number): Promise<Card[] | undefined> => {
   const where = cardSetId ? ` where card_set_id = ${cardSetId}`: ''
   const cards: Card[] = camelcaseKeys(await query(`
@@ -71,7 +81,11 @@ export const setCard = async (card: Card): Promise<void> => {
       [localization.languageId, 'card', localization.item_id, localization.text])
 }
 export const getCardSets = async (): Promise<CardSet[] | undefined> => {
-  const cardSets: CardSet[] = camelcaseKeys(await query(`select * from card_set`))
+  const cardSets: CardSet[] = camelcaseKeys(await query(`
+    select cs.id, cs.theme_color, cs.reward_type, cs.reward_amount, cs.front_card_id, c.thumb_url as img
+    from card_set cs
+        left join card c on c.id = cs.front_card_id
+  `))
   for (const cardSet of cardSets) {
     cardSet.localizations = camelcaseKeys(await getLocalizations('cardSet', cardSet.id))
     cardSet.cards = (await getCards(cardSet.id))
@@ -112,25 +126,23 @@ export const getCardSetsForCrud = async ():
   newCardSet.localizations = []
   newCardSet.cards = []
   for (const language of languages) 
-  newCardSet.localizations.push(
-    {
-      id: -1,
-      item: "cardSet",
-      languageCode: language.languageCode,
-      languageId: language.id,
-      text: '',
-      // text: `${language.languageCode} localization`,
-    }
-    )
-    const reward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
-    const chestRegularString = await getSetting('chestRegularRewards', JSON.stringify(reward))
-    const chestPremiumString = await getSetting('chestPremiumRewards', JSON.stringify(reward))
-    const chestRegular: RewardChest = JSON.parse(chestRegularString) as RewardChest
-    const chestPremium: RewardChest = JSON.parse(chestPremiumString) as RewardChest
+    newCardSet.localizations.push({
+        id: -1,
+        item: "cardSet",
+        languageCode: language.languageCode,
+        languageId: language.id,
+        text: '',
+        // text: `${language.languageCode} localization`,
+    })
+  const reward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
+  const chestRegularString = await getSetting('chestRegularRewards', JSON.stringify(reward))
+  const chestPremiumString = await getSetting('chestPremiumRewards', JSON.stringify(reward))
+  const chestRegular: RewardChest = JSON.parse(chestRegularString) as RewardChest
+  const chestPremium: RewardChest = JSON.parse(chestPremiumString) as RewardChest
     
   return {cardSets, languages, newCardSet, newCard, chestRegular, chestPremium}
 }
-export const postCardSetForCrud = async (cardSet: CardSet): Promise<any> => {
+export const postCardSetForCrud =   async (cardSet: CardSet): Promise<any> => {
   if(cardSet.rewardAmount === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Amount can not be empty')
   if(cardSet.themeColor === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Theme Color can not be empty')
   if(!isValidPaymentType(`${cardSet.rewardType}s`)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Type is invalid')
@@ -144,7 +156,7 @@ export const postCardSetForCrud = async (cardSet: CardSet): Promise<any> => {
   // }
   const cardSetExists = await queryOne(`select id from card_set where id = ${cardSet.id}`)
   let response: ResultSetHeader
-  if(cardSetExists)
+  if(cardSetExists){
     response = await queryExec(`
         update card_set set 
           reward_amount = ?,
@@ -152,12 +164,14 @@ export const postCardSetForCrud = async (cardSet: CardSet): Promise<any> => {
           theme_color = ?,
           front_card_id = ?
         where id = ${cardSet.id}`, 
-      [cardSet.rewardAmount, cardSet.rewardType, cardSet.themeColor, cardSet.frontCardId]
-    )
-  else 
-    response = (await queryExec(`insert into card_set(reward_amount,reward_type,theme_color) values (?, ?, ?)`,
+      [cardSet.rewardAmount, cardSet.rewardType, cardSet.themeColor, cardSet.frontCardId])
+      const frontCard = await getCard(cardSet.frontCardId)
+      console.log('frontCard', frontCard)
+      cardSet.img = frontCard?.thumbUrl
+  } else 
+    {response = (await queryExec(`insert into card_set(reward_amount,reward_type,theme_color) values (?, ?, ?)`,
       [cardSet.rewardAmount, cardSet.rewardType, cardSet.themeColor])
-    )
+    )}
 
   if(cardSet.id === -1) cardSet.id = response.insertId
 
@@ -404,7 +418,7 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
     chestRegular,
     chestPremium
   }
-  const cardCollectionsDataCL: CardCollectionsDataCL = {
+  const cardCollectionsDataCL: CardCollectionsDataCL = { 
     collectibleCardSets: cardSets,
     atlasData: collectibleCardSetDataAtlas,
     tradeData
@@ -417,13 +431,15 @@ const getCardSetAtlas = async (cardSet: CollectibleCardSetDataCL): Promise<Atlas
   const atlas = await getAtlas(`card_set_${cardSet.id}`, thumbs)
   return atlas
 }
-const buildCardSetAtlas = async (cardSetId: number): Promise<Atlas> => {
+export const buildCardSetAtlas = async (cardSetId: number): Promise<Atlas> => {
+  console.log('build', cardSetId)
   const thumbs: { id: string; image: string} [] = await getCardSetImagesForAtlas(cardSetId)
   const atlas = await buildAtlas(thumbs,`card_set_${cardSetId}`)
   // await saveAtlasToDB(atlas)
   return atlas
 }
-const buildCardSetAtlasThumbs = async (): Promise<Atlas> => {
+export const buildCardSetAtlasThumbs = async (): Promise<Atlas> => {
+  console.log('buildCardSetAtlasThumbs', )
   const thumbs: { id: string; image: string} [] = await getThumbsImagesForAtlas()
   const atlas = await buildAtlas(thumbs, 'card_sets') 
   return atlas
@@ -505,92 +521,153 @@ export const getCardSetCompleted = async (cardSetId: number, userId: number): Pr
   return completed
 }
 
-export const getCardTrade = async (regularStr: string | undefined, userId: number):Promise<any> => {
+/*
+ Endpoint: card_trade
+*/
+export async function getCardTrade(regularStr: string | undefined, userId: number):Promise<any>{
 
   if(regularStr === undefined || regularStr === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'regular parameter is undefined')
+  await checkIfToFastEndpointCall({endPoint: 'card_trade', userId, miliseconds: 5000})
 
-  const regular = (regularStr.toLocaleLowerCase() === 'true')
-  const chestStr = regular ? 'chestRegularRewards' : 'chestPremiumRewards'
-  const defaultReward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
-  const chestRegularString = await getSetting(chestStr, JSON.stringify(defaultReward))
-  
-  const chest: RewardChest = JSON.parse(chestRegularString) as RewardChest
-  //URGENT quitar linea abajo
-  chest.rewards.push({amount: 10, type: 'coin'})
+  const isRegular = regularStr.toLocaleLowerCase() === 'true'
+  const chest =  await getChestFromSettings(isRegular)
 
-  const repeatedCards = await getRepeatedCards(userId)
+  console.log('chest:', chest)
+
   const user = await getGameUserById(userId) as GameUser
 
-  const starsAvail = repeatedCards.reduce((prev, card) => {return prev + (Number(card.stars) * (card as any).repeatedCards)}, 0)
-  let msgError: string
-  if (user.languageCode === 'fr-FR') msgError = await getSetting('insufficient-founds-for-card-trade-fr', 'Frances')
-  else if (user.languageCode === 'en-US') msgError =  await getSetting('insufficient-founds-for-card-trade-en', 'Ingles')
-  else msgError = `LanguageCode ${user.languageCode} not found`
+  const repeatedCards = await getUserRepeatedCards(user.id)
+  console.log('Repeated Cards', Object.assign({}, repeatedCards))
+  const userStarsAvailForTrade = getUserStarsAvailForTrade(repeatedCards)
+  console.log('starsAvailForTrade %o, Price in stars %o', userStarsAvailForTrade, chest.priceAmount)
 
-  if(Number(chest.priceAmount) > starsAvail) throw createHttpError(402, msgError)
+  if(chest.priceAmount > userStarsAvailForTrade) throw createHttpError(402, await getMessageCodeForInsuficientFunds(user.languageCode))
 
-  const repeatedCardsFull: Card[] = camelcaseKeys(await query(`
-      select guc.id as user_card_id, c.id, c.stars,
-      (select count(*)
-          from game_user_card guc2 inner join card c2 on guc2.card_id = c2.id
-          where guc2.game_user_id = guc.game_user_id and guc2.card_id = guc.card_id)-1 as repeatedCards
+  const repeatedUserCardsTable: Card[] = await getRepeatedUserCardsTable()
+  console.log('Repeated Cards Table', repeatedUserCardsTable)
+
+  // remove the original, not repeated card, from each row in repeatedUserCardsTable
+  // repeatedUserCardsTable wil be used to select the cards for the trade
+  // and only repeated cards has to be there, not the original
+  leaveOnlyRepeatedCardsInRepeatedUserCardsTable()
+
+  await payTheUserForTheTrade()
+
+  let remainingStars = chest.priceAmount
+  while(remainingStars > 0) {
+    const card = getRandomCardFromRepeatedCards()
+    console.log('removed card',  card)
+    remainingStars -= card.stars
+    await removeCardFromPlayer(card.userCardId as number)
+    removeCardFromRepeatedCards(card)
+  }
+  
+  
+  if(remainingStars < 0) {
+    
+    const repeatedCardsUpdated2 = await getUserRepeatedCards(userId)
+    const starsAvailUpdated2 = getUserStarsAvailForTrade(repeatedCardsUpdated2)
+    console.log('updated stars Available %o, repeatedCards %o', starsAvailUpdated2, Object.assign({}, repeatedCardsUpdated2))
+
+    const missingStars = Math.abs(remainingStars)
+    console.log('stars for returning to the user', missingStars)
+    await grantPlayerCardByStars(missingStars, userId)
+  }
+  const repeatedCardsUpdated = await getUserRepeatedCards(userId)
+  const starsAvailUpdated = getUserStarsAvailForTrade(repeatedCardsUpdated)
+  console.log('updated starsAvailable %o, repeatedCards %o',starsAvailUpdated, Object.assign({}, repeatedCardsUpdated))
+  if(userStarsAvailForTrade !== starsAvailUpdated + chest.priceAmount) console.warn('BAD!!!!, (userStarsAvailForTrade !== starsAvailUpdated + chest.priceAmount')
+  else console.log('OK!!! userStarsAvailForTrade === starsAvailUpdated + chest.priceAmount')
+  const collectibleCardSets = await getCardsCL(userId)
+  return {
+    collectibleCardSets: collectibleCardSets.collectibleCardSets,
+    tradeData: { starsForTrade: starsAvailUpdated }
+  }
+
+  function removeCardFromRepeatedCards(card: Card) {
+    const idx = repeatedUserCardsTable.findIndex(_row => _row.userCardId === card.userCardId)
+    repeatedUserCardsTable.splice(idx, 1)
+  }
+
+  function leaveOnlyRepeatedCardsInRepeatedUserCardsTable() {
+    for (const repeatedCard of repeatedCards) {
+      const index = repeatedUserCardsTable.findIndex(_card => _card.id === repeatedCard.id)
+      if (index === -1)
+        throw createHttpError(StatusCodes.BAD_REQUEST, 'getCardTrade carta no encontrada')
+      repeatedUserCardsTable.splice(index, 1)
+    }
+  }
+
+  function getRandomCardFromRepeatedCards() {
+    const randomNumber = getRandomNumber(0, repeatedUserCardsTable.length - 1)
+    return repeatedUserCardsTable[randomNumber]
+  }
+
+  async function payTheUserForTheTrade() {
+    const wallet = user.wallet as Wallet
+    // console.log('wallet before', Object.assign({}, wallet))
+    for (const reward of chest.rewards)
+      // console.log('updating wallet', reward.type, wallet[`${reward.type}s`] , ' + ', Number(reward.amount))
+      wallet[`${reward.type}s`] += Number(reward.amount)
+    
+    await updateWallet(user, wallet)
+    // const walletUpdated = await getWallet(user)
+    // console.log('wallet after', walletUpdated)
+  }
+
+  function getUserStarsAvailForTrade(repeatedCards: {id: number; stars: number; repeated: number }[]) {
+    return repeatedCards.reduce((prev, card) => { return prev + (Number(card.stars) * Number((card as any).repeatedCards)) }, 0)
+  }
+
+  async function getRepeatedUserCardsTable(): Promise<Card[]> {
+    return camelcaseKeys(await query(`
+      select guc.id as user_card_id, c.id, c.stars
       from card c
           inner join game_user_card guc on guc.card_id = c.id
       where guc.game_user_id = ${userId} and (select count(*)
           from game_user_card guc2 inner join card c2 on guc2.card_id = c2.id
           where guc2.game_user_id = guc.game_user_id and guc2.card_id = guc.card_id)-1 > 0
-  `))
-  for (const repeatedCard of repeatedCards) {
-    const index = repeatedCardsFull.findIndex(_card => {
-      return _card.id === repeatedCard.id
-    })
-    if(index === -1) throw createHttpError(StatusCodes.BAD_REQUEST, 'getCardTrade carta no encontrada')
-    repeatedCardsFull.splice(index, 1)
-  }
-
-  const wallet = user.wallet as Wallet
-  for (const reward of chest.rewards) 
-    wallet[`${reward.type}s`] += Number(reward.amount)
-  
-  await updateWallet(user, wallet)
-
-  let remainingPrice = chest.priceAmount
-  while(remainingPrice > 0) {
-    const randomNumber = getRandomNumber(0, repeatedCardsFull.length - 1)
-    const card = repeatedCardsFull[randomNumber]
-    remainingPrice -= card.stars
-    await removeCardFromPlayer((card as any).userCardId)
-  }
-  if(remainingPrice < 0) {
-    const missingStars = Math.abs(remainingPrice)
-    await grantPlayerCardByStars(missingStars, userId)
-  }
-  const repeatedCardsUpdated = await getRepeatedCards(userId)
-  const starsAvailUpdated = repeatedCardsUpdated.reduce((prev, card) => {return prev + (card.stars*(card as any).repeatedCards)}, 0)
-  const collectibleCardSets = await getCardsCL(userId)
-  return {
-    collectibleCardSets: collectibleCardSets.collectibleCardSets,
-    tradeData: {
-      starsForTrade: starsAvailUpdated
-  }
+  `)) as Card[]
   }
 }
+async function getMessageCodeForInsuficientFunds(languageCode: string) {
+  if (languageCode === 'fr-FR')
+    return await getSetting('insufficient-founds-for-card-trade-fr', 'Frances')
+  else if (languageCode === 'en-US')
+    return await getSetting('insufficient-founds-for-card-trade-en', 'Ingles')
+  else
+    return `LanguageCode ${languageCode} not found`
+}
+
+async function getChestFromSettings(regular: boolean) {
+  
+  const chestStr = regular ? 'chestRegularRewards' : 'chestPremiumRewards'
+  const defaultReward: RewardChest = { priceAmount: 1, priceCurrency: 'spin', rewards: [{ amount: 1, type: 'spin' }] }
+  const chestObjAsString = await getSetting(chestStr, JSON.stringify(defaultReward))
+
+  const chest: RewardChest = JSON.parse(chestObjAsString) as RewardChest
+  chest.priceAmount = Number(chest.priceAmount)
+  return chest
+}
+
 async function grantPlayerCardByStars(missingStars: number, userId: number): Promise<void>{
   const ownedCardByStars = camelcaseKeys(await queryOne(`
-    select card_id as id
-      from game_user_card guc
-          inner join card c on guc.card_id = c.id
+    select c.id from game_user_card guc inner join card c on guc.card_id = c.id
     where guc.game_user_id = ${userId} and c.stars = ${missingStars} limit 1
   `)) as Card
 
   if(ownedCardByStars){
-    await queryExec(`
-      insert into game_user_card(game_user_id, card_id) values (?, ?)
-  `, [userId, ownedCardByStars.id])
+    console.log('repeating a user card with stars needed', ownedCardByStars)
+    await queryExec(
+      `insert into game_user_card(game_user_id, card_id) values (?, ?)`,
+      [userId, ownedCardByStars.id]
+    )
   } else {
     const card = camelcaseKeys(await queryOne(`
       select * from card where stars = ${missingStars} limit 1
     `)) as Card
+    console.log('User doesn\'t have a card with stars needed')
+    console.log('Assigning card twice', card)
     await queryExec(`insert into game_user_card(game_user_id, card_id) values (?, ?)`, [userId, card.id])
     await queryExec(`insert into game_user_card(game_user_id, card_id) values (?, ?)`, [userId, card.id])
   }
@@ -600,7 +677,7 @@ async function removeCardFromPlayer(userCardId: number): Promise<void>{
   await queryExec(`delete from game_user_card where id = ${userCardId}`)
 }
 
-async function getRepeatedCards(userId: number):Promise<{id:number, stars: number, repeated:number}[]>{
+async function getUserRepeatedCards(userId: number):Promise<{id:number, stars: number, repeated:number}[]>{
   return camelcaseKeys(await query(`
       select c.id, c.stars,
       (select count(*)
