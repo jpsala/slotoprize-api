@@ -1,9 +1,9 @@
 import { StatusCodes } from 'http-status-codes'
-import { utc } from 'moment'
+import moment, { utc } from 'moment'
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
 import createHttpError from 'http-errors'
-import getSlotConnection from '../../../db'
+import getSlotConnection, { queryExec, queryOne } from '../../../db'
 import { CardData, SpinData, WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
 import { setGameUserSpinData , getGameUserLastSpinDate, assignCardToUser } from '../../meta/meta.repo/gameUser.repo'
@@ -226,4 +226,22 @@ async function getWinData(jackpot)
 }
 function getJackpotRow(payTable) {
   return payTable.find(row => row.payment_type === 'jackpot')
+}
+export const setSpinData = async (user: GameUser): Promise<number> => {
+  const row = await queryOne(`select * from last_spin where game_user_id = ${user.id}`)
+  if (!row)
+    await queryExec(`insert into last_spin(last,days,game_user_id) values(?,?,?)`,
+      [new Date(), 0, user.id])
+  let days = row?.days ?? 0
+  const lastMoment = moment(row?.last ?? new Date())
+  const nowMoment = moment(new Date())
+  const diff = nowMoment.diff(lastMoment, 'days')
+  if (diff === 0) return 0
+  if (diff > 1)
+    days = 0
+  else
+    days++
+  await queryExec(`update last_spin set last=?, days=? where game_user_id=?`,
+    [new Date(), days, user.id])
+  return diff
 }
