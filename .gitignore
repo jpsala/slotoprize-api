@@ -5,3 +5,5 @@ error.log
 info.log
 src/static/assets
 src/static/bo
+
+slotoprizes-local.sql
