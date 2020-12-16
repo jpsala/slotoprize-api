@@ -23,7 +23,7 @@ export async function getWinnersForCrud(): Promise<any> {
     select r.id, gu.device_id,
         if(last_name != '', concat(last_name, ', ', first_name), '') as user,
         if(gu.email != '', gu.email, 'n/a')                          as email,
-        date_format(rh.closing_date, '%Y-%m-%d')                     as date,
+        date_format(r.closing_date, '%Y-%m-%d')                     as date,
         'Raffle'                                                     as origin,
         r.state                                                      as state,
         if(rl.id, concat(rl.name,' | ',rl.description), 'No localization data for this raffle')          as prize,
@@ -33,7 +33,7 @@ export async function getWinnersForCrud(): Promise<any> {
         inner join raffle r on rh.raffle_id = r.id
         inner join game_user gu on r.winner = gu.id
         left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = '${languageCode}'
-      where rh.closing_date
+      where r.closing_date
   order by 5 desc
 `
 const data = await query(select)

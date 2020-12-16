@@ -296,7 +296,7 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
   const gameUser = await getGameUserByDeviceId(deviceId)
   const raffleHistory = await query(`
     SELECT rh.raffle_id as raffle_item_id, rh.transaction_date, rh.tickets,
-           rh.closing_date, rh.raffle_numbers, 
+           raffle.closing_date, rh.raffle_numbers, 
            (
             select IF(count(*) = 0, concat('No localization for ', '${gameUser.languageCode}'), rl.name) from raffle_localization rl
               where rl.raffle_id = rh.raffle_id and rl.language_code = '${gameUser.languageCode}' limit 1
@@ -306,7 +306,7 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
         left join raffle_localization rl on raffle.id = rl.raffle_id and
               rl.language_code = "${gameUser.languageCode}"
     where rh.game_user_id = ${gameUser.id}
-    order by rh.id desc
+    order by raffle.closing_date desc
     limit 20
   `)
   return camelcaseKeys(raffleHistory) as RaffleRecordData[]
@@ -386,11 +386,12 @@ async function saveWinner(raffleHistoryId: number): Promise<void> {
 
 */
 export const getWinners = async (): Promise<any[]> =>
+//URGENT ordenar de mas nuevo a mas viejo
 {
   const url = getAssetsUrl()
   const winners = await query(`
   select concat(gu.first_name, ', ', gu.last_name) as winnerName,
-    rh.closing_date as date , concat('${url}', r.texture_url) as textureUrl,
+    r.closing_date as date , concat('${url}', r.texture_url) as textureUrl,
       (
         select IF(count(*) = 0, concat('No localization for ', gu.language_code), rl.name) from raffle_localization rl
           where rl.raffle_id = r.id and rl.language_code = gu.language_code limit 1
@@ -399,6 +400,7 @@ export const getWinners = async (): Promise<any[]> =>
       inner join raffle_history rh on rw.raffle_history_id = rh.id
       inner join game_user gu on rh.game_user_id = gu.id
       inner join raffle r on rh.raffle_id = r.id
+    order by r.closing_date desc
   `)
   // return camelcaseKeys(winners.map((winnerRow) => { return {raffleWinnerData: winnerRow} }))
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
