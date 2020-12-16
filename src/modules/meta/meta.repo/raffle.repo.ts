@@ -306,7 +306,7 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
         left join raffle_localization rl on raffle.id = rl.raffle_id and
               rl.language_code = "${gameUser.languageCode}"
     where rh.game_user_id = ${gameUser.id}
-    order by rh.id desc
+    order by raffle.closing_date desc
     limit 20
   `)
   return camelcaseKeys(raffleHistory) as RaffleRecordData[]
