@@ -296,7 +296,7 @@ export async function getRafflePurchaseHistory(deviceId: string): Promise<Raffle
   const gameUser = await getGameUserByDeviceId(deviceId)
   const raffleHistory = await query(`
     SELECT rh.raffle_id as raffle_item_id, rh.transaction_date, rh.tickets,
-           rh.closing_date, rh.raffle_numbers, 
+           raffle.closing_date, rh.raffle_numbers, 
            (
             select IF(count(*) = 0, concat('No localization for ', '${gameUser.languageCode}'), rl.name) from raffle_localization rl
               where rl.raffle_id = rh.raffle_id and rl.language_code = '${gameUser.languageCode}' limit 1
