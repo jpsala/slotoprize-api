@@ -8,8 +8,8 @@ export const getPrizes = async (): Promise<PrizeWinners[]> =>
   const retData: Array<PrizeWinners> = []
   retData.push(...raffleWinners, ...jackpotWinners)
   const retDataOrdered = retData.sort( (a, b) => {
-    if (a.date > b.date)  return 1 
-    if  (a.date < b.date)  return -1 
+    if (a.date > b.date)  return -1 
+    if  (a.date < b.date)  return 1 
     return 0
   })
   // for (const row of retDataOrdered) 
