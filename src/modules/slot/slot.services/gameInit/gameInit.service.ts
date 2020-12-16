@@ -10,8 +10,9 @@ import {getWallet} from "../wallet.service"
 import {getSetting} from "../settings.service"
 import { gameUserToProfile } from "../profile.service"
 import { getTicketPacks, TicketPackData } from '../events/ticket.service'
+import { setSpinData } from '../spin.service'
 import { getLastSpinDays } from './dailyReward.spin'
-import { getDailyRewardPrizes, DailyRewardPrize, setSpinData, isDailyRewardClaimed } from './../../slot.repo/dailyReward.repo'
+
 export async function gameInit(deviceId: string): Promise<any> {
   try {
     // await deleteSymbolsAtlas()
@@ -42,9 +43,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     await setSpinData(rawUser as GameUser)
 
     
-    const dailyRewards: DailyRewardPrize[] = await getDailyRewardPrizes()
-    const consecutiveLogsIdx = await getLastSpinDays(rawUser as GameUser)
-    const dailyRewardClaimed = tutorialComplete ? (await isDailyRewardClaimed(deviceId)) : true
+
     const languageCode = rawUser.languageCode
     const interstitialsRatio = Number(await getSetting('interstitialsRatio', '5'))
     const maxAllowedBirthYear = Number(await getSetting('maxAllowedBirthYear', '2002'))
@@ -75,9 +74,6 @@ export async function gameInit(deviceId: string): Promise<any> {
       rafflePrizeData,
       profileData: toCamelCase(rawUser),
       languagesData: toCamelCase(languages),
-      consecutiveLogsIdx,
-      dailyRewardsData: dailyRewards,
-      dailyRewardClaimed,
       ticketPrice,
       walletData: wallet,
       maxAllowedBirthYear,

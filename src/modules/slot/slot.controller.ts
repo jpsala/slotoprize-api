@@ -20,7 +20,7 @@ import { deleteRaffle, getRafflesForCrud, postRaffle } from '../meta/meta.repo/r
 import { getSupportRequestForCrud, postSupportAdminForCrud, setSoporte, supportAdminForCrud } from '../meta/meta.repo/support.repo'
 import { GameUser, User } from "../meta/meta.types"
 import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
-import { dailyRewardClaim, dailyRewardInfo, deleteDailyRewardPrize, getDailyRewardPrizesForCrud, setDailyRewardPrize } from './slot.repo/dailyReward.repo'
+import { dailyRewardClaim, dailyRewardInfo, deleteDailyRewardPrize, getDailyRewardPrizesForCrud, setDailyRewardPrize, getRewardCalendar } from './slot.repo/dailyReward.repo'
 import { deleteEvent, getEventsForCrud, setEvent } from './slot.repo/event.repo'
 import { deleteSkinForCrud, getSkinsForCrud, postSkinForCrud } from './slot.repo/skin.repo'
 import { testUser39 } from './slot.repo/spin.regeneration.repo'
@@ -283,6 +283,12 @@ export async function dailyRewardDelete(req: Request, res: Response): Promise<an
   const rewards = await deleteDailyRewardPrize(Number(req.query.id))
   res.status(200).json(rewards)
 }
+export async function rewardCalendarGet(req: Request, res: Response): Promise<void> {
+  const user = await getGameUserById(req.user.id) as GameUser
+  const resp = await getRewardCalendar(user)
+  res.status(200).send(resp)
+}
+
 export async function spinSettingsForCrudGet(req: Request, res: Response): Promise<any>{
   const value = await getSpinSettingsForCrud()
   res.status(200).json(value)

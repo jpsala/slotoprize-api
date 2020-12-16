@@ -2,6 +2,7 @@ import { BAD_REQUEST } from 'http-status-codes'
 import moment from 'moment'
 import createHttpError from 'http-errors'
 import { getWallet } from '../slot.services/wallet.service'
+import { getLastSpinDays } from '../slot.services/gameInit/dailyReward.spin'
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { Wallet } from './../../meta/models/wallet'
 import { GameUser } from './../../meta/meta.types'
@@ -83,4 +84,17 @@ export const dailyRewardInfo = async (deviceId: string): Promise<void> => {
   if (isClaimed) throw createHttpError(BAD_REQUEST, 'The daily reward was allreaady claimed')
   const userPrize = await getUserPrize(user)
   console.log('Claimed %o, prize %o', isClaimed, userPrize)
+}
+export const getRewardCalendar = async (user: GameUser): Promise<any> => {
+  const dailyRewards: DailyRewardPrize[] = await getDailyRewardPrizes()
+  const tutorialComplete = (user.tutorialComplete || 0 as number) === 1
+  const dailyRewardClaimed = tutorialComplete ? (await isDailyRewardClaimed(user.deviceId)) : true
+  const consecutiveLogsIdx = await getLastSpinDays(user )
+
+  return  {
+    consecutiveLogsIdx,
+    totalLogsClaimed: 2,
+    rewards: dailyRewards,
+    dailyRewardClaimed,
+  }
 }
