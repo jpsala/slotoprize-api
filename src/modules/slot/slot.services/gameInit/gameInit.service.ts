@@ -11,7 +11,6 @@ import {getSetting} from "../settings.service"
 import { gameUserToProfile } from "../profile.service"
 import { getTicketPacks, TicketPackData } from '../events/ticket.service'
 import { setSpinData } from '../spin.service'
-import { getLastSpinDays } from './dailyReward.spin'
 
 export async function gameInit(deviceId: string): Promise<any> {
   try {
