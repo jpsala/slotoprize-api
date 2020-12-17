@@ -1,7 +1,8 @@
-import createError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
+import createHttpError from 'http-errors'
 import { queryOne, queryExec } from '../../../db'
 import {Wallet} from '../slot.types'
+import { paymentTypesPlural } from '../../../helpers'
 import { getSetting } from './../slot.services/settings.service'
 import { GameUser } from './../../meta/meta.types'
 import { userChanged, userAdded } from './spin.regeneration.repo'
@@ -20,7 +21,7 @@ export const getWallet = async (user: GameUser): Promise<Wallet> =>
   where game_user_id = ${user.id}
   `)
   if (Number(respUpdateRow.affectedRows) !== 1)
-  throw createError( StatusCodes.INTERNAL_SERVER_ERROR, 'Something whent wrong storing the wallet' )
+  throw createHttpError( StatusCodes.INTERNAL_SERVER_ERROR, 'Something whent wrong storing the wallet' )
   return wallet
 }
 export async function insertWallet(user: GameUser, coins?: number, spins?: number, tickets?: number):
@@ -34,9 +35,15 @@ Promise<Wallet>
   const walletDto: WalletDto = {game_user_id: user.id, coins, spins, tickets}
   const respInsert = await queryExec(`insert into wallet set ?`, walletDto)
   if (Number(respInsert.insertId) <= 0)
-    throw createError( StatusCodes.INTERNAL_SERVER_ERROR, 'Something whent wrong storing the wallet' )
+    throw createHttpError( StatusCodes.INTERNAL_SERVER_ERROR, 'Something whent wrong storing the wallet' )
   walletDto.id = respInsert.insertId
   await userAdded(user, spins)
 
   return walletDto as Wallet & { game_user_id: number, id: number }
+}
+
+export function addToWallet(wallet: Wallet, rewardType: string, rewardAmount: string): Wallet {
+  if(!paymentTypesPlural.includes(rewardType)) throw createHttpError(StatusCodes.BAD_REQUEST, `Reward type ${rewardType} does not exist's`)
+  wallet[rewardType] += Number(rewardAmount)
+  return wallet
 }

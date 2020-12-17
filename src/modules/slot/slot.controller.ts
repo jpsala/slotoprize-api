@@ -28,6 +28,7 @@ import * as slotService from './slot.services'
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
 import { appodealCallback, appodealCallbackPlain, QueryParams } from './slot.services/appodeal'
 import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, cardSetClaim, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetForCrud, getCardTrade, postChestForFront, RewardChest } from './slot.services/card.service'
+import { Chest, postChest } from './slot.services/chest.service'
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
 import { getPurchaseTicketPack } from './slot.services/events/ticket.service'
 import { getVideoAdsViewCountForCrud } from './slot.services/ironsource'
@@ -48,7 +49,6 @@ import * as walletService from "./slot.services/wallet.service"
 
 
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
-  console.log('req', req)
   const resp = await getPlayerForFront(String(req.query.id))
   res.status(200).json(resp)
 }
@@ -485,12 +485,11 @@ export async function cardsForFrontGet(req: Request, res: Response): Promise<voi
   const cards = await getCardsForCrud()
   res.status(200).send(cards)
 }
-export async function cardsChestForFrontPost(req: Request, res: Response): Promise<void> {
-  const cards = await postChestForFront(req.body.name as string, req.body.chest as RewardChest)
-  res.status(200).send(cards)
+export async function chestForFrontPost(req: Request, res: Response): Promise<void> {
+  const chestId = await postChest(req.body.chest as Chest)
+  res.status(200).json({chestId})
 }
 export async function cardSetForFrontDelete(req: Request, res: Response): Promise<void> {
-  console.log('req', req)
   const cards = await deleteCardSetForCrud(Number(req.query.cardSetId))
   res.status(200).send(cards)
 }
