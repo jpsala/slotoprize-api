@@ -1,13 +1,13 @@
-import { BAD_REQUEST } from 'http-status-codes'
+import { StatusCodes } from 'http-status-codes'
 import moment from 'moment'
 import createHttpError from 'http-errors'
 import { getWallet } from '../slot.services/wallet.service'
 import { getLastSpinDays } from '../slot.services/gameInit/dailyReward.spin'
+import { Chest, ChestChestType, getChestChestTypes, getChests, getDailyRewardChests, isChestClaimed } from '../slot.services/chest.service'
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
-import { Wallet } from './../../meta/models/wallet'
 import { GameUser } from './../../meta/meta.types'
 import { query, queryOne, queryExec } from './../../../db'
-import { updateWallet } from './wallet.repo'
+import { addToWallet, updateWallet } from './wallet.repo'
 
 export type SpinData = { last: Date, days: number, lastClaim: Date }
 export const getLastSpin = async (user: GameUser): Promise<SpinData | undefined> => {
@@ -26,14 +26,17 @@ export const getDailyRewardPrizes = async (): Promise<DailyRewardPrize[]> => {
   })
   return dailyRewardPrizes
 }
-export const getDailyRewardPrizesForCrud = async (): Promise<DailyRewardPrize[]> => {
+export const getDailyRewardPrizesForCrud = async (): Promise<{rewards: DailyRewardPrize[], chests: Chest[], chestTypes: ChestChestType[]}> => {
+  const chests = await getDailyRewardChests()
   const rows =  (await query(`select * from daily_reward order by id asc`)) as DailyRewardPrize[]
-  return rows
+  const chestTypes = await getChestChestTypes()
+
+  return {rewards: rows, chests, chestTypes }
 }
 export const setDailyRewardPrize = async (reqData: DailyRewardPrize): Promise<number> => {
   const isNew = reqData.id === -1
-  if(Number(reqData.amount) < 1) throw createHttpError(BAD_REQUEST, 'Amount has to be a valid integer bigger than 1')
-  if(reqData.type === '') throw createHttpError(BAD_REQUEST, 'Type has to be coin, ticket or spin')
+  if(Number(reqData.amount) < 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Amount has to be a valid integer bigger than 1')
+  if(reqData.type === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Type has to be coin, ticket or spin')
   if (isNew) {
     delete reqData.id
     const resp = await queryExec(`insert into daily_reward set ?`, reqData)
@@ -81,7 +84,7 @@ export const dailyRewardInfo = async (deviceId: string): Promise<void> => {
   const user = await getGameUserByDeviceId(deviceId)
   if (user == null) throw createHttpError(BAD_REQUEST, 'there is no user with that deviceID')
   const isClaimed = await isDailyRewardClaimed(deviceId)
-  if (isClaimed) throw createHttpError(BAD_REQUEST, 'The daily reward was allreaady claimed')
+  if (isClaimed) throw createHttpError(StatusCodes.BAD_REQUEST, 'The daily reward was allreaady claimed')
   const userPrize = await getUserPrize(user)
   console.log('Claimed %o, prize %o', isClaimed, userPrize)
 }
@@ -90,11 +93,17 @@ export const getRewardCalendar = async (user: GameUser): Promise<any> => {
   const tutorialComplete = (user.tutorialComplete || 0 as number) === 1
   const dailyRewardClaimed = tutorialComplete ? (await isDailyRewardClaimed(user.deviceId)) : true
   const consecutiveLogsIdx = await getLastSpinDays(user )
+  const rewardChests: Chest[] = await getChests('')
+  for (const chest of rewardChests) {
+    const claimed = await isChestClaimed(user.id, chest.id)
+    chest.claimed = claimed
+  }
 
   return  {
     consecutiveLogsIdx,
     totalLogsClaimed: 2,
     rewards: dailyRewards,
     dailyRewardClaimed,
+    rewardChests
   }
 }
