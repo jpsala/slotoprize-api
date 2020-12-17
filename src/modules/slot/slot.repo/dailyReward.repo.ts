@@ -74,7 +74,8 @@ export const dailyRewardClaim = async (deviceId: string): Promise<Partial<Wallet
   if (!userPrize) throw createHttpError(BAD_REQUEST, 'User have no daily reward')
   const wallet = await getWallet(user)
   console.log('`${userPrize.type}s`', `${userPrize.type}s`, userPrize.amount)
-  wallet[`${userPrize.type}s`] += userPrize.amount
+
+  wallet = addToWallet(wallet, rewardType, userPrize.amount)
   await updateWallet(user, wallet)
   await queryExec(`update last_spin set last_claim = ? where game_user_id = ?`, [new Date(), user.id])
   // await exec(`update wallet set ${userPrize.type}s = ?`, [wallet[`${userPrize.type}s`]])
