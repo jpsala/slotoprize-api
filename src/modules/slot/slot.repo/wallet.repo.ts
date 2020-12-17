@@ -42,7 +42,7 @@ Promise<Wallet>
   return walletDto as Wallet & { game_user_id: number, id: number }
 }
 
-export function addToWallet(wallet: Wallet, rewardType: string, rewardAmount: string): Wallet {
+export function addToWallet(wallet: Wallet, rewardType: string, rewardAmount: number): Wallet {
   if(!paymentTypesPlural.includes(rewardType)) throw createHttpError(StatusCodes.BAD_REQUEST, `Reward type ${rewardType} does not exist's`)
   wallet[rewardType] += Number(rewardAmount)
   return wallet
