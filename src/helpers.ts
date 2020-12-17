@@ -14,9 +14,14 @@ export const toBoolean = (value: string | number | boolean): boolean => {
     if (typeof value === 'boolean') return value
     throw createHttpError(StatusCodes.BAD_REQUEST, 'Value type not supported ' + typeof value)
 }
-export const paymentTypes = ['coins', 'spins', 'tickets', 'cards']
+export const paymentTypesPlural = ['coins', 'spins', 'tickets', 'cards']
+export const paymentTypes = ['coin', 'spin', 'ticket', 'card']
+
 export const isValidPaymentType = (paymentType: string): boolean => {
     return paymentTypes.includes(paymentType.toLocaleLowerCase())
+}
+export const isValidPaymentTypePlural = (paymentType: string): boolean => {
+    return paymentTypesPlural.includes(paymentType.toLocaleLowerCase())
 }
 export function pickProps<T>(obj: T, props: string[]): Partial<T> {
     return props.reduce((a, e) => ((a[e] = obj[e]), a), {})
