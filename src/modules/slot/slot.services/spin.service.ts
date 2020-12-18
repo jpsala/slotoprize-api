@@ -230,10 +230,10 @@ function getJackpotRow(payTable) {
 export const setSpinData = async (user: GameUser): Promise<number> => {
   const row = await queryOne(`select * from last_spin where game_user_id = ${user.id}`)
   if (!row)
-    await queryExec(`insert into last_spin(last,days,game_user_id) values(?,?,?)`,
+    await queryExec(`insert into last_spin(last_login,days,game_user_id) values(?,?,?)`,
       [new Date(), 0, user.id])
   let days = row?.days ?? 0
-  const lastMoment = moment(row?.last ?? new Date())
+  const lastMoment = moment(row?.last_login ?? new Date())
   const nowMoment = moment(new Date())
   const diff = nowMoment.diff(lastMoment, 'days')
   if (diff === 0) return 0
@@ -241,7 +241,7 @@ export const setSpinData = async (user: GameUser): Promise<number> => {
     days = 0
   else
     days++
-  await queryExec(`update last_spin set last=?, days=? where game_user_id=?`,
+  await queryExec(`update last_spin set last_login=?, days=? where game_user_id=?`,
     [new Date(), days, user.id])
   return diff
 }

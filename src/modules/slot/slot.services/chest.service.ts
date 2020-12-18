@@ -6,7 +6,7 @@ import { deleteProps, isValidPaymentType  } from "../../../helpers"
 
 export type ChestReward = {id: number, chestId: number, type: string, amount: number} 
 export type ChestChestType = {id: number, name: string}
-export type ChestType = 'regular' | 'premium' | '' // internal_type in chest table
+export type ChestType = 'regular' | 'premium' | 'rewardCalendar' // internal_type in chest table
 export type Chest = {
   id: number,
   chestTypeId: number,
@@ -18,7 +18,7 @@ export type Chest = {
   claimed? : boolean
 }
 export type ChestCL = Omit<Chest, "type, chestType, claimed">
-export const getChests = async(internalType: ChestType = ''): Promise<Chest[]> => {
+export const getChests = async(internalType: ChestType): Promise<Chest[]> => {
   const chests = (await query(
     `select c.id, c.amount, c.currency, ct.id chestTypeId, ct.name chestType, c.internal_type type
       from chest c
@@ -104,8 +104,16 @@ export const isChestClaimed = async (userId: number, chestId: number): Promise<b
     )
   return (claimId && Number(claimId) >= 0) ? true : false
 }
+
+export const setChestClaimed = async (userId: number, chestId: number): Promise<void> => {
+  await queryExec(`insert into game_user_chest(game_user_id, chest_id) values (?,?)`,
+    [
+      userId, chestId
+    ])
+}
+
 export const getDailyRewardChests = async (): Promise<Chest[]> => {
-  let dailyRewardChests = await getChests('') 
+  let dailyRewardChests = await getChests('rewardCalendar') 
   if(dailyRewardChests && dailyRewardChests.length > 0 && dailyRewardChests.length < 4) throw createHttpError(StatusCodes.BAD_REQUEST, 'Missing Chests for daily reward')
   if(dailyRewardChests.length === 0){
     const chestTypes = await getChestChestTypes()
@@ -114,7 +122,7 @@ export const getDailyRewardChests = async (): Promise<Chest[]> => {
         (internal_type, chest_type_id, currency, amount) values (?,?,?,?)`,
         ['', type.id, 'coin', 0])
   }
-  dailyRewardChests = await getChests('') 
+  dailyRewardChests = await getChests('rewardCalendar') 
 
   return dailyRewardChests
 }
@@ -155,6 +163,6 @@ async function getFirstChestType(): Promise<ChestChestType> {
   return chestTypes[0]
 }
 
-export function chestToChestCL(chestRegular: Chest): ChestCL {
-  return deleteProps(chestRegular, ['chestTypeId', 'chestType', 'type']) as ChestCL
+export function chestToChestCL(chest: Chest): ChestCL {
+  return deleteProps(chest, ['chestTypeId', 'type']) as ChestCL
 }

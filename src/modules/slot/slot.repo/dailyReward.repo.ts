@@ -3,17 +3,17 @@ import moment from 'moment'
 import createHttpError from 'http-errors'
 import { getWallet } from '../slot.services/wallet.service'
 import { getLastSpinDays } from '../slot.services/gameInit/dailyReward.spin'
-import { Chest, ChestChestType, getChestChestTypes, getChests, getDailyRewardChests, isChestClaimed } from '../slot.services/chest.service'
+import { Chest, ChestChestType, getChestChestTypes, getChests, getDailyRewardChests, isChestClaimed, setChestClaimed } from '../slot.services/chest.service'
 import { getGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { GameUser } from './../../meta/meta.types'
-import { query, queryOne, queryExec } from './../../../db'
+import { query, queryOne, queryExec, queryScalar } from './../../../db'
 import { addToWallet, updateWallet } from './wallet.repo'
 
 export type SpinData = { last: Date, days: number, lastClaim: Date }
 export const getLastSpin = async (user: GameUser): Promise<SpinData | undefined> => {
   const row = await queryOne(`select * from last_spin where game_user_id = ${user.id} order by id limit 1`)
   if (!row) return undefined
-  const spinData: SpinData = { days: Number(row.days), last: new Date(row.last), lastClaim: new Date(row.last_claim) }
+  const spinData: SpinData = { days: Number(row.days), last: new Date(row.last_login), lastClaim: new Date(row.last_claim) }
   return spinData
 }
 export type DailyRewardPrize = { id?:number, type: string, amount: number }
@@ -73,7 +73,7 @@ export const dailyRewardClaim = async (deviceId: string): Promise<any> => {
   //URGENT quitar luego
   //URGENT reseting last claim for user, QUITAR
   //await queryExec(`update last_spin set last_claim = NULL where game_user_id = ${user.id}`)
-
+  // test
 
   const isClaimed = await isDailyRewardClaimed(deviceId)
   if (isClaimed) throw createHttpError(StatusCodes.BAD_REQUEST, 'The daily reward was already claimed')
@@ -94,24 +94,46 @@ export const dailyRewardClaim = async (deviceId: string): Promise<any> => {
   //URGENT todo 
   //guardo acá la billetera que voy a devolver
   const walletData = { coins: wallet.coins, tickets: wallet.tickets, spins: wallet.spins }
+
+  await queryExec(`update last_spin set last_claim = ? where game_user_id = ?`, [new Date(), user.id])
+
   // la lógica de los chest
-  const totalLogsClaimed = lastSpin.days + 1
-  const chests = await getChests('')
-  let claimedChest
+
+  let totalLogsClaimed = Number(await queryScalar(`
+    select total_logs_claimed
+      from last_spin
+    where game_user_id = ?
+  `, [user.id])) 
+
+  totalLogsClaimed += 1
+
+  const chests = await getChests('rewardCalendar')
+  let claimedChest: Chest | undefined
   for (const chest of chests) {
     const claimed = await isChestClaimed(user.id, chest.id)
     console.log('chest.amount > totalLogsClaimed', chest.amount,  totalLogsClaimed)
-    if(!claimed && chest.amount > totalLogsClaimed){
+    if(!claimed && totalLogsClaimed >= chest.amount){
       claimedChest = chest
       console.log('chest to claim', claimedChest)
+      break
     }
   }
-  // busco el chest que corresponde a totalLogsClaimed
-  // valido que no esté claimed
-  // le otorgo los rewards al usuario
-  // marco como claimed
-  const chestGrantedId = -1 //al ID del chest otorgado al usuaro o -1 si no se le otorgó ninguno
-  await queryExec(`update last_spin set last_claim = ? where game_user_id = ?`, [new Date(), user.id])
+  let chestGrantedId = -1 //al ID del chest otorgado al usuaro o -1 si no se le otorgó ninguno
+  if(claimedChest){
+    chestGrantedId = claimedChest.id
+    await setChestClaimed(user.id, claimedChest.id)
+    let wallet = await getWallet(user)
+    for (const reward of claimedChest.rewards) 
+      wallet = addToWallet(wallet, `${reward.type}s`, reward.amount)
+    
+    await updateWallet(user, wallet) //este wallet no se devuelve, el wallet tiene que ser sin los cambios del chest
+  }
+
+  await queryExec(`
+    update last_spin set total_logs_claimed = ?
+    where game_user_id = ?
+`, [totalLogsClaimed, user.id])
+
   return {walletData, chestGrantedId}
 }
 export const dailyRewardInfo = async (deviceId: string): Promise<void> => {
