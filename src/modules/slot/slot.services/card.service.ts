@@ -134,18 +134,16 @@ export const getCardSetsForCrud = async ():
         text: '',
         // text: `${language.languageCode} localization`,
     })
-  const reward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
-  const chestRegularString = await getSetting('chestRegularRewards', JSON.stringify(reward))
-  const chestPremiumString = await getSetting('chestPremiumRewards', JSON.stringify(reward))
-  const chestRegular: RewardChest = JSON.parse(chestRegularString) as RewardChest
-  const chestPremium: RewardChest = JSON.parse(chestPremiumString) as RewardChest
-    
-  return {cardSets, languages, newCardSet, newCard, chestRegular, chestPremium}
+
+  const chestRegular = await getRegularChest()    
+  const chestPremium = await getPremiumChest()    
+  const chestTypes = await getChestChestTypes()
+  return {cardSets, languages, newCardSet, newCard, chestRegular, chestPremium, chestTypes}
 }
 export const postCardSetForCrud =   async (cardSet: CardSet): Promise<any> => {
   if(cardSet.rewardAmount === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Amount can not be empty')
   if(cardSet.themeColor === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Theme Color can not be empty')
-  if(!isValidPaymentType(`${cardSet.rewardType}s`)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Type is invalid')
+  if(!isValidPaymentType(`${cardSet.rewardType}`)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Type is invalid')
   
   const languages: Language[] = camelcaseKeys(await query(`select * from language`))
   // if(!isNew){
@@ -530,7 +528,7 @@ export async function getCardTrade(regularStr: string | undefined, userId: numbe
   await checkIfToFastEndpointCall({endPoint: 'card_trade', userId, miliseconds: 5000})
 
   const isRegular = regularStr.toLocaleLowerCase() === 'true'
-  const chest =  await getChestFromSettings(isRegular)
+  const chest =  isRegular ? (await getRegularChest()) : (await getPremiumChest())
 
   console.log('chest:', chest)
 
