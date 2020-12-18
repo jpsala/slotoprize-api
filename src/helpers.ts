@@ -228,3 +228,11 @@ export const setEndpointLastCall = async ({endPoint, userId}: {endPoint: string,
     `, [userId, endPoint, format(new Date(), 'yyyy-MM-dd HH:mm:ss'), lastCallId])
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function deleteProps (obj, prop): any {
+    const newObj = obj
+    for (const p of prop) 
+        (p in obj) && (delete newObj[p])
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return newObj
+}
