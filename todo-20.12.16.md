@@ -1,21 +1,40 @@
-totalLocsClaimed
+En el backoffice
+- [x] cambiar daily reward x por Reward Calendar
+- [x] agregar los cuatro chest
 
+y a su vez, habrá 4 chests, definidos en el backoffice y que me enviarás en reward_calendar
 
-se van de game_init a un endpoin nuevo:
+public class RewardCalendarData
+{
+    public int consecutiveLogsIdx;
+    public int totalLogsClaimed; //*
+    public List<RewardData> rewards;
+    public bool dailyRewardClaimed;
+    public List<RewardChestData> rewardChests; //*
+}
 
-reward_calendar
-deviceId, sessionToken
+rewardChestData:
+  renombrar:
+    priceAmount a amount
+    priceCurrency a currency
+  agregar
+    claimed: bool
+    id (se devuelve en los endpoints)
 
-dailyrewardData cambia a reward
-import { getDailyRewardPrizes, DailyRewardPrize, setSpinData,  } from './../../slot.repo/dailyReward.repo'
+por cada chest, tenemos que guardar de cual ya hizo claim, para que no lo pueda cobrar 2 veces
 
- public class RewardCalendarData
-    {
-        public int consecutiveLogsIdx;
-        public int totalLogsClaimed;
-        public List<RewardData> rewards;
-        public bool dailyRewardClaimed;
-    }
+y además, cada chest tendrá un valor asignado en días, que definirá si puede ser cobrado
 
-reward_calendar
+eso no sé donde meterlo aun, 
+
+si reutilizar el prize del chest,
+
+o ponerlo aparte
+
+Los chest pasan a una tabla propia
+  pasar los chest de los settings a la tabla
+
+en dailyRewardClaim:
+  ahora devuelve la billetera, tiene que devolverla anidada con los valores anteriores a asignar el reward del chest, devolver con el dayly reward sin el chest.
+  y el indice del chest (chestGrantedId) in en caso de no tener un chest reward va en -1
 
