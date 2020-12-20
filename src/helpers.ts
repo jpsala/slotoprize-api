@@ -7,7 +7,8 @@ import createHttpError from 'http-errors'
 import { format } from 'date-fns'
 import { utc } from 'moment'
 import { queryExec, queryOne, queryScalar } from './db'
-export const toBoolean = (value: string | number | boolean): boolean => {
+export const toBoolean = (value: string | number | boolean | undefined): boolean => {
+    if(value===undefined) return false
     if (typeof value === 'string')
         return value.toUpperCase() === 'TRUE' || value.toUpperCase() === '1'
     if (typeof value === 'number') return value === 1
