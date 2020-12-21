@@ -49,7 +49,7 @@ export async function gameInit(deviceId: string): Promise<any> {
     const nextRaffleSessionSpins = Number(await getSetting('nextRaffleSessionSpins', '7'))
     const incomingRaffleThresholdInDays = Number(await getSetting('incomingRaffleThresholdInDays', '5'))
     const ticketPacksData: TicketPackData[] = await getTicketPacks()
-  rawUser = gameUserToProfile(rawUser)
+    rawUser = gameUserToProfile(rawUser)
     
     delete rawUser.deviceId
     delete rawUser.languageCode
