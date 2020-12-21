@@ -287,6 +287,7 @@ export async function dailyRewardDelete(req: Request, res: Response): Promise<an
 }
 export async function rewardCalendarGet(req: Request, res: Response): Promise<void> {
   const user = await getGameUserById(req.user.id) as GameUser
+  if(!user) throw createHttpError(StatusCodes.BAD_REQUEST, `User with ID ${req.user.id} not found`)
   const resp = await getRewardCalendar(user)
   res.status(200).send(resp)
 }
