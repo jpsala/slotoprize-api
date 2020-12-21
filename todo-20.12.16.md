@@ -42,4 +42,3 @@ bordes en el bo en reward calendar
 quitar los #ids y que queden como un campo más
 en live el campo totalLogsClaimed se inicializa con el contenido en 0
 en live cambiar el campo last a last_login en last_spin
-en el daily rewards en el BO en los chests va una pequeña leyenda: "* chest amount indicates the number of days and currency can be ignored"
