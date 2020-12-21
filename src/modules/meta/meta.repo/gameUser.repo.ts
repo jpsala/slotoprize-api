@@ -25,6 +25,7 @@ export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<Game
     user.adsFree = false
     user.tutorialComplete = false
   }
+  console.log('user', user)
   return user
 }
 export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: Date }> =>{
@@ -77,7 +78,7 @@ export async function getGameUserByDeviceId(deviceId: string): Promise<GameUser>
 
   const userSelect = `select * from game_user where device_id ='${deviceId}'`  
 
-  const user = await queryOne(userSelect, undefined, false) as GameUser
+  const user = camelcaseKeys(await queryOne(userSelect, undefined, false)) as GameUser
 
   if(user){
     user.tutorialComplete = toBoolean(user.tutorialComplete)
