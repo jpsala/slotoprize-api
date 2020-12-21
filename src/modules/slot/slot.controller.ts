@@ -2,7 +2,7 @@ import toCamelCase from 'camelcase-keys'
 import { Request, Response } from 'express'
 import formidable from 'formidable'
 import createHttpError from 'http-errors'
-import { BAD_REQUEST } from 'http-status-codes'
+import { BAD_REQUEST, StatusCodes } from 'http-status-codes'
 import { log } from '../../log'
 import { getNewToken, verifyToken } from '../../services/jwtService'
 import * as metaService from '../meta/meta-services'
@@ -108,7 +108,9 @@ export async function gameInitGet(req: Request, res: Response): Promise<any>{
   return initData
 }
 export async function walletGet(req: Request, res: Response): Promise<any>{
+  
   const user = await getGameUserByDeviceId(String(req.query.deviceId))
+  if (!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found')
   const resp = await walletService.getWallet(user)
   res.status(200).json(resp)
 }
@@ -439,6 +441,8 @@ export async function atlasGet(req: Request, res: Response): Promise<any>{
 }
 export async function slotDataGet(req: Request, res: Response): Promise<any>{
   const user = await getGameUserByDeviceId(req.query.deviceId as string)
+  if (!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found')
+
   const resp = await getSlotData(user)
   res.status(200).send(resp)
 }
@@ -451,6 +455,8 @@ export async function iapGet(req: Request, res: Response): Promise<void>{
   if (req.query.adsFree === '0' || req.query.adsFree === 'false')
     adsFree = '0'
   const user = await getGameUserByDeviceId(req.query.deviceId as string)
+  if (!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found')
+
   await setIap(user, adsFree)
   res.status(200).send({status: 'ok'})
 }
