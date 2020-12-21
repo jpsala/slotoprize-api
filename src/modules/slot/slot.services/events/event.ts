@@ -2,7 +2,7 @@
 import later from '@breejs/later'
 import { add, formatDuration, intervalToDuration } from 'date-fns'
 import { raffleTime } from '../../../meta/meta.repo/raffle.repo'
-import { isValidJSON } from '../../../../helpers'
+import { isValidJSON, toBoolean } from '../../../../helpers'
 import { WebSocketMessage, wsServer } from './../webSocket/ws.service'
 import { getSkin, Skin } from './../../slot.repo/skin.repo'
 // #endregion
@@ -151,7 +151,7 @@ export function createEvent(eventDto: EventDTO): Event
       },
       name: eventDto.name,
       skinId: eventDto.skinId,
-      devOnly: eventDto.devOnly === 1,
+      devOnly: toBoolean(eventDto.devOnly),
       multiplier: eventDto.multiplier,
       // betPrice: eventDto.betPrice
     }

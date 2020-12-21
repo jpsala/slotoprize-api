@@ -6,12 +6,11 @@ import createHttpError from 'http-errors'
 import getSlotConnection, { queryExec, queryOne } from '../../../db'
 import { CardData, SpinData, WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
-import { setGameUserSpinData , getGameUserLastSpinDate, assignCardToUser } from '../../meta/meta.repo/gameUser.repo'
+import { setGameUserSpinData , getGameUserLastSpinDate, assignCardToUser, getOrSetGameUserByDeviceId } from '../../meta/meta.repo/gameUser.repo'
 import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { GameUser } from './../../meta/meta.types'
 
 import * as jackpotService from './jackpot.service'
-import { getOrSetGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import { getSetting } from './settings.service'
@@ -25,8 +24,8 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
   const user = await getOrSetGameUserByDeviceId(deviceId)
-  const tutorialComplete = (user.tutorialComplete || 0 as number) === 1
-  if (!tutorialComplete) return await getSpinDataForIncompleteTutorial()
+  console.log('tutorialComplete en spin', user.tutorialComplete)
+  if (!user.tutorialComplete) return await getSpinDataForIncompleteTutorial()
   
   if(!user.isDev && await spinWasToQuickly(user)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Spin was to quickly')
 

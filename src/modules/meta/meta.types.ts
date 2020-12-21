@@ -51,6 +51,7 @@ export interface GameUser {
   banned: boolean;
   adsFree: boolean;
   devicePlataform: string;
+  agreements: boolean;
 }
 export const  fakeUser = async (override: Partial<GameUser> = {}): Promise<GameUser> => {
   const languageCode = await getSetting('languageCode', 'fr-FR')
@@ -80,6 +81,7 @@ export const  fakeUser = async (override: Partial<GameUser> = {}): Promise<GameU
     adsFree: false,
     devicePlataform: 'devicePlataform',
     tutorialComplete: false,
+    agreements: false,
     wallet: {
       id: -1,
       coins: faker.random.number(100),

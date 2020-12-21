@@ -27,7 +27,7 @@ export const getLegalsForCrud = async (): Promise<any> => {
   return items
 }
 export const getLegals = async (deviceId: string): Promise<any> => {
-  const user = camelcaseKeys(await getGameUserByDeviceId(deviceId))
+  const user = camelcaseKeys(await getGameUserByDeviceId(deviceId)) 
   if (!user) throw createHttpError(BAD_REQUEST, 'User not found')
   const items:string[] = []
   const types = ['rules', 'faq', 'privacyPolicy']

@@ -4,7 +4,7 @@ import WebSocket, { Server } from 'ws'
 import PubSub from 'pubsub-js'
 import createHttpError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
-import { isValidJSON } from '../../../../helpers'
+import { isValidJSON, toBoolean } from '../../../../helpers'
 import { EventPayload } from '../events/event'
 import { getGameUserById } from '../../../meta/meta.repo/gameUser.repo'
 import { verifyToken } from '../../../../services/jwtService'
@@ -136,7 +136,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
   const send = (_msg: WebSocketMessage, client: WebSocket | undefined = undefined): void =>
   {
     console.log('send', _msg)
-    const forDevOnly = _msg.payload.devOnly
+    const forDevOnly = toBoolean(_msg.payload.devOnly)
     const payload = JSON.stringify(_msg.payload)
     const msgStr = Object.assign({}, _msg) as any
     msgStr.payload = payload
@@ -154,9 +154,9 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     {
       server.clients.forEach((client) => {
         // const userId = Number((client as ExtWebSocket).user.id)
-        const tutorialComplete = (client as ExtWebSocket).user.tutorialComplete
+        const tutorialComplete = toBoolean((client as ExtWebSocket).user.tutorialComplete)
         if (tutorialComplete) {
-          const isDev = toBoolean(Number((client as ExtWebSocket).user.isDev))
+          const isDev = toBoolean((client as ExtWebSocket).user.isDev)
           // if((client as ExtWebSocket).user.isNew)
           if (!(forDevOnly && !isDev)) {
             console.log('sended to specific client inside send to all')
