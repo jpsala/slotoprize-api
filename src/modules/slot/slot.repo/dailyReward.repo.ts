@@ -9,11 +9,11 @@ import { GameUser } from './../../meta/meta.types'
 import { query, queryOne, queryExec, queryScalar } from './../../../db'
 import { addToWallet, updateWallet } from './wallet.repo'
 
-export type SpinData = { last: Date, days: number, lastClaim: Date }
+export type SpinData = { last_login: Date, days: number, lastClaim: Date }
 export const getLastSpin = async (user: GameUser): Promise<SpinData | undefined> => {
   const row = await queryOne(`select * from last_spin where game_user_id = ${user.id} order by id limit 1`)
   if (!row) return undefined
-  const spinData: SpinData = { days: Number(row.days), last: new Date(row.last_login), lastClaim: new Date(row.last_claim) }
+  const spinData: SpinData = { days: Number(row.days), last_login: new Date(row.last_login), lastClaim: new Date(row.last_claim) }
   return spinData
 }
 export type DailyRewardPrize = { id?:number, type: string, amount: number }
@@ -89,8 +89,8 @@ export const dailyRewardClaim = async (deviceId: string): Promise<any> => {
   await updateWallet(user, wallet)
 
   const lastSpin = await getLastSpin(user)
-  if(!lastSpin?.days) throw createHttpError(StatusCodes.BAD_REQUEST, 'Error getting last spin date')
-  console.log('days', lastSpin.days)
+  console.log('lastSpin?.days', lastSpin?.days)
+  if(lastSpin?.days === undefined) throw createHttpError(StatusCodes.BAD_REQUEST, 'Error getting last spin date')
   //URGENT todo 
   //guardo acá la billetera que voy a devolver
   const walletData = { coins: wallet.coins, tickets: wallet.tickets, spins: wallet.spins }
@@ -99,19 +99,15 @@ export const dailyRewardClaim = async (deviceId: string): Promise<any> => {
 
   // la lógica de los chest
 
-  let totalLogsClaimed = Number(await queryScalar(`
-    select total_logs_claimed
-      from last_spin
-    where game_user_id = ?
-  `, [user.id])) 
-
+  let totalLogsClaimed = await getTotalLogsClaimed(user) 
+  console.log('totalLogsClaimed', totalLogsClaimed)
   totalLogsClaimed += 1
 
   const chests = await getChests('rewardCalendar')
   let claimedChest: Chest | undefined
   for (const chest of chests) {
     const claimed = await isChestClaimed(user.id, chest.id)
-    console.log('chest.amount > totalLogsClaimed', chest.amount,  totalLogsClaimed)
+    console.log('totalLogsClaimed >= chest.amount', totalLogsClaimed, chest.amount)
     if(!claimed && totalLogsClaimed >= chest.amount){
       claimedChest = chest
       console.log('chest to claim', claimedChest)
@@ -146,20 +142,29 @@ export const dailyRewardInfo = async (deviceId: string): Promise<void> => {
 }
 export const getRewardCalendar = async (user: GameUser): Promise<any> => {
   const dailyRewards: DailyRewardPrize[] = await getDailyRewardPrizes()
-  const tutorialComplete = (user.tutorialComplete || 0 as number) === 1
-  const dailyRewardClaimed = tutorialComplete ? (await isDailyRewardClaimed(user.deviceId)) : true
+  const dailyRewardClaimed = user.tutorialComplete ? (await isDailyRewardClaimed(user.deviceId)) : true
   const consecutiveLogsIdx = await getLastSpinDays(user )
-  const rewardChests: Chest[] = await getChests('')
+  const rewardChests: Chest[] = await getChests('rewardCalendar')
   for (const chest of rewardChests) {
     const claimed = await isChestClaimed(user.id, chest.id)
     chest.claimed = claimed
   }
+  const totalLogsClaimed = await getTotalLogsClaimed(user) 
+  
 
   return  {
     consecutiveLogsIdx,
-    totalLogsClaimed: 2,
+    totalLogsClaimed,
     rewards: dailyRewards,
     dailyRewardClaimed,
     rewardChests
   }
+}
+
+export async function getTotalLogsClaimed(user: GameUser): Promise<number> {
+  return Number(await queryScalar(`
+    select total_logs_claimed
+      from last_spin
+    where game_user_id = ?
+  `, [user.id]))
 }
