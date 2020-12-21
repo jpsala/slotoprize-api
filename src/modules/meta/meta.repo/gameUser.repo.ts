@@ -25,7 +25,6 @@ export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<Game
     user.adsFree = false
     user.tutorialComplete = false
   }
-  console.log('user', user)
   return user
 }
 export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: Date }> =>{
