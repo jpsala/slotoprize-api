@@ -1,19 +1,32 @@
-import * as httpStatusCodes from 'http-status-codes'
 import snakeCaseKeys from 'snakecase-keys'
 import camelcaseKeys from 'camelcase-keys'
 import { classToPlain } from "class-transformer"
 import { RowDataPacket } from 'mysql2'
 import createHttpError from 'http-errors'
+import { StatusCodes } from 'http-status-codes'
 import * as metaService from '../../meta/meta-services/meta.service'
 import getConnection, {queryOne, queryExec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
-import { log } from '../../../log'
-import { addHostToPath } from './../../../helpers'
+import { addHostToPath, toBoolean } from './../../../helpers'
 import { Wallet } from './../models/wallet'
 import { getSetting } from './../../slot/slot.services/settings.service'
+import { getDefaultLanguage } from './language.repo'
 
-
+export const getOrSetGameUserByDeviceId = async (deviceId: string): Promise<GameUser> => {
+  if (!deviceId) throw createHttpError(400, 'Parameter deviceId missing in getGameUserByDeviceId')
+  let user = camelcaseKeys(await getGameUserByDeviceId(deviceId))
+  if (!user) {
+    const languageCode = await getDefaultLanguage()
+    await query(`insert into game_user(device_id, language_code) value('${deviceId}', '${languageCode.languageCode}')`)
+    user = camelcaseKeys(await getGameUserByDeviceId(deviceId))
+    await insertWallet(user)
+    user.isNew = true
+    user.adsFree = false
+    user.tutorialComplete = false
+  }
+  return user
+}
 export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: Date }> =>{
   let resp = await queryOne(`select last from game_user_spin where game_user_id = ${user.id}`)
   if (!resp) {
@@ -35,9 +48,10 @@ export const getGameUserLastSpinDate = async (user: GameUser): Promise<{ last: D
   return {last: resp.last}
 }
 export const purchaseTickets = async (deviceId: string,ticketAmount: number): Promise<Wallet> => {
-  if (!deviceId) throw createHttpError(httpStatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
-
+  if (!deviceId) throw createHttpError(StatusCodes.BAD_REQUEST, 'deviceId is a required parameter')
+  
   const user = await metaService.getGameUserByDeviceId(deviceId)
+  if (!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found')
   const wallet = await getWallet(user)
   const ticketValue = Number(await getSetting('ticketPrice', '1'))
   const coinsRequired = ticketAmount * ticketValue
@@ -59,36 +73,38 @@ export async function getLanguage(userId: number): Promise<LanguageData> {
   `, undefined, true) as LanguageData
   return localizationData
 }
-export async function getGameUserByDeviceId(deviceId: string): Promise<GameUser>;
-export async function getGameUserByDeviceId(deviceId: string): Promise<Partial <GameUser> | GameUser>;
-export async function getGameUserByDeviceId(deviceId: string): Promise<Partial <GameUser> | GameUser> {
-  const userSelect = `
-      select *
-        from game_user
-      where device_id ='${deviceId}'`
-  const user = await queryOne(userSelect, undefined, false) as GameUser
+export async function getGameUserByDeviceId(deviceId: string): Promise<GameUser>{
+
+  const userSelect = `select * from game_user where device_id ='${deviceId}'`  
+
+  const user = camelcaseKeys(await queryOne(userSelect, undefined, false)) as GameUser
+
+  if(user){
+    user.tutorialComplete = toBoolean(user.tutorialComplete)
+    user.isDev = toBoolean(user.isDev)
+    user.isNew = toBoolean(user.isNew)
+    user.agreements = toBoolean(user.agreements)
+    user.wallet = await getWallet(user)
+  }
   return user
 }
+
 export async function getGameUserById(userId: number): Promise<GameUser | undefined> {
-  const userSelect = `
-    select *
-    from game_user
-    where id =${userId}`
-  try {
-    const user = camelcaseKeys(await queryOne(userSelect)) as GameUser
-    
-    if (user) {
-      user.tutorialComplete = Number(user.tutorialComplete) === 1
-      if (user)
-        user.wallet = await getWallet(user)
-    }
-    return user
-    
-  } catch (error) {
-    log.error('error en getGameUser', error)
-    return undefined
-    
-  }
+
+  const userSelect = `select * from game_user where id =${userId}`
+
+  const user = camelcaseKeys(await queryOne(userSelect)) as GameUser
+  
+  if(!user) return undefined
+
+  user.tutorialComplete = toBoolean(user.tutorialComplete)
+  user.isDev = toBoolean(user.isDev)
+  user.isNew = toBoolean(user.isNew)
+  user.agreements = toBoolean(user.agreements)
+  user.wallet = await getWallet(user)
+
+  return user
+
 }
 export async function getGameUserSpinData(userId: number): Promise<number>
 {
@@ -137,7 +153,7 @@ export async function getWinRaffle(userId: number): Promise<Partial<RafflePrizeD
     order by rh.id desc limit 1
   `)
 
-  if(!winData) throw createHttpError(httpStatusCodes.StatusCodes.BAD_REQUEST, 'getWinRaffle, winData not found')
+  if(!winData) throw createHttpError(StatusCodes.BAD_REQUEST, 'getWinRaffle, winData not found')
 
   const rafflePrizeData: Partial <RafflePrizeData> = {
     id: winData.id, name: winData.name, description: winData.description,
@@ -168,7 +184,7 @@ export async function getHaveWinJackpot(userId: number): Promise<boolean> {
 }
 export async function getHaveProfile(userId: number): Promise<boolean> {
   const profileData = await getGameUserById(userId)
-  if(!profileData) throw createHttpError(httpStatusCodes.StatusCodes.BAD_REQUEST, 'User not found in getHaveProfile')
+  if(!profileData) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found in getHaveProfile')
   console.log('profileData', profileData)
   return profileData.lastName !== "" &&
          profileData.firstName !== "" &&
@@ -236,6 +252,7 @@ export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Pro
 export async function setGameUserLogin(deviceId: string): Promise<any>
 {
   const gameUser = await getGameUserByDeviceId(deviceId)
+  if(!gameUser) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found')
   await queryExec(`
     replace into game_user_login set ?
   `,
@@ -271,7 +288,7 @@ export const getPlayerForFront = async (id: string): Promise<any> =>
 // }
 export const postToggleBanForCrud = async (userId: number): Promise<any> => {
   const resp = await queryOne(`select banned from game_user where id = ${userId}`)
-  const banned: number = Number(resp.banned) === 1 ? 0 : 1
+  const banned: number = toBoolean(resp.banned) ? 0 : 1
   await queryExec(`update game_user set banned = ${banned} where id = ${userId}`)
   return banned
 }
@@ -283,7 +300,7 @@ export const getPlayersForFront = async (filter: string): Promise < any > => {
     order by id desc
 `))
 for (const user of players) 
-  user.adsFree = user.adsFree === 1
+  user.adsFree = toBoolean(user.adsFree)
   
 
   const maxAllowedBirthYear = await getSetting('maxAllowedBirthYear', '2002')

@@ -9,13 +9,14 @@ import { queryExec, queryOne } from '../../../db'
 import { getWallet, updateWallet } from '../slot.services/wallet.service'
 import { getGameUserById } from '../../meta/meta.repo/gameUser.repo'
 import { log } from '../../../log'
+import { toBoolean } from '../../../helpers'
 import { WebSocketMessage, wsServer } from './../slot.services/webSocket/ws.service'
 
 type Message = { payload: any, client: WebSocket }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const runCommand = async (cmd: string, data: Message): Promise<void> => {
-  const userIsDev = (data.client as any).isDev
+  const userIsDev = toBoolean((data.client as any).isDev)
   const userId: string = (data.client as any).user.id
 
   const pendingMessagesRow = await queryOne(
@@ -42,7 +43,7 @@ export const runCommand = async (cmd: string, data: Message): Promise<void> => {
   }
   
   const activeEvents = getActiveEvents().filter(_event => {
-    if (_event.payload.devOnly && !userIsDev) return false
+    if (toBoolean(_event.payload.devOnly) && !userIsDev) return false
     return true
   })
   const wsMessages: EventPayload[] = []

@@ -5,7 +5,7 @@ import { formatDistanceStrict, differenceInSeconds , parse, add, format } from '
 import createHttpError from 'http-errors'
 import { BAD_REQUEST } from 'http-status-codes'
 import { GameUser } from '../../../meta/meta.types'
-import { isNotebook, getAssetsUrl } from './../../../../helpers'
+import { isNotebook, getAssetsUrl, toBoolean } from './../../../../helpers'
 import { query } from './../../../../db'
 import { createEvent, Event, EventDTO, EventPayload, Rule} from './event'
 if(isNotebook()) later.date.localTime()
@@ -212,7 +212,7 @@ export const getActiveEventMultiplier = (user: GameUser): number =>{
   {
     {
       const multiplier = event.payload.multiplier
-      if(event.payload.devOnly && !user.isDev) return multiplierAcumulator
+      if(toBoolean(event.payload.devOnly) && !user.isDev) return multiplierAcumulator
       return multiplier * multiplierAcumulator
     }
   }, 1)

@@ -42,9 +42,9 @@ export async function getCountriesForCrud(): Promise<any>
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return data
 }
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postCountryForCrud(fields, files): Promise<any>
 {
-  console.log('fields', fields)
   const isNew = fields.isNew
   console.log('isNew', isNew)
   const file = files.file ?? files.file

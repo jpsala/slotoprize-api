@@ -1,17 +1,16 @@
 import { StatusCodes } from 'http-status-codes'
-import { utc } from 'moment'
+import moment, { utc } from 'moment'
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-param-reassign */
 import createHttpError from 'http-errors'
-import getSlotConnection from '../../../db'
+import getSlotConnection, { queryExec, queryOne } from '../../../db'
 import { CardData, SpinData, WinType } from "../slot.types"
 import { getRandomNumber } from "../../../helpers"
-import { setGameUserSpinData , getGameUserLastSpinDate, assignCardToUser } from '../../meta/meta.repo/gameUser.repo'
+import { setGameUserSpinData , getGameUserLastSpinDate, assignCardToUser, getOrSetGameUserByDeviceId } from '../../meta/meta.repo/gameUser.repo'
 import { getJackpotLiveRow } from '../slot.repo/jackpot.repo'
 import { GameUser } from './../../meta/meta.types'
 
 import * as jackpotService from './jackpot.service'
-import { getOrSetGameUserByDeviceId } from './../../meta/meta-services/meta.service'
 import { getActiveBetPrice , getActiveEventMultiplier } from './events/events'
 
 import { getSetting } from './settings.service'
@@ -25,8 +24,8 @@ export async function spin(deviceId: string, multiplier: number): Promise<SpinDa
   await checkParamsAndThrowErrorIfFail(deviceId, multiplier)
 
   const user = await getOrSetGameUserByDeviceId(deviceId)
-  const tutorialComplete = (user.tutorialComplete || 0 as number) === 1
-  if (!tutorialComplete) return await getSpinDataForIncompleteTutorial()
+  console.log('tutorialComplete en spin', user.tutorialComplete)
+  if (!user.tutorialComplete) return await getSpinDataForIncompleteTutorial()
   
   if(!user.isDev && await spinWasToQuickly(user)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Spin was to quickly')
 
@@ -226,4 +225,22 @@ async function getWinData(jackpot)
 }
 function getJackpotRow(payTable) {
   return payTable.find(row => row.payment_type === 'jackpot')
+}
+export const setSpinData = async (user: GameUser): Promise<number> => {
+  const row = await queryOne(`select * from last_spin where game_user_id = ${user.id}`)
+  if (!row)
+    await queryExec(`insert into last_spin(last_login,days,game_user_id) values(?,?,?)`,
+      [new Date(), 0, user.id])
+  let days = row?.days ?? 0
+  const lastMoment = moment(row?.last_login ?? new Date())
+  const nowMoment = moment(new Date())
+  const diff = nowMoment.diff(lastMoment, 'days')
+  if (diff === 0) return 0
+  if (diff > 1)
+    days = 0
+  else
+    days++
+  await queryExec(`update last_spin set last_login=?, days=? where game_user_id=?`,
+    [new Date(), days, user.id])
+  return diff
 }

@@ -5,15 +5,17 @@ import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import { ResultSetHeader } from "mysql2"
 import getConnection, { query, queryExec, queryGetEmpty, queryOne, queryScalar } from "../../../db"
-import { isValidPaymentType, saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl, getRandomNumber, checkIfToFastEndpointCall } from "../../../helpers"
+import { saveFile , getUrlWithoutHost, getAssetsPath , getAssetsUrl, getRandomNumber, checkIfToFastEndpointCall, isValidPaymentType } from "../../../helpers"
 import { getLocalizations, Localization } from "../../meta/meta-services/localization.service"
 import { Language } from "../../meta/models"
 import { Atlas, buildAtlas, getAtlas } from "../../meta/meta-services/atlas"
 import { getGameUserById } from "../../meta/meta.repo/gameUser.repo"
 import { GameUser } from "../../meta/meta.types"
 import { Wallet } from "../slot.types"
-import { getSetting, setSetting } from "./settings.service"
+import { addToWallet } from "../slot.repo/wallet.repo"
+import { getSetting } from "./settings.service"
 import { updateWallet } from "./wallet.service"
+import { Chest, ChestChestType, chestToChestCL, getChestChestTypes, getPremiumChest, getRegularChest } from "./chest.service"
 
 export type CardSet = {id: number, rewardType: string, rewardClaimed: boolean, themeColor: string,
             rewardAmount: number, cards?: Card[], localizations: Localization[], frontCardId: number, img?: string }
@@ -100,7 +102,7 @@ export const getCardsForCrud = async (): Promise<{ cards: Card[], languages: Lan
   return {cards, languages, newCard}
 }
 export const getCardSetsForCrud = async ():
-  Promise<{ cardSets: CardSet[], languages: Language[], newCardSet: CardSet, newCard: Card, chestRegular: RewardChest, chestPremium: RewardChest }> => 
+  Promise<{ cardSets: CardSet[], languages: Language[], newCardSet: CardSet, newCard: Card, chestRegular: Chest, chestPremium: Chest, chestTypes: ChestChestType[] }> => 
 {
   const cardSets: CardSet[] = (await getCardSets()) || []
 
@@ -134,18 +136,16 @@ export const getCardSetsForCrud = async ():
         text: '',
         // text: `${language.languageCode} localization`,
     })
-  const reward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
-  const chestRegularString = await getSetting('chestRegularRewards', JSON.stringify(reward))
-  const chestPremiumString = await getSetting('chestPremiumRewards', JSON.stringify(reward))
-  const chestRegular: RewardChest = JSON.parse(chestRegularString) as RewardChest
-  const chestPremium: RewardChest = JSON.parse(chestPremiumString) as RewardChest
-    
-  return {cardSets, languages, newCardSet, newCard, chestRegular, chestPremium}
+
+  const chestRegular = await getRegularChest()    
+  const chestPremium = await getPremiumChest()    
+  const chestTypes = await getChestChestTypes()
+  return {cardSets, languages, newCardSet, newCard, chestRegular, chestPremium, chestTypes}
 }
 export const postCardSetForCrud =   async (cardSet: CardSet): Promise<any> => {
   if(cardSet.rewardAmount === 0) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Amount can not be empty')
   if(cardSet.themeColor === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'Theme Color can not be empty')
-  if(!isValidPaymentType(`${cardSet.rewardType}s`)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Type is invalid')
+  if(!isValidPaymentType(`${cardSet.rewardType}`)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward Type is invalid')
   
   const languages: Language[] = camelcaseKeys(await query(`select * from language`))
   // if(!isNew){
@@ -277,9 +277,6 @@ export const deleteCardForCrud = async (cardId: number): Promise<void> => {
   const resp = await queryExec(`delete from card where id = ${cardId}`)
   if(resp.affectedRows !== 1) throw createHttpError(StatusCodes.BAD_REQUEST, 'Problem deleting card ' + String(cardId))
 }
-export const postChestForFront = async (name: string, chest: RewardChest): Promise<void> => {
-  await setSetting(name, JSON.stringify(chest))
-}
 export const deleteCardSetForCrud = async (cardSetId: number): Promise<void> => {
   if(!cardSetId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set ID param is required')
   const cards = await query(`select id from card where card_set_id = ?`, [String(cardSetId)])
@@ -350,8 +347,8 @@ export type CollectibleCardDataCL = {
     ownedQuantity: number;
 }
 export type  RewardChest = {
-  priceAmount: number;
-  priceCurrency: string;
+  amount: number;
+  currency: string;
   rewards: RewardDataCL[]
 }
 export type CollectibleCardsTradeDataCL = {
@@ -408,15 +405,14 @@ export const getCardsCL = async (userId: number):Promise <CardCollectionsDataCL>
       if(!card.ownedQuantity) card.textureUrl = ''
     }
   }
-  const reward: RewardChest = {priceAmount: 1, priceCurrency:'spin', rewards: [{amount: 1, type: 'spin'}]}
-  const chestRegularString = await getSetting('chestRegularRewards', JSON.stringify(reward))
-  const chestPremiumString = await getSetting('chestPremiumRewards', JSON.stringify(reward))
-  const chestRegular: RewardChest = JSON.parse(chestRegularString) as RewardChest
-  const chestPremium: RewardChest = JSON.parse(chestPremiumString) as RewardChest
+  const chestRegular = await getRegularChest()
+  const chestPremium = await getPremiumChest()
+  const chestRegularCl = chestToChestCL(chestRegular)
+  const chestPremiumCl = chestToChestCL(chestPremium)
   const tradeData: CollectibleCardsTradeDataCL = {
     starsForTrade,
-    chestRegular,
-    chestPremium
+    chestRegular: chestRegularCl,
+    chestPremium: chestPremiumCl
   }
   const cardCollectionsDataCL: CardCollectionsDataCL = { 
     collectibleCardSets: cardSets,
@@ -450,6 +446,7 @@ const getAtlasForCollectibleCardSets = async (rebuild = false): Promise<Atlas> =
 
   return atlas
 }
+
 async function getThumbsImagesForAtlas() {
   const basePath = getAssetsPath()
   const cardSets: CardSet[] = camelcaseKeys(await query(`
@@ -480,29 +477,61 @@ async function getCardSetImagesForAtlas(cardSetId: number) {
     thumbs.push({ id: cardRow.id, image: join(basePath, getUrlWithoutHost(cardRow.thumbUrl)) })
   return thumbs
 }
+
 export async function cardSetClaim(setId: number, userId: number): Promise<void> {
+
   if(!setId) throw createHttpError(StatusCodes.BAD_REQUEST, 'Missing setId')
-  const cardSetExists = Number(await queryScalar(`
-  select count(*) as cardSetCount from card_set where id = ${setId}
-  `)) > 0
-  if(!cardSetExists) throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set does not exists')
-  const cardSetCompleted = await getCardSetCompleted(setId, userId)
-  if(!cardSetCompleted) throw createHttpError(StatusCodes.BAD_REQUEST, 'The Set is not completed')
-  const claimed = await getCardSetClaimed(setId, userId)
-  if(claimed) throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward for this set already claimed')
-  await queryExec(`insert into card_set_claim (game_user_id, card_set_id) value(?,?)`, [
-    userId, setId
-  ])
-  const cardSet = camelcaseKeys(await queryOne(`
-  select id, theme_color, reward_type, reward_amount, front_card_id from card_set where id = ${setId}
-  `)) as {rewardType: string, rewardAmount: string}
-  const {rewardType, rewardAmount} = cardSet
-  const user = await getGameUserById(userId) as GameUser
-  if(user?.wallet) {
-    user.wallet[`${rewardType}s`] += Number(rewardAmount)
-    await updateWallet(user, user.wallet)
+
+  await ThrowIfCardSetDoesNotExists()
+
+  await ThrowIfCardSetNotCompleted()
+
+  await ThrowIfAlreadyClaimed()
+
+  await storeClaimInDB()
+
+  await rewardUser()
+
+  async function rewardUser() {
+    const {rewardType, rewardAmount}: {rewardType: string, rewardAmount: number} = camelcaseKeys(await queryOne(
+      `select reward_type, reward_amount from card_set where id = ${setId}`
+    ))
+    const user = await getGameUserById(userId) as GameUser
+    const wallet = user.wallet as Wallet
+
+    addToWallet(wallet, rewardType, rewardAmount)
+
+    await updateWallet(user, wallet)
+  }
+
+  async function storeClaimInDB() {
+    await queryExec(`insert into card_set_claim (game_user_id, card_set_id) value(?,?)`, [userId, setId])
+  }
+
+  async function ThrowIfAlreadyClaimed() {
+    const claimed = await getCardSetClaimed(setId, userId)
+
+    if (claimed)
+      throw createHttpError(StatusCodes.BAD_REQUEST, 'Reward for this set already claimed')
+  }
+
+  async function ThrowIfCardSetNotCompleted() {
+    const cardSetCompleted = await getCardSetCompleted(setId, userId)
+
+    if (!cardSetCompleted)
+      throw createHttpError(StatusCodes.BAD_REQUEST, 'The Set is not completed')
+  }
+
+  async function ThrowIfCardSetDoesNotExists() {
+    const cardSetExists = Number(await queryScalar(`
+      select count(*) as cardSetCount from card_set where id = ${setId}
+    `)) > 0
+
+    if (!cardSetExists)
+      throw createHttpError(StatusCodes.BAD_REQUEST, 'Card Set does not exists')
   }
 }
+
 export const getCardSetCompleted = async (cardSetId: number, userId: number): Promise<boolean> => {
   // const cardSet = camelcaseKeys(await queryOne(`
   //   select id, theme_color, reward_type, reward_amount, front_card_id from card_set where id = ${cardSetId}
@@ -530,7 +559,7 @@ export async function getCardTrade(regularStr: string | undefined, userId: numbe
   await checkIfToFastEndpointCall({endPoint: 'card_trade', userId, miliseconds: 5000})
 
   const isRegular = regularStr.toLocaleLowerCase() === 'true'
-  const chest =  await getChestFromSettings(isRegular)
+  const chest =  isRegular ? (await getRegularChest()) : (await getPremiumChest())
 
   console.log('chest:', chest)
 
@@ -539,9 +568,9 @@ export async function getCardTrade(regularStr: string | undefined, userId: numbe
   const repeatedCards = await getUserRepeatedCards(user.id)
   console.log('Repeated Cards', Object.assign({}, repeatedCards))
   const userStarsAvailForTrade = getUserStarsAvailForTrade(repeatedCards)
-  console.log('starsAvailForTrade %o, Price in stars %o', userStarsAvailForTrade, chest.priceAmount)
+  console.log('starsAvailForTrade %o, Price in stars %o', userStarsAvailForTrade, chest.amount)
 
-  if(chest.priceAmount > userStarsAvailForTrade) throw createHttpError(402, await getMessageCodeForInsuficientFunds(user.languageCode))
+  if(chest.amount > userStarsAvailForTrade) throw createHttpError(402, await getMessageCodeForInsuficientFunds(user.languageCode))
 
   const repeatedUserCardsTable: Card[] = await getRepeatedUserCardsTable()
   console.log('Repeated Cards Table', repeatedUserCardsTable)
@@ -553,7 +582,7 @@ export async function getCardTrade(regularStr: string | undefined, userId: numbe
 
   await payTheUserForTheTrade()
 
-  let remainingStars = chest.priceAmount
+  let remainingStars = chest.amount
   while(remainingStars > 0) {
     const card = getRandomCardFromRepeatedCards()
     console.log('removed card',  card)
@@ -576,8 +605,8 @@ export async function getCardTrade(regularStr: string | undefined, userId: numbe
   const repeatedCardsUpdated = await getUserRepeatedCards(userId)
   const starsAvailUpdated = getUserStarsAvailForTrade(repeatedCardsUpdated)
   console.log('updated starsAvailable %o, repeatedCards %o',starsAvailUpdated, Object.assign({}, repeatedCardsUpdated))
-  if(userStarsAvailForTrade !== starsAvailUpdated + chest.priceAmount) console.warn('BAD!!!!, (userStarsAvailForTrade !== starsAvailUpdated + chest.priceAmount')
-  else console.log('OK!!! userStarsAvailForTrade === starsAvailUpdated + chest.priceAmount')
+  if(userStarsAvailForTrade !== starsAvailUpdated + chest.amount) console.warn('BAD!!!!, (userStarsAvailForTrade !== starsAvailUpdated + chest.amount')
+  else console.log('OK!!! userStarsAvailForTrade === starsAvailUpdated + chest.amount')
   const collectibleCardSets = await getCardsCL(userId)
   return {
     collectibleCardSets: collectibleCardSets.collectibleCardSets,
@@ -639,16 +668,16 @@ async function getMessageCodeForInsuficientFunds(languageCode: string) {
     return `LanguageCode ${languageCode} not found`
 }
 
-async function getChestFromSettings(regular: boolean) {
-  
-  const chestStr = regular ? 'chestRegularRewards' : 'chestPremiumRewards'
-  const defaultReward: RewardChest = { priceAmount: 1, priceCurrency: 'spin', rewards: [{ amount: 1, type: 'spin' }] }
-  const chestObjAsString = await getSetting(chestStr, JSON.stringify(defaultReward))
+// async function getChestFromSettings(regular: boolean) {
+    
+  //   const chestStr = regular ? 'chestRegularRewards' : 'chestPremiumRewards'
+  //   const defaultReward: RewardChest = { amount: 1, currency: 'spin', rewards: [{ amount: 1, type: 'spin' }] }
+  //   const chestObjAsString = await getSetting(chestStr, JSON.stringify(defaultReward))
 
-  const chest: RewardChest = JSON.parse(chestObjAsString) as RewardChest
-  chest.priceAmount = Number(chest.priceAmount)
-  return chest
-}
+  //   const chest: RewardChest = JSON.parse(chestObjAsString) as RewardChest
+  //   chest.amount = Number(chest.amount)
+  //   return chest
+// }
 
 async function grantPlayerCardByStars(missingStars: number, userId: number): Promise<void>{
   const ownedCardByStars = camelcaseKeys(await queryOne(`

@@ -7,16 +7,22 @@ import createHttpError from 'http-errors'
 import { format } from 'date-fns'
 import { utc } from 'moment'
 import { queryExec, queryOne, queryScalar } from './db'
-export const toBoolean = (value: string | number | boolean): boolean => {
+export const toBoolean = (value: string | number | boolean | undefined): boolean => {
+    if(value===undefined) return false
     if (typeof value === 'string')
         return value.toUpperCase() === 'TRUE' || value.toUpperCase() === '1'
     if (typeof value === 'number') return value === 1
     if (typeof value === 'boolean') return value
     throw createHttpError(StatusCodes.BAD_REQUEST, 'Value type not supported ' + typeof value)
 }
-export const paymentTypes = ['coins', 'spins', 'tickets', 'cards']
+export const paymentTypesPlural = ['coins', 'spins', 'tickets', 'cards']
+export const paymentTypes = ['coin', 'spin', 'ticket', 'card']
+
 export const isValidPaymentType = (paymentType: string): boolean => {
     return paymentTypes.includes(paymentType.toLocaleLowerCase())
+}
+export const isValidPaymentTypePlural = (paymentType: string): boolean => {
+    return paymentTypesPlural.includes(paymentType.toLocaleLowerCase())
 }
 export function pickProps<T>(obj: T, props: string[]): Partial<T> {
     return props.reduce((a, e) => ((a[e] = obj[e]), a), {})
@@ -223,3 +229,11 @@ export const setEndpointLastCall = async ({endPoint, userId}: {endPoint: string,
     `, [userId, endPoint, format(new Date(), 'yyyy-MM-dd HH:mm:ss'), lastCallId])
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function deleteProps (obj, prop): any {
+    const newObj = obj
+    for (const p of prop) 
+        (p in obj) && (delete newObj[p])
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return newObj
+}

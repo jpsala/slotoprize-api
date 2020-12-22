@@ -13,8 +13,14 @@ let server
 const hostname = os.hostname()
 
 void (function main() {
-  process.on('SIGINT', () =>
+  process.on('SIGINT', () => 
   {
+    console.log('SIGINT shutdown')
+    void sendShutDownMessageToHooksAndShutdown()
+  })
+  process.on('SIGTERM', () =>
+  {
+    console.log('SIGTERM shutdown')
     void sendShutDownMessageToHooksAndShutdown()
   })
   async function sendShutDownMessageToHooksAndShutdown(): Promise<void>{

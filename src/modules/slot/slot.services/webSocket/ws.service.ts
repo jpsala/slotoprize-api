@@ -1,10 +1,10 @@
 import url from 'url'
 import https from 'https'
-import { BAD_REQUEST } from 'http-status-codes'
 import WebSocket, { Server } from 'ws'
 import PubSub from 'pubsub-js'
 import createHttpError from 'http-errors'
-import { isValidJSON } from '../../../../helpers'
+import { StatusCodes } from 'http-status-codes'
+import { isValidJSON, toBoolean } from '../../../../helpers'
 import { EventPayload } from '../events/event'
 import { getGameUserById } from '../../../meta/meta.repo/gameUser.repo'
 import { verifyToken } from '../../../../services/jwtService'
@@ -74,12 +74,12 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     if(!query.userId){
       ws.send('userId is missing in the ws connection')
       ws.close()
-      throw createHttpError(BAD_REQUEST, 'userId is missing in the ws connection')
+      throw createHttpError(StatusCodes.BAD_REQUEST, 'userId is missing in the ws connection')
     }
     const user = await getGameUserById(query.userId)
     if(!user) {
       ws.close()
-      throw createHttpError(BAD_REQUEST, 'User does not exists')
+      throw createHttpError(StatusCodes.BAD_REQUEST, 'User does not exists')
     }
     const isDev = user.isDev
     console.log(`[SERVER] connection()`, 'userId:', query.userId)
@@ -87,7 +87,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
       if(!query.sessionToken){
         ws.send('sessionToken is missing in the ws connection')
         ws.close()
-        throw createHttpError(BAD_REQUEST, 'sessionToken is missing in the ws connection')
+        throw createHttpError(StatusCodes.BAD_REQUEST, 'sessionToken is missing in the ws connection')
       }
       if (query.sessionToken === 'lani0363') {
         console.log('back door')
@@ -96,12 +96,12 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
         if (!resp?.decodedToken || !resp?.decodedToken.id){
           ws.send('Invalid token in ws connection')
           ws.close()
-          throw createHttpError(BAD_REQUEST, 'Invalid token in ws connection')
+          throw createHttpError(StatusCodes.BAD_REQUEST, 'Invalid token in ws connection')
         }
         if(Number(resp?.decodedToken.id) !== Number(query.userId)){
           ws.send('userId in token is different from userId in the ws connection')
           ws.close()
-          throw createHttpError(BAD_REQUEST, 'userId in token is different from userId in the ws connection parameters')
+          throw createHttpError(StatusCodes.BAD_REQUEST, 'userId in token is different from userId in the ws connection parameters')
         }
       }
     }
@@ -136,7 +136,7 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
   const send = (_msg: WebSocketMessage, client: WebSocket | undefined = undefined): void =>
   {
     console.log('send', _msg)
-    const forDevOnly = _msg.payload.devOnly
+    const forDevOnly = toBoolean(_msg.payload.devOnly)
     const payload = JSON.stringify(_msg.payload)
     const msgStr = Object.assign({}, _msg) as any
     msgStr.payload = payload
@@ -154,9 +154,9 @@ export const createWsServerService = (httpsServer?: https.Server): void =>
     {
       server.clients.forEach((client) => {
         // const userId = Number((client as ExtWebSocket).user.id)
-        const tutorialComplete = (client as ExtWebSocket).user.tutorialComplete
+        const tutorialComplete = toBoolean((client as ExtWebSocket).user.tutorialComplete)
         if (tutorialComplete) {
-          const isDev = Number((client as ExtWebSocket).user.isDev) === 1
+          const isDev = toBoolean((client as ExtWebSocket).user.isDev)
           // if((client as ExtWebSocket).user.isNew)
           if (!(forDevOnly && !isDev)) {
             console.log('sended to specific client inside send to all')

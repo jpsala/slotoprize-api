@@ -2,7 +2,7 @@ import createError from 'http-errors'
 /* eslint-disable import/no-named-as-default-member */
 import snakeCaseKeys from 'snakecase-keys'
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import {BAD_REQUEST} from 'http-status-codes'
+import {StatusCodes} from 'http-status-codes'
 /* eslint-disable babel/camelcase */
 import camelcaseKeys from 'camelcase-keys'
 
@@ -30,6 +30,8 @@ export const rafflePurchase = async (deviceId: string, raffleId: number, amount:
   if (isNaN(raffleId)) throw createError(createError.BadRequest, 'raffleId is a required parameter')
 
   const user = await getGameUserByDeviceId(deviceId)
+  if (!user) throw createError(StatusCodes.BAD_REQUEST, 'User not found')
+
   const wallet = await getWallet(user)
   const raffle = await getRaffle(raffleId,undefined,true,true)
   console.log('raffle', raffle)
@@ -75,8 +77,8 @@ export async function getRaffles(user: GameUser, onlyLive = false): Promise<Raff
   `) as RafflePrizeData[]
   for (const raffle of raffles) {
     const { name, description } = await getRaffleLocalizationData(user, raffle.id)
-    if (raffle == null) throw createError(BAD_REQUEST, 'no localization data for this raffle')
-    if (name == null) throw createError(BAD_REQUEST, 'no localization data for this raffle')
+    if (raffle == null) throw createError(StatusCodes.BAD_REQUEST, 'no localization data for this raffle')
+    if (name == null) throw createError(StatusCodes.BAD_REQUEST, 'no localization data for this raffle')
     raffle.name = name
     raffle.description = description
   }
@@ -214,8 +216,8 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
   const diffClosigDate = closingDateUtc.diff(isNotebook() ? moment() : moment.utc(), 'seconds')
 
   raffle.textureUrl =  getUrlWithoutHost(raffle.textureUrl)
-  if(diffClosigDate <= 0 && (raffle.state === 'new' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle closing date can not be in the past')
-  if(diffLiveDate <= 0 && (raffle.state === 'new' || !raffle.state)) throw createError(BAD_REQUEST, 'raffle live date can not be after closing date')
+  if(diffClosigDate <= 0 && (raffle.state === 'new' || !raffle.state)) throw createError(StatusCodes.BAD_REQUEST, 'raffle closing date can not be in the past')
+  if(diffLiveDate <= 0 && (raffle.state === 'new' || !raffle.state)) throw createError(StatusCodes.BAD_REQUEST, 'raffle live date can not be after closing date')
   const raffleForDB = {
     id: raffle.id,
     closing_date: format(closingDate, 'yyyy-MM-dd HH:mm:ss'),
@@ -231,10 +233,10 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
     throw createError(createError.BadRequest, 'raffle.price is required to be greater than 0')
   for (const localization of localizationData)
     if (localization.name === '' || localization.description === '')
-      throw createError(BAD_REQUEST, 'Missing localization name or description')
+      throw createError(StatusCodes.BAD_REQUEST, 'Missing localization name or description')
 
   const isNew = raffle.isNew === 'true'
-  if(!files.image && !raffleForDB.texture_url) throw createError(BAD_REQUEST, 'Missing image')
+  if(!files.image && !raffleForDB.texture_url) throw createError(StatusCodes.BAD_REQUEST, 'Missing image')
 
   let respRaffle
   if (isNew) {
@@ -294,6 +296,8 @@ export async function postRaffle(raffle: any, files: any): Promise<any>
 export async function getRafflePurchaseHistory(deviceId: string): Promise<RaffleRecordData[]> {
   if (!deviceId) throw createError(createError.BadRequest, 'deviceId is a required parameter')
   const gameUser = await getGameUserByDeviceId(deviceId)
+  if (!gameUser) throw createError(StatusCodes.BAD_REQUEST, 'User not found')
+
   const raffleHistory = await query(`
     SELECT rh.raffle_id as raffle_item_id, rh.transaction_date, rh.tickets,
            raffle.closing_date, rh.raffle_numbers, 

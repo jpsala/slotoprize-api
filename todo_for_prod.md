@@ -34,3 +34,8 @@
  - [x] remove yarn.lock
  - [x] yarn update
  - [x] cambiar las versiones del BO en settings
+
+
+ - [ ] en live el campo totalLogsClaimed se inicializa con el contenido en 0
+ - [ ] en live cambiar el campo last a last_login en last_spin
+ 

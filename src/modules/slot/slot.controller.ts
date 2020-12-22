@@ -2,7 +2,7 @@ import toCamelCase from 'camelcase-keys'
 import { Request, Response } from 'express'
 import formidable from 'formidable'
 import createHttpError from 'http-errors'
-import { BAD_REQUEST } from 'http-status-codes'
+import { BAD_REQUEST, StatusCodes } from 'http-status-codes'
 import { log } from '../../log'
 import { getNewToken, verifyToken } from '../../services/jwtService'
 import * as metaService from '../meta/meta-services'
@@ -20,14 +20,15 @@ import { deleteRaffle, getRafflesForCrud, postRaffle } from '../meta/meta.repo/r
 import { getSupportRequestForCrud, postSupportAdminForCrud, setSoporte, supportAdminForCrud } from '../meta/meta.repo/support.repo'
 import { GameUser, User } from "../meta/meta.types"
 import { getGameUserByDeviceId } from './../meta/meta-services/meta.service'
-import { dailyRewardClaim, dailyRewardInfo, deleteDailyRewardPrize, getDailyRewardPrizesForCrud, setDailyRewardPrize } from './slot.repo/dailyReward.repo'
+import { dailyRewardClaim, dailyRewardInfo, deleteDailyRewardPrize, getDailyRewardPrizesForCrud, setDailyRewardPrize, getRewardCalendar } from './slot.repo/dailyReward.repo'
 import { deleteEvent, getEventsForCrud, setEvent } from './slot.repo/event.repo'
 import { deleteSkinForCrud, getSkinsForCrud, postSkinForCrud } from './slot.repo/skin.repo'
 import { testUser39 } from './slot.repo/spin.regeneration.repo'
 import * as slotService from './slot.services'
 import { getAdsSettingsForCrud, postAdsSettingsForCrud } from './slot.services/addSettings.service'
 import { appodealCallback, appodealCallbackPlain, QueryParams } from './slot.services/appodeal'
-import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, cardSetClaim, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetForCrud, getCardTrade, postChestForFront, RewardChest } from './slot.services/card.service'
+import { deleteCardForCrud, deleteCardSetForCrud, getCardDropRateTable, getCardsCL, cardSetClaim, getCardSetsForCrud, getCardsForCrud, postCardDropRateTable, postCardForCrud, postCardSetForCrud, getCardTrade } from './slot.services/card.service'
+import { Chest, postChest } from './slot.services/chest.service'
 import { getAllEvents, reloadRulesFromDb } from './slot.services/events/events'
 import { getPurchaseTicketPack } from './slot.services/events/ticket.service'
 import { getVideoAdsViewCountForCrud } from './slot.services/ironsource'
@@ -48,7 +49,6 @@ import * as walletService from "./slot.services/wallet.service"
 
 
 export async function playerForFrontGet(req: Request, res: Response): Promise<any>{
-  console.log('req', req)
   const resp = await getPlayerForFront(String(req.query.id))
   res.status(200).json(resp)
 }
@@ -108,7 +108,9 @@ export async function gameInitGet(req: Request, res: Response): Promise<any>{
   return initData
 }
 export async function walletGet(req: Request, res: Response): Promise<any>{
+  
   const user = await getGameUserByDeviceId(String(req.query.deviceId))
+  if (!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found')
   const resp = await walletService.getWallet(user)
   res.status(200).json(resp)
 }
@@ -283,6 +285,13 @@ export async function dailyRewardDelete(req: Request, res: Response): Promise<an
   const rewards = await deleteDailyRewardPrize(Number(req.query.id))
   res.status(200).json(rewards)
 }
+export async function rewardCalendarGet(req: Request, res: Response): Promise<void> {
+  const user = await getGameUserById(req.user.id) as GameUser
+  if(!user) throw createHttpError(StatusCodes.BAD_REQUEST, `User with ID ${req.user.id} not found`)
+  const resp = await getRewardCalendar(user)
+  res.status(200).send(resp)
+}
+
 export async function spinSettingsForCrudGet(req: Request, res: Response): Promise<any>{
   const value = await getSpinSettingsForCrud()
   res.status(200).json(value)
@@ -433,6 +442,8 @@ export async function atlasGet(req: Request, res: Response): Promise<any>{
 }
 export async function slotDataGet(req: Request, res: Response): Promise<any>{
   const user = await getGameUserByDeviceId(req.query.deviceId as string)
+  if (!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found')
+
   const resp = await getSlotData(user)
   res.status(200).send(resp)
 }
@@ -445,6 +456,8 @@ export async function iapGet(req: Request, res: Response): Promise<void>{
   if (req.query.adsFree === '0' || req.query.adsFree === 'false')
     adsFree = '0'
   const user = await getGameUserByDeviceId(req.query.deviceId as string)
+  if (!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found')
+
   await setIap(user, adsFree)
   res.status(200).send({status: 'ok'})
 }
@@ -479,12 +492,11 @@ export async function cardsForFrontGet(req: Request, res: Response): Promise<voi
   const cards = await getCardsForCrud()
   res.status(200).send(cards)
 }
-export async function cardsChestForFrontPost(req: Request, res: Response): Promise<void> {
-  const cards = await postChestForFront(req.body.name as string, req.body.chest as RewardChest)
-  res.status(200).send(cards)
+export async function chestForFrontPost(req: Request, res: Response): Promise<void> {
+  const chestId = await postChest(req.body.chest as Chest)
+  res.status(200).json({chestId})
 }
 export async function cardSetForFrontDelete(req: Request, res: Response): Promise<void> {
-  console.log('req', req)
   const cards = await deleteCardSetForCrud(Number(req.query.cardSetId))
   res.status(200).send(cards)
 }
