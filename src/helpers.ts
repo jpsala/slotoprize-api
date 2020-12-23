@@ -199,8 +199,8 @@ export function shuffleArray(array: any[]): any[] {
     return array 
   } 
 
-export const checkIfToFastEndpointCall = async ({endPoint, userId, miliseconds = 1000}:
-    {endPoint: string, userId: number, miliseconds: number}): Promise<void> => 
+export const checkIfToFastEndpointCall = async ({endPoint, userId, milliseconds = 1000}:
+    {endPoint: string, userId: number, milliseconds: number}): Promise<void> => 
 {
     const lastCall = await queryOne(`
         select id, last, game_user_id, endpoint from endpoint_last_call 
@@ -217,8 +217,8 @@ export const checkIfToFastEndpointCall = async ({endPoint, userId, miliseconds =
 
     const diff = nowMoment.diff(lastMoment.utc())
     await setEndpointLastCall({endPoint, userId})
-    console.log('endpoint %o userId %o mill %o diff %o', endPoint, userId, miliseconds, diff )
-    if(diff < miliseconds) throw createHttpError(StatusCodes.BAD_REQUEST, 'Unauthorized call modulation')
+    console.log('endpoint %o userId %o mill %o diff %o', endPoint, userId, milliseconds, diff )
+    if(diff < milliseconds) throw createHttpError(StatusCodes.BAD_REQUEST, 'Unauthorized call modulation')
     return
 }
 
