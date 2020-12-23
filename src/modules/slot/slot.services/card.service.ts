@@ -499,7 +499,7 @@ export async function cardSetClaim(setId: number, userId: number): Promise<void>
     const user = await getGameUserById(userId) as GameUser
     const wallet = user.wallet as Wallet
 
-    addToWallet(wallet, rewardType, rewardAmount)
+    addToWallet(wallet, `${rewardType}s`, rewardAmount)
 
     await updateWallet(user, wallet)
   }
