@@ -556,7 +556,7 @@ export const getCardSetCompleted = async (cardSetId: number, userId: number): Pr
 export async function getCardTrade(regularStr: string | undefined, userId: number):Promise<any>{
 
   if(regularStr === undefined || regularStr === '') throw createHttpError(StatusCodes.BAD_REQUEST, 'regular parameter is undefined')
-  await checkIfToFastEndpointCall({endPoint: 'card_trade', userId, miliseconds: 5000})
+  await checkIfToFastEndpointCall({endPoint: 'card_trade', userId, milliseconds: 5000})
 
   const isRegular = regularStr.toLocaleLowerCase() === 'true'
   const chest =  isRegular ? (await getRegularChest()) : (await getPremiumChest())
