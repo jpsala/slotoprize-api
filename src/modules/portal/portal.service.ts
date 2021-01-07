@@ -128,12 +128,13 @@ export async function signUp(loginData: any): Promise<any>{
 }
 
 export function gameUserToPortalUser(gameUser: GameUser): Omit<PortalUser, 'password'> {
-  const portalUser: Omit<PortalUser, 'password'> = {
+  const portalUser: Omit<PortalUser, 'password'> & {gameUserId: number} = {
     deviceId: gameUser.deviceId,
     id: gameUser.id,
     login: gameUser.email,
     name: gameUser.firstName,
-    email: gameUser.email
+    email: gameUser.email,
+    gameUserId: gameUser.id
   }
   return portalUser
 }
