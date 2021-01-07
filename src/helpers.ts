@@ -237,3 +237,9 @@ export function deleteProps (obj, prop): any {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return newObj
 }
+
+export function validateEmail(mail: string): boolean {
+    if (/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(mail))
+        return (true)
+    return (false)
+}

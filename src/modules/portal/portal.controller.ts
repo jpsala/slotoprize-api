@@ -18,3 +18,9 @@ export async function googleLoginPost(req: Request, res: Response): Promise<void
   res.setHeader('token', token)
   res.status(200).send(user)
 }
+export async function signUpPost(req: Request, res: Response): Promise<void> {
+  console.log('req', req)
+  const {user, token} = await portalService.signUp(req.body)
+  res.setHeader('token', token)
+  res.status(200).send(user)
+}
