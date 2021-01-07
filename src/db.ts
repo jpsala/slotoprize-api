@@ -101,6 +101,7 @@ try {
 export const queryExec = async (select: string, params: any = []): Promise<ResultSetHeader> => {
   const conn = await getConnection()
   const stmt = conn.format(select, params)
+  log && console.log('queryExec', stmt)
   try
   {
     const [respExec] = await conn.query(stmt) as ResultSetHeader[]

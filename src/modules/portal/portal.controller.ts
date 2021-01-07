@@ -12,3 +12,9 @@ export async function withTokenGet(req: Request, res: Response): Promise<any>{
   res.setHeader('token', token)
   res.status(200).send(user)
 }
+export async function googleLoginPost(req: Request, res: Response): Promise<void> {
+  console.log('req', req)
+  const {user, token} = await portalService.loginWithGoogle(req.body)
+  res.setHeader('token', token)
+  res.status(200).send(user)
+}

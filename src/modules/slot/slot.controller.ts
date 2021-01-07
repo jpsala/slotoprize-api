@@ -3,6 +3,7 @@ import { Request, Response } from 'express'
 import formidable from 'formidable'
 import createHttpError from 'http-errors'
 import { BAD_REQUEST, StatusCodes } from 'http-status-codes'
+import { queryExec } from '../../db'
 import { log } from '../../log'
 import { getNewToken, verifyToken } from '../../services/jwtService'
 import * as metaService from '../meta/meta-services'
@@ -545,4 +546,17 @@ export async function purchaseTicketPackGet(req: Request, res: Response): Promis
   const user = await getGameUserById(req.user.id) as GameUser
   const wallet = await getPurchaseTicketPack(Number(req.query.packId), user)
   res.status(200).send(wallet)
+}
+
+export function googleCallbackGet(req: Request, res: Response): void {
+  console.log('googleCallbackGet', req)
+  res.status(200).send({status: 'ok'})
+}
+
+export async function gameUserDelete(req: Request, res: Response): Promise<void> {
+  console.log('req', req.query, req.params)
+  if(!req.query.id) throw createHttpError(StatusCodes.BAD_REQUEST, 'ID of game_user is required')
+  await queryExec('delete from wallet where game_user_id = ?', [req.query.id])
+  await queryExec('delete from game_user where id = ?', [req.query.id])
+  res.status(200).send({status: 'ok'})
 }

@@ -43,6 +43,11 @@ router.route('/reward_calendar').get(checkDeviceId, checkToken, checkmaintenance
 router.route('/appodeal').get(slot.appodeal)
 router.route('/tapjoy').get(slot.tapjoy)
 
+
+router.route('/google_callback').get(slot.googleCallbackGet)
+router.route('/google_callback').get(slot.googleCallbackGet)
+
+
 // Back Office
 router.route('/auth').post(slot.authPost)
 router.route('/with-token').get(slot.withTokenGet)
@@ -113,5 +118,9 @@ router.route('/card_for_crud').delete(checkTokenForBO, slot.cardForFrontDelete)
 router.route('/card_drop_rate_table').get(checkTokenForBO, slot.cardDropRateTableGet)
 router.route('/card_drop_rate_table').post(checkTokenForBO, slot.cardDropRateTablePost)
 router.route('/generate_atlas_front').get(checkTokenForBO, slot.generateAtlasGet)
+
+
+// misc routes
+router.route('/game_user').delete(checkDeviceId, checkToken, slot.gameUserDelete)
 
 export default router

@@ -88,6 +88,21 @@ export async function getGameUserByDeviceId(deviceId: string): Promise<GameUser>
   }
   return user
 }
+export async function getGameUserByDeviceEmail(email: string): Promise<GameUser>{
+
+  const userSelect = `select * from game_user where email ='${email}'`  
+
+  const user = camelcaseKeys(await queryOne(userSelect, undefined, false)) as GameUser
+
+  if(user){
+    user.tutorialComplete = toBoolean(user.tutorialComplete)
+    user.isDev = toBoolean(user.isDev)
+    user.isNew = toBoolean(user.isNew)
+    user.agreements = toBoolean(user.agreements)
+    user.wallet = await getWallet(user)
+  }
+  return user
+}
 
 export async function getGameUserById(userId: number): Promise<GameUser | undefined> {
 
@@ -222,28 +237,20 @@ export async function addGameUser(user: GameUser): Promise<GameUser> {
   const snakeCasedUser = snakeCaseKeys(gameUserDto)
   const wallet = snakeCasedUser.wallet
   delete snakeCasedUser.wallet
-  const conn = await getConnection()
-  let gameUserId: number
-  await conn.beginTransaction()
-  try {
-      const [result] = await conn.query('insert into game_user set ?', snakeCasedUser) as RowDataPacket[]
-      gameUserId = result.insertId
-      gameUserDto.id = gameUserId
-      let walletDTO: WalletDTO
-      if (gameUserDto.wallet) {
-        walletDTO = <WalletDTO>classToPlain(wallet)
-        walletDTO.game_user_id = gameUserId
-        await insertWallet(gameUserDto as GameUser, wallet?.coins, wallet?.spins, wallet?.tickets)
-      } else {
-        await insertWallet(gameUserDto as GameUser)
-      }
-    await conn.commit()
-    } finally {
-      await conn.rollback()
-      conn.destroy()
+  const result = await queryExec('insert into game_user set ?', snakeCasedUser)
+  const gameUserId = result.insertId
+    gameUserDto.id = gameUserId
+    let walletDTO: WalletDTO
+    if (gameUserDto.wallet) {
+      walletDTO = <WalletDTO>classToPlain(wallet)
+      walletDTO.game_user_id = gameUserId
+      await insertWallet(gameUserDto as GameUser, wallet?.coins, wallet?.spins, wallet?.tickets)
+    } else {
+      await insertWallet(gameUserDto as GameUser)
     }
-    return gameUserDto as GameUser
-  }
+  return gameUserDto as GameUser
+}
+
 export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Promise<GameUser>{
   const fakedUser = await fakeUser(override)
   const newUser = await addGameUser(fakedUser)

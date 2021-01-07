@@ -4,5 +4,5 @@ const router = Router()
 
 router.route('/auth').post(portalController.auth)
 router.route('/auth-with-token').post(portalController.withTokenGet)
-
+router.route('/google_login').post(portalController.googleLoginPost)
 export default router

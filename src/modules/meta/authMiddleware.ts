@@ -13,7 +13,6 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
   let { sessionToken } = req.query
   if (!sessionToken) sessionToken = req.body.sessionToken
   if (!sessionToken) throw createHttpError(BAD_REQUEST, 'Invalid token')
-  
   if (sessionToken === 'lani0363') {
     const _user = await getGameUserByDeviceId(req.user.deviceId)
     if (!_user) throw createHttpError(BAD_REQUEST, 'There is not user registered with that deviceId')
