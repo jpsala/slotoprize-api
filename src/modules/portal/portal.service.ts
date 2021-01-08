@@ -2,12 +2,108 @@ import camelcaseKeys from "camelcase-keys"
 import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import {v4 as uuid} from "uuid"
-import { queryOne } from "../../db"
+import { queryExec, queryOne } from "../../db"
 import { validateEmail } from "../../helpers"
 import { getNewToken, verifyToken } from "../../services/jwtService"
-import { addGameUser, getGameUserByDeviceEmail, getGameUserByDeviceId, getGameUserById } from "../meta/meta.repo/gameUser.repo"
+import { getGameUserByDeviceEmail, getGameUserById } from "../meta/meta.repo/gameUser.repo"
 import { GameUser } from "../meta/meta.types"
+import {sendMail} from "../meta/meta-services/email.service"
+import { getSetting } from "../slot/slot.services/settings.service"
 import { PortalUser } from "./portal.types"
+type GoogleUser = {
+  id: number,
+  name:string,
+  givenName:string,
+  familyName:string,
+  imageUrl:string,
+  email:string,
+  deviceId?: string
+}
+
+export async function getUserByLoginAndPassword(login: string, password: string): Promise<any> {
+  
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return await getUserByWhere(`up.login = '${login}' and up.password = '${password}'`)
+}
+
+export async function getUserByWhere(where: string): Promise<any> {
+  const user = camelcaseKeys(await queryOne(`
+      select *
+        from game_user_portal up
+      where ${where}`)
+  )
+    delete user.password
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return user
+
+}
+
+export async function getUserById(id: number): Promise<PortalUser> {
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return await getUserByWhere(`up.id = ${id}`)
+}
+
+export async function addPortalUser(data: Partial<GoogleUser>): Promise<PortalUser>{
+  console.log('addPortalUser', data)
+
+  if(!data.email) throw createHttpError(StatusCodes.BAD_REQUEST, 'Email is required')
+
+  if(!validateEmail(data.email)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Invalid email')
+
+  const resp = await queryExec(`
+    insert into game_user_portal
+    (device_id, password, email, last_name, first_name, image_url) values
+    (?, ?, ?, ?, ?, ?)
+  `, [data.deviceId || uuid(), uuid(), data.email, data.familyName || '', data.givenName, data.imageUrl || ''])
+
+  const portalUser = camelcaseKeys(await queryOne('select * from game_user_portal where id = ?', [resp.insertId]))
+
+  return portalUser as PortalUser
+  
+}
+
+export function gameUserToPortalUser(gameUser: GameUser):PortalUser {
+  const portalUser: PortalUser = {
+    deviceId: gameUser.deviceId,
+    firstName: gameUser.firstName || "",
+    lastName: gameUser.lastName || "",
+    email: gameUser.email || "",
+    password: uuid()
+  }
+  return portalUser
+}
+
+export async function getPortalUserByEmail(email: string): Promise<PortalUser | undefined>{
+  return camelcaseKeys(await queryOne('select * from game_user_portal where email = ?', [email])) as PortalUser
+}
+
+export async function loginWithGoogle(loginData: GoogleUser): Promise<any>{
+
+  console.log('loginWithGoogle loginData', loginData)
+  
+  let portalUser = await getPortalUserByEmail(loginData.email)
+  console.log('portalUser', portalUser)
+  
+  if(!portalUser){
+    const gameUser = await getGameUserByDeviceEmail(loginData.email)
+    if(gameUser) {
+      console.log('loginWithGoogle: !portalUser, gameUser found', gameUser)
+      loginData.deviceId = gameUser.deviceId
+    }
+    portalUser = await addPortalUser(loginData)
+    const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
+    const sended = await sendMail(portalUser.email, 'New Sloto Prizes account', 'Your password is: ' + portalUser.password, emailSupport)
+    console.log('email sended', sended)
+  }
+  
+  console.log('loginWithGoogle: returning portalUser', portalUser )
+
+  const token = getNewToken({ id: portalUser.id, deviceId: portalUser.deviceId })
+  
+  return {user: portalUser, token}
+
+}
 
 export async function auth(login: string, password: string): Promise<any> {
 
@@ -22,47 +118,11 @@ export async function auth(login: string, password: string): Promise<any> {
 
 }
 
-export async function getUserByLoginAndPassword(login: string, password: string): Promise<any> {
-  
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return await getUserByWhere(`up.login = '${login}' and up.password = '${password}'`)
-}
-
-export async function getUserByWhere(where: string): Promise<any> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return camelcaseKeys(await queryOne(`
-      select up.id as id, gu.id as game_user_id,
-          case
-              when (gu.first_name) then gu.first_name
-              when (gu.last_name) then gu.last_name
-              else gu.device_id
-          end as name, gu.email , gu.device_id
-        from game_user_portal up
-          inner join game_user gu on gu.device_id = up.device_id
-      where ${where}`)
-  )
-}
-
-export async function addUser(login: string, password: string): Promise<any> {}
-
-export async function getUserById(id: number): Promise<PortalUser> {
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return await getUserByWhere(`up.id = ${id}`)
-
-
-}
-
 export async function loginWithToken(loginToken: string): Promise<{user: Omit<PortalUser, 'password'> | GameUser | undefined, token: string}>{
 
-  console.log('token', loginToken)
-
   const {decodedToken, error} = verifyToken(loginToken)
-
-  console.log('decodedToken, error', decodedToken, error)
-
   if (!decodedToken || error)
-    throw createHttpError(StatusCodes.UNAUTHORIZED, 'The user in the token was not found in the db')
+    throw createHttpError(StatusCodes.UNAUTHORIZED, 'Error in token')
 
   const { id } = decodedToken 
   let user: Omit<PortalUser, 'password'> | GameUser | undefined = await getUserById(id)
@@ -80,62 +140,22 @@ export async function loginWithToken(loginToken: string): Promise<{user: Omit<Po
   
 }
 
-export async function createGameUserFromPortalUser(loginData: any): Promise<any>{
-  const userData = {
-    "id": "100258850875396198913",
-    "name": "Juan Pablo",
-    "givenName": "Juan",
-    "familyName": "Pablo",
-    "imageUrl": "https://lh6.googleusercontent.com/-j82JnQ8Rndk/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuckKcbXpWjiCiax5T5ZjLmJX3167Hw/s96-c/photo.jpg",
-    "email": "jpsala.alt@gmail.com"
-  }
-  if(!validateEmail(loginData.email)) throw createHttpError(StatusCodes.BAD_REQUEST, 'Invalid email')
-  const gameUser: Partial<GameUser> = {
-    firstName: loginData.name,
-    lastName: loginData.familyName,
-    email: loginData.email,
-    deviceId: uuid()
-  }
-  return await addGameUser(gameUser as GameUser)
-  
-}
-
-
-export async function loginWithGoogle(loginData: any): Promise<any>{
-  console.log('token', loginData)
-  let user = await getGameUserByDeviceEmail(loginData.email)
-  if(!user) user = await createGameUserFromPortalUser(loginData)
-  console.log('user', )
-  const token = getNewToken({ id: user.id, deviceId: undefined })
-  const portalUser = gameUserToPortalUser(user)
-  return {user: portalUser, token}
-
-}
-
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function signUp(loginData: any): Promise<any>{
-  console.log('signUp', loginData)
-  loginData.familyName = ''
-  loginData.email = loginData.login
-  const user = await getGameUserByDeviceEmail(loginData.email)
-  console.log('user', user)
-  if(user) throw createHttpError(StatusCodes.BAD_REQUEST, 'Email already exists')
-  const newUser = await createGameUserFromPortalUser(loginData)
+  loginData.givenName = loginData.name
+  const gameUser = await getGameUserByDeviceEmail(loginData.email)
+  if(gameUser) throw createHttpError(StatusCodes.BAD_REQUEST, 'Email already exists')
+
+  const portalUser = await getPortalUserByEmail(loginData.email)
+  if(portalUser) throw createHttpError(StatusCodes.BAD_REQUEST, 'Email already exists')
+
+  const newUser = await addPortalUser(loginData)
   console.log('newUSer', newUser)
   const token = getNewToken({ id: newUser.id, deviceId: undefined })
-  const portalUser = gameUserToPortalUser(newUser)
-  return {user: portalUser, token}
+  const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
+  const sended = await sendMail(newUser.email, 'New Sloto Prizes account', 'Your password is: ' + newUser.password, emailSupport)
+  console.log('Email sended', sended)
+
+  return {user: newUser, token}
 
 }
-
-export function gameUserToPortalUser(gameUser: GameUser): Omit<PortalUser, 'password'> {
-  const portalUser: Omit<PortalUser, 'password'> & {gameUserId: number} = {
-    deviceId: gameUser.deviceId,
-    id: gameUser.id,
-    login: gameUser.email,
-    name: gameUser.firstName,
-    email: gameUser.email,
-    gameUserId: gameUser.id
-  }
-  return portalUser
-}
-

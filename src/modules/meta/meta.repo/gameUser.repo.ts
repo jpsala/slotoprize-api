@@ -1,11 +1,10 @@
 import snakeCaseKeys from 'snakecase-keys'
 import camelcaseKeys from 'camelcase-keys'
 import { classToPlain } from "class-transformer"
-import { RowDataPacket } from 'mysql2'
 import createHttpError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
 import * as metaService from '../../meta/meta-services/meta.service'
-import getConnection, {queryOne, queryExec, query } from '../../../db'
+import {queryOne, queryExec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
 import { addHostToPath, toBoolean } from './../../../helpers'

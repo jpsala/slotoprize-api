@@ -1,8 +1,8 @@
 export type PortalUser = {
-  id: number,
+  id?: number,
   password: string,
-  login: string,
   deviceId: string,
-  name: string,
+  firstName: string,
+  lastName: string,
   email: string
 }
