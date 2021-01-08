@@ -3,7 +3,7 @@ import * as portalService from './portal.service'
 
 export async function auth(req: Request, res: Response): Promise<void> {
   console.log('req.body', req.body)
-  const {user, token} = await portalService.auth(req.body.login, req.body.password) 
+  const {user, token} = await portalService.auth(req.body.email, req.body.password) 
   res.setHeader('token', token)
   res.status(200).send(user)
 }

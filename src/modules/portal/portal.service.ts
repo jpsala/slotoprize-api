@@ -23,7 +23,7 @@ type GoogleUser = {
 export async function getUserByLoginAndPassword(login: string, password: string): Promise<any> {
   
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return await getUserByWhere(`up.login = '${login}' and up.password = '${password}'`)
+  return await getUserByWhere(`email = '${login}' and password = '${password}'`)
 }
 
 export async function getUserByWhere(where: string): Promise<any> {
@@ -32,7 +32,7 @@ export async function getUserByWhere(where: string): Promise<any> {
         from game_user_portal up
       where ${where}`)
   )
-    delete user.password
+  if(user) delete user.password
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return user
 
@@ -41,7 +41,7 @@ export async function getUserByWhere(where: string): Promise<any> {
 export async function getUserById(id: number): Promise<PortalUser> {
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return await getUserByWhere(`up.id = ${id}`)
+  return await getUserByWhere(`id = ${id}`)
 }
 
 export async function addPortalUser(data: Partial<GoogleUser>): Promise<PortalUser>{
