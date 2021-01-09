@@ -55,7 +55,7 @@ export async function addPortalUser(data: Partial<GoogleUser>): Promise<PortalUs
     insert into game_user_portal
     (device_id, password, email, last_name, first_name, image_url) values
     (?, ?, ?, ?, ?, ?)
-  `, [data.deviceId || uuid(), uuid(), data.email, data.familyName || '', data.givenName, data.imageUrl || ''])
+  `, [data.deviceId || uuid(), uuid(), data.email, data.familyName || '', data.givenName || data.name, data.imageUrl || ''])
 
   const portalUser = camelcaseKeys(await queryOne('select * from game_user_portal where id = ?', [resp.insertId]))
 
@@ -98,6 +98,34 @@ export async function loginWithGoogle(loginData: GoogleUser): Promise<any>{
   }
   
   console.log('loginWithGoogle: returning portalUser', portalUser )
+
+  const token = getNewToken({ id: portalUser.id, deviceId: portalUser.deviceId })
+  
+  return {user: portalUser, token}
+
+}
+
+export async function loginWithFacebook(loginData: GoogleUser): Promise<any>{
+
+  console.log('loginWithFacebook loginData', loginData)
+  
+  let portalUser = await getPortalUserByEmail(loginData.email)
+  console.log('portalUser', portalUser)
+  
+  if(!portalUser){
+    const gameUser = await getGameUserByDeviceEmail(loginData.email)
+    if(gameUser) {
+      console.log('loginWithFacebook: !portalUser, gameUser found', gameUser)
+      loginData.deviceId = gameUser.deviceId
+    }
+    loginData.givenName = (loginData as any).name
+    portalUser = await addPortalUser(loginData)
+    const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
+    const sended = await sendMail(portalUser.email, 'New Sloto Prizes account', 'Your password is: ' + portalUser.password, emailSupport)
+    console.log('email sended', sended)
+  }
+  
+  console.log('loginWithFacebook: returning portalUser', portalUser )
 
   const token = getNewToken({ id: portalUser.id, deviceId: portalUser.deviceId })
   
