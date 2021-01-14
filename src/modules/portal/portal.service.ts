@@ -9,16 +9,7 @@ import { getGameUserByDeviceEmail, getGameUserById } from "../meta/meta.repo/gam
 import { GameUser } from "../meta/meta.types"
 import {sendMail} from "../meta/meta-services/email.service"
 import { getSetting } from "../slot/slot.services/settings.service"
-import { PortalUser } from "./portal.types"
-type GoogleUser = {
-  id: number,
-  name:string,
-  givenName:string,
-  familyName:string,
-  imageUrl:string,
-  email:string,
-  deviceId?: string
-}
+import { GameData, GoogleUser, PortalUser } from "./portal.types"
 
 export async function getUserByLoginAndPassword(login: string, password: string): Promise<any> {
   
@@ -78,7 +69,7 @@ export async function getPortalUserByEmail(email: string): Promise<PortalUser | 
   return camelcaseKeys(await queryOne('select * from game_user_portal where email = ?', [email])) as PortalUser
 }
 
-export async function loginWithGoogle(loginData: GoogleUser): Promise<any>{
+export async function loginWithGoogle(loginData: GoogleUser): Promise<GameData>{
 
   console.log('loginWithGoogle loginData', loginData)
   
@@ -99,13 +90,11 @@ export async function loginWithGoogle(loginData: GoogleUser): Promise<any>{
   
   console.log('loginWithGoogle: returning portalUser', portalUser )
 
-  const token = getNewToken({ id: portalUser.id, deviceId: portalUser.deviceId })
-  
-  return {user: portalUser, token}
+  return getGameData(portalUser)
 
 }
 
-export async function loginWithFacebook(loginData: GoogleUser): Promise<any>{
+export async function loginWithFacebook(loginData: GoogleUser): Promise<GameData>{
 
   console.log('loginWithFacebook loginData', loginData)
   
@@ -127,33 +116,30 @@ export async function loginWithFacebook(loginData: GoogleUser): Promise<any>{
   
   console.log('loginWithFacebook: returning portalUser', portalUser )
 
-  const token = getNewToken({ id: portalUser.id, deviceId: portalUser.deviceId })
-  
-  return {user: portalUser, token}
+  return getGameData(portalUser)
 
 }
 
-export async function auth(login: string, password: string): Promise<any> {
+export async function auth(login: string, password: string): Promise<GameData> {
 
   const user = await getUserByLoginAndPassword(login, password)
 
   if (!user)
     throw createHttpError(StatusCodes.NOT_FOUND, 'The user in the token was not found in the db')
 
-  const token = getNewToken({ id: user.id, deviceId: undefined })
 
-  return {user, token}
+  return getGameData(user)
 
 }
 
-export async function loginWithToken(loginToken: string): Promise<{user: Omit<PortalUser, 'password'> | GameUser | undefined, token: string}>{
+export async function loginWithToken(loginToken: string): Promise<GameData>{
 
   const {decodedToken, error} = verifyToken(loginToken)
   if (!decodedToken || error)
     throw createHttpError(StatusCodes.UNAUTHORIZED, 'Error in token')
 
   const { id } = decodedToken 
-  let user: Omit<PortalUser, 'password'> | GameUser | undefined = await getUserById(id)
+  let user = await getUserById(id)
 
   if (!user){
     const gameUser = await getGameUserById(id)
@@ -162,14 +148,12 @@ export async function loginWithToken(loginToken: string): Promise<{user: Omit<Po
 
   if (!user) throw createHttpError(StatusCodes.NOT_FOUND, 'The user in the token was not found in the db')
 
-  const token = getNewToken({ id: user.id, deviceId: undefined })
-
-  return {user, token}
+  return getGameData(user)
   
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export async function signUp(loginData: any): Promise<any>{
+export async function signUp(loginData: any): Promise<GameData>{
   loginData.givenName = loginData.name
   const gameUser = await getGameUserByDeviceEmail(loginData.email)
   if(gameUser) throw createHttpError(StatusCodes.BAD_REQUEST, 'Email already exists')
@@ -178,12 +162,29 @@ export async function signUp(loginData: any): Promise<any>{
   if(portalUser) throw createHttpError(StatusCodes.BAD_REQUEST, 'Email already exists')
 
   const newUser = await addPortalUser(loginData)
-  console.log('newUSer', newUser)
-  const token = getNewToken({ id: newUser.id, deviceId: undefined })
   const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
   const sended = await sendMail(newUser.email, 'New Sloto Prizes account', 'Your password is: ' + newUser.password, emailSupport)
   console.log('Email sended', sended)
 
-  return {user: newUser, token}
+  return getGameData(newUser)
 
+}
+
+async function getGameData(user: PortalUser): Promise<GameData>{
+
+  if(!user.id || !user.deviceId || !user.email ) throw createHttpError(StatusCodes.BAD_REQUEST, 'portal.service: getGameData, user missing properties')
+
+  const maxMultiplier = await getSetting('maxMultiplier', '1')
+  const token = getNewToken({ id: user.id, deviceId: undefined })
+  
+  return  {
+    user:{
+      id: user.id,
+      deviceId: user.deviceId,
+      email: user.email,
+      name: user.firstName
+    },
+    maxMultiplier: Number(maxMultiplier),
+    token
+  }
 }
