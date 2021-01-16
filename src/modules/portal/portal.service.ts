@@ -3,7 +3,7 @@ import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import {v4 as uuid} from "uuid"
 import { queryExec, queryOne } from "../../db"
-import { validateEmail } from "../../helpers"
+import { getPortalUrl, validateEmail } from "../../helpers"
 import { getNewToken, verifyToken } from "../../services/jwtService"
 import { getGameUserByDeviceEmail, getGameUserById } from "../meta/meta.repo/gameUser.repo"
 import { GameUser } from "../meta/meta.types"
@@ -74,23 +74,24 @@ export async function loginWithGoogle(loginData: GoogleUser): Promise<GameData>{
   console.log('loginWithGoogle loginData', loginData)
   
   let portalUser = await getPortalUserByEmail(loginData.email)
-  console.log('portalUser', portalUser)
-  
+
+  let token: string | undefined = undefined
+
   if(!portalUser){
+
     const gameUser = await getGameUserByDeviceEmail(loginData.email)
     if(gameUser) {
       console.log('loginWithGoogle: !portalUser, gameUser found', gameUser)
       loginData.deviceId = gameUser.deviceId
     }
     portalUser = await addPortalUser(loginData)
-    const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
-    const sended = await sendMail(portalUser.email, 'New Sloto Prizes account', 'Your password is: ' + portalUser.password, emailSupport)
-    console.log('email sended', sended)
+    token = await sendSignUpEmail(portalUser)
+
   }
   
   console.log('loginWithGoogle: returning portalUser', portalUser )
 
-  return getGameData(portalUser)
+  return getGameData(portalUser, token)
 
 }
 
@@ -101,22 +102,25 @@ export async function loginWithFacebook(loginData: GoogleUser): Promise<GameData
   let portalUser = await getPortalUserByEmail(loginData.email)
   console.log('portalUser', portalUser)
   
+  let token: string | undefined = undefined
+
   if(!portalUser){
+
     const gameUser = await getGameUserByDeviceEmail(loginData.email)
+
     if(gameUser) {
       console.log('loginWithFacebook: !portalUser, gameUser found', gameUser)
       loginData.deviceId = gameUser.deviceId
+    
     }
     loginData.givenName = (loginData as any).name
     portalUser = await addPortalUser(loginData)
-    const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
-    const sended = await sendMail(portalUser.email, 'New Sloto Prizes account', 'Your password is: ' + portalUser.password, emailSupport)
-    console.log('email sended', sended)
+    token = await sendSignUpEmail(portalUser)
   }
   
   console.log('loginWithFacebook: returning portalUser', portalUser )
 
-  return getGameData(portalUser)
+  return getGameData(portalUser, token)
 
 }
 
@@ -127,7 +131,6 @@ export async function auth(login: string, password: string): Promise<GameData> {
   if (!user)
     throw createHttpError(StatusCodes.NOT_FOUND, 'The user in the token was not found in the db')
 
-
   return getGameData(user)
 
 }
@@ -135,6 +138,26 @@ export async function auth(login: string, password: string): Promise<GameData> {
 export async function loginWithToken(loginToken: string): Promise<GameData>{
 
   const {decodedToken, error} = verifyToken(loginToken)
+  if (!decodedToken || error)
+    throw createHttpError(StatusCodes.UNAUTHORIZED, 'Error in token')
+
+  const { id } = decodedToken 
+  let user = await getUserById(id)
+
+  if (!user){
+    const gameUser = await getGameUserById(id)
+    if(gameUser) user = gameUserToPortalUser(gameUser)
+  }
+
+  if (!user) throw createHttpError(StatusCodes.NOT_FOUND, 'The user in the token was not found in the db')
+
+  return getGameData(user)
+  
+}
+export async function activation(loginToken: string): Promise<GameData>{
+
+  const {decodedToken, error} = verifyToken(loginToken)
+
   if (!decodedToken || error)
     throw createHttpError(StatusCodes.UNAUTHORIZED, 'Error in token')
 
@@ -162,20 +185,76 @@ export async function signUp(loginData: any): Promise<GameData>{
   if(portalUser) throw createHttpError(StatusCodes.BAD_REQUEST, 'Email already exists')
 
   const newUser = await addPortalUser(loginData)
-  const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
-  const sended = await sendMail(newUser.email, 'New Sloto Prizes account', 'Your password is: ' + newUser.password, emailSupport)
-  console.log('Email sended', sended)
 
-  return getGameData(newUser)
+  const token = await sendSignUpEmail(newUser)
+
+  return getGameData(newUser, token)
 
 }
 
-async function getGameData(user: PortalUser): Promise<GameData>{
+async function sendSignUpEmail(newUser: PortalUser) {
+  const token = getNewToken({ id: newUser.id, deviceId: newUser.deviceId }) as string
+  const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
+  const url = `${getPortalUrl()}?activation=${token}`
+  await sendMail(
+    newUser.email,
+    'New Sloto Prizes account',
+    `
+    <div style="
+        padding: 30px 50px;
+        border-radius: 4px;
+        margin: auto;
+        width: 503px;
+        box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+        background-color: #F3F4F9;"
+      >
+      <img style='height: 80px; margin-top: -7px; margin-left: -30px; margin-bottom: 30px;'
+          src='https://assets.dev.slotoprizes.tagadagames.com/img/logo.png' />
+      <h1 style="margin-bottom: 10px;">Bienvenue à Sloto Prizes</h1>
+
+      <hr style="margin-bottom: 40px;">
+
+      <p>Utilisateur: ${newUser.firstName}</p>
+
+      <p>Mot de passe: ${newUser.password}</p>
+
+      <p>Bonne chance !</p>
+
+      <a 
+        href="${url}"
+        style="
+          text-align: center;
+          position: relative;
+
+          display: block;
+          margin: 0px auto;
+          margin-top: 70px;
+          overflow: hidden;
+          border-width: 0;
+          outline: none;
+          border-radius: 2px;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+          font-size: 1rem;
+          background-color: #0088FF;
+          color: white;
+          transition: background-color .3s;
+          padding: 15px 40px;
+          cursor: pointer;
+          width: 50px;
+        "
+        type="button"><span>Jouer</span>
+      </a>
+    </div>
+      `, emailSupport)
+  return token
+}
+
+async function getGameData(user: PortalUser, token?: string): Promise<GameData>{
 
   if(!user.id || !user.deviceId || !user.email ) throw createHttpError(StatusCodes.BAD_REQUEST, 'portal.service: getGameData, user missing properties')
 
   const maxMultiplier = await getSetting('maxMultiplier', '1')
-  const token = getNewToken({ id: user.id, deviceId: undefined })
+  const _token = token || getNewToken({ id: user.id, deviceId: undefined })
   
   return  {
     user:{
@@ -185,6 +264,6 @@ async function getGameData(user: PortalUser): Promise<GameData>{
       name: user.firstName
     },
     maxMultiplier: Number(maxMultiplier),
-    token
+    token: _token
   }
 }
