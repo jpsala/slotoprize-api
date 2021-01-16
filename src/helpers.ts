@@ -147,6 +147,16 @@ export const getAssetsUrl = (): string => {
         return 'https://assets.slotoprizes.tagadagames.com'
     else throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, 'hostname unrecognized')
 }
+export const getPortalUrl = (): string => {
+    const _hostname = hostname()
+
+    if (isNotebook()) return 'https://localhost:8080/'
+    else if (_hostname === 'sloto-dev')
+        return 'https://portal.dev.slotoprizes.tagadagames.com/'
+    else if (_hostname === 'slotoprizes')
+        return 'https://portal.dev.slotoprizes.tagadagames.com/'
+    else throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, 'hostname unrecognized')
+}
 export const getAssetsUrls = (): string[] => {
     return ['http://localhost/public/assets',
             'https://assets.dev.slotoprizes.tagadagames.com',
