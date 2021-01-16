@@ -46,7 +46,7 @@ export async function addPortalUser(data: Partial<GoogleUser>): Promise<PortalUs
     insert into game_user_portal
     (device_id, password, email, last_name, first_name, image_url) values
     (?, ?, ?, ?, ?, ?)
-  `, [data.deviceId || uuid(), uuid(), data.email, data.familyName || '', data.givenName || data.name, data.imageUrl || ''])
+  `, [data.deviceId || uuid(), uuid().substr(0, 8), data.email, data.familyName || '', data.givenName || data.name, data.imageUrl || ''])
 
   const portalUser = camelcaseKeys(await queryOne('select * from game_user_portal where id = ?', [resp.insertId]))
 
