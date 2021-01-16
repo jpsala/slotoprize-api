@@ -28,3 +28,9 @@ export async function signUpPost(req: Request, res: Response): Promise<void> {
   res.setHeader('token', gameData.token)
   res.status(200).send(gameData)
 }
+export async function activationPost(req: Request, res: Response): Promise<void> {
+  console.log('req', req)
+  const gameData = await portalService.activation(req.body.token)
+  res.setHeader('token', gameData.token)
+  res.status(200).send(gameData)
+}
