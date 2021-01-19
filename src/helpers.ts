@@ -147,6 +147,16 @@ export const getAssetsUrl = (): string => {
         return 'https://assets.slotoprizes.tagadagames.com'
     else throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, 'hostname unrecognized')
 }
+export const getPortalUrl = (): string => {
+    const _hostname = hostname()
+
+    if (isNotebook()) return 'https://localhost:8080/'
+    else if (_hostname === 'sloto-dev')
+        return 'https://portal.dev.slotoprizes.tagadagames.com/'
+    else if (_hostname === 'slotoprizes')
+        return 'https://portal.dev.slotoprizes.tagadagames.com/'
+    else throw createHttpError(StatusCodes.INTERNAL_SERVER_ERROR, 'hostname unrecognized')
+}
 export const getAssetsUrls = (): string[] => {
     return ['http://localhost/public/assets',
             'https://assets.dev.slotoprizes.tagadagames.com',
@@ -199,8 +209,8 @@ export function shuffleArray(array: any[]): any[] {
     return array 
   } 
 
-export const checkIfToFastEndpointCall = async ({endPoint, userId, miliseconds = 1000}:
-    {endPoint: string, userId: number, miliseconds: number}): Promise<void> => 
+export const checkIfToFastEndpointCall = async ({endPoint, userId, milliseconds = 1000}:
+    {endPoint: string, userId: number, milliseconds: number}): Promise<void> => 
 {
     const lastCall = await queryOne(`
         select id, last, game_user_id, endpoint from endpoint_last_call 
@@ -217,8 +227,8 @@ export const checkIfToFastEndpointCall = async ({endPoint, userId, miliseconds =
 
     const diff = nowMoment.diff(lastMoment.utc())
     await setEndpointLastCall({endPoint, userId})
-    console.log('endpoint %o userId %o mill %o diff %o', endPoint, userId, miliseconds, diff )
-    if(diff < miliseconds) throw createHttpError(StatusCodes.BAD_REQUEST, 'Unauthorized call modulation')
+    console.log('endpoint %o userId %o mill %o diff %o', endPoint, userId, milliseconds, diff )
+    if(diff < milliseconds) throw createHttpError(StatusCodes.BAD_REQUEST, 'Unauthorized call modulation')
     return
 }
 
@@ -236,4 +246,10 @@ export function deleteProps (obj, prop): any {
         (p in obj) && (delete newObj[p])
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return newObj
+}
+
+export function validateEmail(mail: string): boolean {
+    if (/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(mail))
+        return (true)
+    return (false)
 }

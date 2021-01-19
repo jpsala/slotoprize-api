@@ -38,7 +38,7 @@ export  function processEvents(eventsFromDB: EventDTO[]): void
     ruleFromDb.particlesTextureUrl = ruleFromDb.particlesTextureUrl ? url + ruleFromDb.particlesTextureUrl : ''
     ruleFromDb.rule = <Rule>JSON.parse(ruleFromDb.rule as any)
 
-    console.log('processEvents event', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
+    // console.log('processEvents event', ruleFromDb.id, ruleFromDb.name, ruleFromDb.eventType )
 
     if (ruleFromDb.rule.type === 'unique') {
       const ruleDateStart = parse(ruleFromDb.rule.start, 'yyyy-MM-dd HH:mm:ss', new Date())
@@ -56,7 +56,7 @@ export  function processEvents(eventsFromDB: EventDTO[]): void
   {  
     if (Number(eventFromDB.active) === 0) continue
     if (eventFromDB.duration < 0) {
-      console.warn('event in the past %O, skipping %O', eventFromDB.name, eventFromDB)
+      console.warn('event in the past %O, skipping %O', eventFromDB.name)
       continue
     }
     const newEvent: Partial<Event> = createEvent(eventFromDB)
@@ -142,7 +142,7 @@ export function removeEvent(eventId: number): void
    if (event.distance)
      console.log('scheduleEvent of %O distance %O ', (event.payload as any)?.name, nexts)
    else 
-     console.warn('! scheduleEvent of %O There is no distance %O', (event.payload as any)?.name, event)
+     console.warn('!', (event.payload as any)?.name)
    
   event.laterTimerHandler = later.setInterval(function ()
   {

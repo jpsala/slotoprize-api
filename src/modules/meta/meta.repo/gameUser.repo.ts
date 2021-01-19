@@ -1,11 +1,10 @@
 import snakeCaseKeys from 'snakecase-keys'
 import camelcaseKeys from 'camelcase-keys'
 import { classToPlain } from "class-transformer"
-import { RowDataPacket } from 'mysql2'
 import createHttpError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
 import * as metaService from '../../meta/meta-services/meta.service'
-import getConnection, {queryOne, queryExec, query } from '../../../db'
+import {queryOne, queryExec, query } from '../../../db'
 import { LanguageData, GameUser, fakeUser, RafflePrizeData } from '../meta.types'
 import { getWallet, updateWallet, insertWallet } from '../../slot/slot.services/wallet.service'
 import { addHostToPath, toBoolean } from './../../../helpers'
@@ -76,6 +75,21 @@ export async function getLanguage(userId: number): Promise<LanguageData> {
 export async function getGameUserByDeviceId(deviceId: string): Promise<GameUser>{
 
   const userSelect = `select * from game_user where device_id ='${deviceId}'`  
+
+  const user = camelcaseKeys(await queryOne(userSelect, undefined, false)) as GameUser
+
+  if(user){
+    user.tutorialComplete = toBoolean(user.tutorialComplete)
+    user.isDev = toBoolean(user.isDev)
+    user.isNew = toBoolean(user.isNew)
+    user.agreements = toBoolean(user.agreements)
+    user.wallet = await getWallet(user)
+  }
+  return user
+}
+export async function getGameUserByDeviceEmail(email: string): Promise<GameUser>{
+
+  const userSelect = `select * from game_user where email ='${email}'`  
 
   const user = camelcaseKeys(await queryOne(userSelect, undefined, false)) as GameUser
 
@@ -222,28 +236,20 @@ export async function addGameUser(user: GameUser): Promise<GameUser> {
   const snakeCasedUser = snakeCaseKeys(gameUserDto)
   const wallet = snakeCasedUser.wallet
   delete snakeCasedUser.wallet
-  const conn = await getConnection()
-  let gameUserId: number
-  await conn.beginTransaction()
-  try {
-      const [result] = await conn.query('insert into game_user set ?', snakeCasedUser) as RowDataPacket[]
-      gameUserId = result.insertId
-      gameUserDto.id = gameUserId
-      let walletDTO: WalletDTO
-      if (gameUserDto.wallet) {
-        walletDTO = <WalletDTO>classToPlain(wallet)
-        walletDTO.game_user_id = gameUserId
-        await insertWallet(gameUserDto as GameUser, wallet?.coins, wallet?.spins, wallet?.tickets)
-      } else {
-        await insertWallet(gameUserDto as GameUser)
-      }
-    await conn.commit()
-    } finally {
-      await conn.rollback()
-      conn.destroy()
+  const result = await queryExec('insert into game_user set ?', snakeCasedUser)
+  const gameUserId = result.insertId
+    gameUserDto.id = gameUserId
+    let walletDTO: WalletDTO
+    if (gameUserDto.wallet) {
+      walletDTO = <WalletDTO>classToPlain(wallet)
+      walletDTO.game_user_id = gameUserId
+      await insertWallet(gameUserDto as GameUser, wallet?.coins, wallet?.spins, wallet?.tickets)
+    } else {
+      await insertWallet(gameUserDto as GameUser)
     }
-    return gameUserDto as GameUser
-  }
+  return gameUserDto as GameUser
+}
+
 export async function getNewSavedFakeUser(override: Partial<GameUser> = {}): Promise<GameUser>{
   const fakedUser = await fakeUser(override)
   const newUser = await addGameUser(fakedUser)
