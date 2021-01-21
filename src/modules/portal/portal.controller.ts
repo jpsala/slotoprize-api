@@ -34,3 +34,7 @@ export async function activationPost(req: Request, res: Response): Promise<void>
   res.setHeader('token', gameData.token)
   res.status(200).send(gameData)
 }
+export function googleCallback(req: Request, res: Response): void {
+  console.log('req', req)
+  res.status(200).send(req)
+}
