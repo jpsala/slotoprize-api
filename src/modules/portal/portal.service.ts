@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes"
 import {v4 as uuid} from "uuid"
 import snakecaseKeys from "snakecase-keys"
 import { parseISO, format } from 'date-fns'
-import { queryExec, queryOne } from "../../db"
+import { queryExec, queryOne, queryScalar } from "../../db"
 import { getPortalUrl, validateEmail } from "../../helpers"
 import { getNewToken, verifyToken } from "../../services/jwtService"
 import { addGameUser, getGameUserByDeviceEmail, getGameUserById } from "../meta/meta.repo/gameUser.repo"
@@ -195,6 +195,27 @@ export async function getProfile(id: number): Promise<any>{
  
 }
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function postPassword({id, password}: {id: number, password: string}): Promise<any>{
+  const portalId = await queryScalar(`
+    select p.id 
+      from game_user g
+        inner join game_user_portal p on p.device_id = g.device_id
+    where g.id = ${id}`)
+  const resp = await queryExec(`update game_user_portal set password = ? where id = ?`, [password, portalId])
+  console.log('resp', resp)
+  return resp
+}
+export async function postEmail({id, email}: {id: number, email: string}): Promise<any>{
+  const portalId = await queryScalar(`
+    select p.id 
+      from game_user g
+        inner join game_user_portal p on p.device_id = g.device_id
+    where g.id = ${id}`)
+  const resp = await queryExec(`update game_user_portal set email = ? where id = ?`, [email, portalId])
+  const resp2 = await queryExec(`update game_user set email = ? where id = ?`, [email, id])
+  console.log('resp', resp, resp2)
+  return resp
+}
 export async function postProfile(data: any): Promise<any>{
   delete data.imageUrl
   delete data.createdAt

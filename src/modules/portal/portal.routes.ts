@@ -12,4 +12,6 @@ router.route('/google_callback').post(portalController.googleCallback)
 router.route('/google_callback').get(portalController.googleCallback)
 router.route('/portal_profile').get(portalController.portalProfileGet)
 router.route('/portal_profile').post(portalController.portalProfilePost)
+router.route('/portal_password').post(portalController.portalPasswordPost)
+router.route('/portal_email').post(portalController.portalEmailPost)
 export default router

@@ -46,3 +46,11 @@ export async function portalProfilePost(req: Request, res: Response): Promise<vo
   const data = await portalService.postProfile(req.body)
   res.status(200).send( data )
 }
+export async function portalPasswordPost(req: Request, res: Response): Promise<void> {
+  const data = await portalService.postPassword({id: Number(req.body.id), password: req.body.password as string})
+  res.status(200).send( data )
+}
+export async function portalEmailPost(req: Request, res: Response): Promise<void> {
+  const data = await portalService.postEmail({id: Number(req.body.id), email: req.body.email as string})
+  res.status(200).send( data )
+}
