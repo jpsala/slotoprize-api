@@ -2,7 +2,8 @@ import camelcaseKeys from "camelcase-keys"
 import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import {v4 as uuid} from "uuid"
-import { json } from "body-parser"
+import snakecaseKeys from "snakecase-keys"
+import { parseISO, format } from 'date-fns'
 import { queryExec, queryOne } from "../../db"
 import { getPortalUrl, validateEmail } from "../../helpers"
 import { getNewToken, verifyToken } from "../../services/jwtService"
@@ -192,6 +193,51 @@ export async function getProfile(id: number): Promise<any>{
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return camelcaseKeys(data)
  
+}
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function postProfile(data: any): Promise<any>{
+  delete data.imageUrl
+  delete data.createdAt
+  delete data.modifiedAt
+  delete data.isDev
+  delete data.adsFree
+  delete data.sendWinJackpotEventWhenProfileFilled
+  const birthDateISO = parseISO(data.birthDate)
+  data.birthDate = format(birthDateISO, 'yyyy-MM-dd HH:mm:ss')
+  console.log('data', data)
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+  const resp = await queryExec(`update game_user set ? where id = ${data.id}`, snakecaseKeys(data))
+  console.log('resp', resp)
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return camelcaseKeys(data)
+ /* address: ""
+    adsFree: 0
+    agreements: 0
+    banned: 0
+    birthDate: "1900-01-01T04:16:48.000Z"
+    city: ""
+    country: ""
+    createdAt: "2021-01-24T23:18:56.000Z"
+    deviceId: "6373ad51-cfa8-4ccf-b6d3-8fa9f09c77f9"
+    deviceModel: ""
+    deviceName: ""
+    devicePlataform: ""
+    email: "jpsala@gmail.com"
+    firstName: "Juan Pablo"
+    id: 106553
+    imageUrl: "https://lh3.googleusercontent.com/a-/AOh14GilC43fO5FPldJ6Hp7rOCZ070u4dhmBMpezi4sT3A=s96-c"
+    isDev: 0
+    languageCode: "fr-FR"
+    lastName: "Sala"
+    modifiedAt: "2021-01-24T23:18:56.000Z"
+    password: ""
+    phoneNumber: ""
+    sendWinJackpotEventWhenProfileFilled: null
+    state: ""
+    title: ""
+    tutorialComplete: 0
+    zipCode: "" */
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types

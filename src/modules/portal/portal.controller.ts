@@ -42,3 +42,7 @@ export async function portalProfileGet(req: Request, res: Response): Promise<voi
   const data = await portalService.getProfile(Number(req.query.id))
   res.status(200).send( data )
 }
+export async function portalProfilePost(req: Request, res: Response): Promise<void> {
+  const data = await portalService.postProfile(req.body)
+  res.status(200).send( data )
+}

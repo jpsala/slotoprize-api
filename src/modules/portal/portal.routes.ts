@@ -11,4 +11,5 @@ router.route('/activation').post(portalController.activationPost)
 router.route('/google_callback').post(portalController.googleCallback)
 router.route('/google_callback').get(portalController.googleCallback)
 router.route('/portal_profile').get(portalController.portalProfileGet)
+router.route('/portal_profile').post(portalController.portalProfilePost)
 export default router
