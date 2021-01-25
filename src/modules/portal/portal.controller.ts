@@ -33,8 +33,6 @@ export async function activationPost(req: Request, res: Response): Promise<void>
   const gameData = await portalService.activation(req.body.token)
   res.setHeader('token', gameData.token)
   res.status(200).send(gameData)
-<<<<<<< Updated upstream
-=======
 }
 export function googleCallback(req: Request, res: Response): void {
   console.log('req', req)
@@ -43,5 +41,4 @@ export function googleCallback(req: Request, res: Response): void {
 export async function portalProfileGet(req: Request, res: Response): Promise<void> {
   const data = await portalService.getProfile(Number(req.query.id))
   res.status(200).send( data )
->>>>>>> Stashed changes
 }
