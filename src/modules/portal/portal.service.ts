@@ -2,10 +2,11 @@ import camelcaseKeys from "camelcase-keys"
 import createHttpError from "http-errors"
 import { StatusCodes } from "http-status-codes"
 import {v4 as uuid} from "uuid"
+import { json } from "body-parser"
 import { queryExec, queryOne } from "../../db"
 import { getPortalUrl, validateEmail } from "../../helpers"
 import { getNewToken, verifyToken } from "../../services/jwtService"
-import { getGameUserByDeviceEmail, getGameUserById } from "../meta/meta.repo/gameUser.repo"
+import { addGameUser, getGameUserByDeviceEmail, getGameUserById } from "../meta/meta.repo/gameUser.repo"
 import { GameUser } from "../meta/meta.types"
 import {sendMail} from "../meta/meta-services/email.service"
 import { getSetting } from "../slot/slot.services/settings.service"
@@ -154,6 +155,7 @@ export async function loginWithToken(loginToken: string): Promise<GameData>{
   return getGameData(user)
   
 }
+
 export async function activation(loginToken: string): Promise<GameData>{
 
   const {decodedToken, error} = verifyToken(loginToken)
@@ -173,6 +175,23 @@ export async function activation(loginToken: string): Promise<GameData>{
 
   return getGameData(user)
   
+}
+
+export async function getProfile(id: number): Promise<any>{
+
+
+    const data = await queryOne(`
+      select * from game_user_portal p
+        inner join game_user g on g.device_id = p.device_id
+      where p.id = ${id}
+    `)
+
+    if (!data) throw createHttpError(StatusCodes.NOT_FOUND, 'The user with this ID')
+    console.log('data', JSON.stringify(data, null, 2))
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return camelcaseKeys(data)
+ 
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -253,6 +272,17 @@ async function getGameData(user: PortalUser, token?: string): Promise<GameData>{
 
   if(!user.id || !user.deviceId || !user.email ) throw createHttpError(StatusCodes.BAD_REQUEST, 'portal.service: getGameData, user missing properties')
 
+  const gameUser = await getGameUserByDeviceEmail(user.email)
+  if(!gameUser){
+    const newUser: Partial<GameUser> = {
+      deviceId: user.deviceId,
+      lastName: user.lastName,
+      firstName: user.firstName,
+      email: user.email
+    }
+    const resp = await addGameUser(newUser as GameUser)
+    console.log('getGameData addGameUser', resp)
+  }
   const maxMultiplier = await getSetting('maxMultiplier', '1')
   const _token = token || getNewToken({ id: user.id, deviceId: undefined })
   

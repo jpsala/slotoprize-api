@@ -9,3 +9,4 @@ echo bzip2
 echo listo el bzip2
 scp ./slotoprizes-local_$now.sql.bz2 dev.slotoprizes.tagadagames.com:/prg/api/backups
 echo backups ready in dev.slotoprizes.tagadagames.com:/prg/api/backups/slotoprizes-local_$now.sql.bz2
+
