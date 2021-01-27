@@ -4,10 +4,10 @@ import { StatusCodes } from "http-status-codes"
 import {v4 as uuid} from "uuid"
 import snakecaseKeys from "snakecase-keys"
 import { parseISO, format } from 'date-fns'
-import { queryExec, queryOne, queryScalar } from "../../db"
-import { getPortalUrl, validateEmail } from "../../helpers"
+import { query, queryExec, queryOne, queryScalar } from "../../db"
+import { getAssetsUrl, getPortalUrl, validateEmail } from "../../helpers"
 import { getNewToken, verifyToken } from "../../services/jwtService"
-import { addGameUser, getGameUserByDeviceEmail, getGameUserById } from "../meta/meta.repo/gameUser.repo"
+import { addGameUser, getGameUserByDeviceEmail, getGameUserByDeviceId, getGameUserById } from "../meta/meta.repo/gameUser.repo"
 import { GameUser } from "../meta/meta.types"
 import {sendMail} from "../meta/meta-services/email.service"
 import { getSetting } from "../slot/slot.services/settings.service"
@@ -215,6 +215,46 @@ export async function postEmail({id, email}: {id: number, email: string}): Promi
   const resp2 = await queryExec(`update game_user set email = ? where id = ?`, [email, id])
   console.log('resp', resp, resp2)
   return resp
+}
+export async function getWinners(): Promise<any> {
+  const languageCode = await getSetting('languageCode', 'fr-FR')
+  const url = getAssetsUrl()
+  const select = `
+    select jw.id, gu.device_id, '' as textureUrl,
+        if(last_name != '', concat(last_name, ', ', first_name), 'No name in Profile') as user,
+        if(gu.email != '', gu.email, 'No Email in Profile')          as email,
+        date_format(jw.createdAt, '%Y-%m-%d')                        as date,
+        'Jackpot'                                                    as origin,
+        jw.state                                                     as state,
+        j.prize                                                      as prize,
+        gu.id                                                        as userId
+    from jackpot_win jw
+        inner join jackpot j on jw.jackpot_id = j.id
+        inner join game_user gu on jw.game_user_id = gu.id
+    where jw.createdAT
+        union
+    select r.id, gu.device_id, concat('${url}', texture_url) as textureUrl,
+        if(last_name != '', concat(last_name, ', ', first_name), '') as user,
+        if(gu.email != '', gu.email, 'n/a')                          as email,
+        date_format(r.closing_date, '%Y-%m-%d')                     as date,
+        'Raffle'                                                     as origin,
+        r.state                                                      as state,
+        if(rl.id, concat(rl.name,' | ',rl.description), 'No localization data for this raffle')          as prize,
+        gu.id                                                        as userId
+      from raffle_wins rw
+        inner join raffle_history rh on rw.raffle_history_id = rh.id
+        inner join raffle r on rh.raffle_id = r.id
+        inner join game_user gu on r.winner = gu.id
+        left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = '${languageCode}'
+      where r.closing_date
+    order by 5 desc
+  `
+  const data = await query(select)
+  for (const row of data) 
+    row.player = await getGameUserByDeviceId(row.device_id)
+  
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return data
 }
 export async function postProfile(data: any): Promise<any>{
   delete data.imageUrl

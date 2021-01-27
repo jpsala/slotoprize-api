@@ -38,6 +38,10 @@ export function googleCallback(req: Request, res: Response): void {
   console.log('req', req)
   res.status(200).send(req)
 }
+export async function portalWinnersGet(req: Request, res: Response): Promise<void> {
+  const data = await portalService.getWinners()
+  res.status(200).send( data )
+}
 export async function portalProfileGet(req: Request, res: Response): Promise<void> {
   const data = await portalService.getProfile(Number(req.query.id))
   res.status(200).send( data )
