@@ -34,14 +34,14 @@ export async function getWinnersForCrud(): Promise<any> {
         inner join game_user gu on r.winner = gu.id
         left join raffle_localization rl on r.id = rl.raffle_id and rl.language_code = '${languageCode}'
       where r.closing_date
-  order by 5 desc
-`
-const data = await query(select)
+    order by 5 desc
+  `
+  const data = await query(select)
   for (const row of data) 
     row.player = await getGameUserByDeviceId(row.device_id)
   
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return data
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return data
 }
 export const postWinnersStatusForCrud = async (items: any[], state: string ): Promise<any> => {
   console.log('items', items)
