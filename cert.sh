@@ -1,0 +1,1 @@
+sudo certbot --apache -d slotoprizes.tagadagames.com -d assets.slotoprizes.tagadagames.com -d bo.slotoprizes.tagadagames.com --cert-name slotoprizes.tagadagames.com -d slotoprizes.fr -d portal.slotoprizes.tagadagames.com -d root.slotoprizes.tagadagames.com -d www.slotoprizes.fr -d slotoprizes.primolotto.com -d www.slotoprizes.primolotto.com --auto --no-redirect
