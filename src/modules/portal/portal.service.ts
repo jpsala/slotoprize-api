@@ -8,9 +8,10 @@ import { query, queryExec, queryOne, queryScalar } from "../../db"
 import { getAssetsUrl, getPortalUrl, validateEmail } from "../../helpers"
 import { getNewToken, verifyToken } from "../../services/jwtService"
 import { addGameUser, getGameUserByDeviceEmail, getGameUserByDeviceId, getGameUserById } from "../meta/meta.repo/gameUser.repo"
-import { GameUser } from "../meta/meta.types"
+import { GameUser, RafflePrizeData } from "../meta/meta.types"
 import {sendMail} from "../meta/meta-services/email.service"
 import { getSetting } from "../slot/slot.services/settings.service"
+import { getRaffleLocalizationData } from "../../modules/meta/meta.repo/raffle.repo"
 import { GameData, GoogleUser, PortalUser } from "./portal.types"
 
 export async function getUserByLoginAndPassword(login: string, password: string): Promise<any> {
@@ -131,7 +132,7 @@ export async function auth(login: string, password: string): Promise<GameData> {
   const user = await getUserByLoginAndPassword(login, password)
 
   if (!user)
-    throw createHttpError(StatusCodes.NOT_FOUND, 'The user in the token was not found in the db')
+    throw createHttpError(StatusCodes.NOT_FOUND, 'Impossible de se connecter')
 
   return getGameData(user)
 
@@ -141,7 +142,7 @@ export async function loginWithToken(loginToken: string): Promise<GameData>{
 
   const {decodedToken, error} = verifyToken(loginToken)
   if (!decodedToken || error)
-    throw createHttpError(StatusCodes.UNAUTHORIZED, 'Error in token')
+    throw createHttpError(StatusCodes.UNAUTHORIZED, 'Impossible de se connecter')
 
   const { id } = decodedToken 
   let user = await getUserById(id)
@@ -151,7 +152,7 @@ export async function loginWithToken(loginToken: string): Promise<GameData>{
     if(gameUser) user = gameUserToPortalUser(gameUser)
   }
 
-  if (!user) throw createHttpError(StatusCodes.NOT_FOUND, 'The user in the token was not found in the db')
+  if (!user) throw createHttpError(StatusCodes.NOT_FOUND, 'Impossible de se connecter')
 
   return getGameData(user)
   
@@ -172,7 +173,7 @@ export async function activation(loginToken: string): Promise<GameData>{
     if(gameUser) user = gameUserToPortalUser(gameUser)
   }
 
-  if (!user) throw createHttpError(StatusCodes.NOT_FOUND, 'The user in the token was not found in the db')
+  if (!user) throw createHttpError(StatusCodes.NOT_FOUND, 'Impossible de se connecter')
 
   return getGameData(user)
   
@@ -205,6 +206,44 @@ export async function postPassword({id, password}: {id: number, password: string
   console.log('resp', resp)
   return resp
 }
+export async function postForgotPassword(email: string): Promise<void>{
+  const password = await queryScalar(`
+    select p.password 
+      from game_user g
+        inner join game_user_portal p on p.device_id = g.device_id
+    where g.email = ?`, [email])
+  console.log('portalId', password)
+  
+  if(!password) throw createHttpError(StatusCodes.BAD_REQUEST, 'EmailEmail non trouvé')
+
+  const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
+  await sendMail(
+    email,
+    'Votre mot de passe en Slotoprizes',
+    `
+    <div style="
+        padding: 30px 50px;
+        border-radius: 4px;
+        margin: auto;
+        width: 503px;
+        box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+        background-color: #F3F4F9;"
+      >
+      <img style='height: 80px; margin-top: -7px; margin-left: -30px; margin-bottom: 30px;'
+          src='https://assets.dev.slotoprizes.tagadagames.com/img/logo.png' />
+      <h1 style="margin-bottom: 10px;">Votre mot de passe en Slotoprizes</h1>
+
+      <hr style="margin-bottom: 40px;">
+
+      <p>Mot de passe: ${password}</p>
+
+      <p>Bonne chance !</p>
+
+
+    </div>
+      `, emailSupport)
+}
+
 export async function postEmail({id, email}: {id: number, email: string}): Promise<any>{
   const portalId = await queryScalar(`
     select p.id 
@@ -223,7 +262,7 @@ export async function getWinners(): Promise<any> {
     select jw.id, gu.device_id, '' as textureUrl,
         if(last_name != '', concat(last_name, ', ', first_name), 'No name in Profile') as user,
         if(gu.email != '', gu.email, 'No Email in Profile')          as email,
-        date_format(jw.createdAt, '%Y-%m-%d')                        as date,
+        date_format(jw.createdAt, '%d-%m-%Y')                        as date,
         'Jackpot'                                                    as origin,
         jw.state                                                     as state,
         j.prize                                                      as prize,
@@ -236,7 +275,7 @@ export async function getWinners(): Promise<any> {
     select r.id, gu.device_id, concat('${url}', texture_url) as textureUrl,
         if(last_name != '', concat(last_name, ', ', first_name), '') as user,
         if(gu.email != '', gu.email, 'n/a')                          as email,
-        date_format(r.closing_date, '%Y-%m-%d')                     as date,
+        date_format(r.closing_date, '%d-%m-%Y')                     as date,
         'Raffle'                                                     as origin,
         r.state                                                      as state,
         if(rl.id, concat(rl.name,' | ',rl.description), 'No localization data for this raffle')          as prize,
@@ -300,7 +339,27 @@ export async function postProfile(data: any): Promise<any>{
     tutorialComplete: 0
     zipCode: "" */
 }
-
+export async function getRaffles(email: string, onlyLive = false): Promise<RafflePrizeData[]> {
+  const url = getAssetsUrl()
+  const where = onlyLive ? ' CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date ' : ' true '
+    const user = await getGameUserByDeviceEmail(email)
+    const raffles = await query(`
+      SELECT r.id, r.closing_date, r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight, 
+            coalesce((select sum(coalesce(rh2.raffle_numbers, 0)) from raffle_history rh2 where rh2.game_user_id = ${user.id} and rh2.raffle_id = r.id), 0) as participationsPurchased
+      FROM raffle r
+        left join raffle_history rh on r.id = rh.raffle_id
+      where ${where}
+      group by r.id
+  `) as RafflePrizeData[]
+  for (const raffle of raffles) {
+    const { name, description } = await getRaffleLocalizationData(user, raffle.id)
+    if (raffle == null) throw createHttpError(StatusCodes.BAD_REQUEST, 'no localization data for this raffle')
+    if (name == null) throw createHttpError(StatusCodes.BAD_REQUEST, 'no localization data for this raffle')
+    raffle.name = name
+    raffle.description = description
+  }
+  return camelcaseKeys(raffles)
+}
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function signUp(loginData: any): Promise<GameData>{
   loginData.givenName = loginData.name
@@ -322,56 +381,60 @@ async function sendSignUpEmail(newUser: PortalUser) {
   const token = getNewToken({ id: newUser.id, deviceId: newUser.deviceId }) as string
   const emailSupport = await getSetting('emailSupport', 'jpsala+support@gmail.com')
   const url = `${getPortalUrl()}?activation=${token}`
-  await sendMail(
-    newUser.email,
-    'New Sloto Prizes account',
-    `
-    <div style="
-        padding: 30px 50px;
-        border-radius: 4px;
-        margin: auto;
-        width: 503px;
-        box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-        background-color: #F3F4F9;"
-      >
-      <img style='height: 80px; margin-top: -7px; margin-left: -30px; margin-bottom: 30px;'
-          src='https://assets.dev.slotoprizes.tagadagames.com/img/logo.png' />
-      <h1 style="margin-bottom: 10px;">Bienvenue à Sloto Prizes</h1>
-
-      <hr style="margin-bottom: 40px;">
-
-      <p>Utilisateur: ${newUser.firstName}</p>
-
-      <p>Mot de passe: ${newUser.password}</p>
-
-      <p>Bonne chance !</p>
-
-      <a 
-        href="${url}"
-        style="
-          text-align: center;
-          position: relative;
-
-          display: block;
-          margin: 0px auto;
-          margin-top: 70px;
-          overflow: hidden;
-          border-width: 0;
-          outline: none;
-          border-radius: 2px;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
-          font-size: 1rem;
-          background-color: #0088FF;
-          color: white;
-          transition: background-color .3s;
-          padding: 15px 40px;
-          cursor: pointer;
-          width: 50px;
-        "
-        type="button"><span>Jouer</span>
-      </a>
-    </div>
-      `, emailSupport)
+  try {
+    await sendMail(
+      newUser.email,
+      'New Sloto Prizes account',
+      `
+      <div style="
+          padding: 30px 50px;
+          border-radius: 4px;
+          margin: auto;
+          width: 503px;
+          box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+          background-color: #F3F4F9;"
+        >
+        <img style='height: 80px; margin-top: -7px; margin-left: -30px; margin-bottom: 30px;'
+            src='https://assets.dev.slotoprizes.tagadagames.com/img/logo.png' />
+        <h1 style="margin-bottom: 10px;">Bienvenue à Sloto Prizes</h1>
+  
+        <hr style="margin-bottom: 40px;">
+  
+        <p>Utilisateur: ${newUser.firstName}</p>
+  
+        <p>Mot de passe: ${newUser.password}</p>
+  
+        <p>Bonne chance !</p>
+  
+        <a 
+          href="${url}"
+          style="
+            text-align: center;
+            position: relative;
+  
+            display: block;
+            margin: 0px auto;
+            margin-top: 70px;
+            overflow: hidden;
+            border-width: 0;
+            outline: none;
+            border-radius: 2px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+            font-size: 1rem;
+            background-color: #0088FF;
+            color: white;
+            transition: background-color .3s;
+            padding: 15px 40px;
+            cursor: pointer;
+            width: 50px;
+          "
+          type="button"><span>Jouer</span>
+        </a>
+      </div>
+        `, emailSupport)
+  } catch (err) {
+    throw createHttpError(StatusCodes.BAD_REQUEST, 'Impossible de créer une compte avec cet email')
+  }
   return token
 }
 

@@ -1,4 +1,6 @@
 import { Request, Response } from 'express'
+import createHttpError from 'http-errors'
+import { StatusCodes } from 'http-status-codes'
 import * as portalService from './portal.service'
 
 export async function auth(req: Request, res: Response): Promise<void> {
@@ -54,7 +56,17 @@ export async function portalPasswordPost(req: Request, res: Response): Promise<v
   const data = await portalService.postPassword({id: Number(req.body.id), password: req.body.password as string})
   res.status(200).send( data )
 }
+export async function portalForgotPasswordPost(req: Request, res: Response): Promise<void> {
+  await portalService.postForgotPassword(req.body.email as string)
+  res.status(200).send( {status: 'ok'} )
+}
 export async function portalEmailPost(req: Request, res: Response): Promise<void> {
   const data = await portalService.postEmail({id: Number(req.body.id), email: req.body.email as string})
+  res.status(200).send( data )
+}
+export async function portalRafflesGet(req: Request, res: Response): Promise<void> {
+  const user = await portalService.getPortalUserByEmail(req.query.email as string)
+  if(!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found in rafflesPrizeDataGet')
+  const data = await portalService.getRaffles(req.query.email as string, true)
   res.status(200).send( data )
 }

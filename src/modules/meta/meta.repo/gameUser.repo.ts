@@ -104,7 +104,7 @@ export async function getGameUserByDeviceEmail(email: string): Promise<GameUser>
 }
 
 export async function getGameUserById(userId: number): Promise<GameUser | undefined> {
-
+  console.log('id', userId)
   const userSelect = `select * from game_user where id =${userId}`
 
   const user = camelcaseKeys(await queryOne(userSelect)) as GameUser

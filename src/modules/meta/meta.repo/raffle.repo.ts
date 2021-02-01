@@ -46,7 +46,7 @@ export const rafflePurchase = async (deviceId: string, raffleId: number, amount:
   await updateWallet(user, wallet)
   return await getWallet(user)
 }
-async function getRaffleLocalizationData(user: GameUser,raffleId: number): Promise<LocalizationData> {
+export async function getRaffleLocalizationData(user: GameUser,raffleId: number): Promise<LocalizationData> {
   const { languageCode } = user
   const localizationData = await queryOne(`
     select * from raffle_localization
