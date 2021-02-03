@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import createHttpError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
+import { rafflePurchase } from '../meta/meta.repo/raffle.repo'
 import * as portalService from './portal.service'
 
 export async function auth(req: Request, res: Response): Promise<void> {
@@ -69,4 +70,13 @@ export async function portalRafflesGet(req: Request, res: Response): Promise<voi
   if(!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found in rafflesPrizeDataGet')
   const data = await portalService.getRaffles(req.query.email as string, true)
   res.status(200).send( data )
+}
+export async function rafflePurchaseGet(req: Request, res: Response): Promise<any>{
+  console.log('rafflePurchase query', req.query)
+  const resp = await rafflePurchase(
+    req.query.deviceId as string,
+    Number(req.query.raffleId),
+    Number(req.query.amount)
+  )
+  res.status(200).json(resp)
 }

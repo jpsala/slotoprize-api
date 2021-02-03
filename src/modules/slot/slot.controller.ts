@@ -146,6 +146,8 @@ export async function rafflePurchaseHistoryGet(req: Request, res: Response): Pro
   res.status(200).json(resp)
 }
 export async function rafflePurchaseGet(req: Request, res: Response): Promise<any>{
+  console.log('rafflePurchase query', req.query)
+
   const resp = await raffleRepo.rafflePurchase(
     req.query.deviceId as string,
     Number(req.query.raffleId),
