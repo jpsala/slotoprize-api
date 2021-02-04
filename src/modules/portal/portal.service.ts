@@ -345,7 +345,9 @@ export async function getRaffles(email: string, onlyLive = false): Promise<Raffl
     const user = await getGameUserByDeviceEmail(email)
     const raffles = await query(`
       SELECT r.id, r.closing_date, r.raffle_number_price, concat('${url}', r.texture_url) as texture_url, r.item_highlight, 
-            coalesce((select sum(coalesce(rh2.raffle_numbers, 0)) from raffle_history rh2 where rh2.game_user_id = ${user.id} and rh2.raffle_id = r.id), 0) as participationsPurchased
+            coalesce((select sum(coalesce(rh2.raffle_numbers, 0))
+              from raffle_history rh2 where rh2.game_user_id = ${user.id} and rh2.raffle_id = r.id), 0)
+              as participationsPurchased
       FROM raffle r
         left join raffle_history rh on r.id = rh.raffle_id
       where ${where}
