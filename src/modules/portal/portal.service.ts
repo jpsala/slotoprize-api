@@ -12,6 +12,8 @@ import { GameUser, RafflePrizeData } from "../meta/meta.types"
 import {sendMail} from "../meta/meta-services/email.service"
 import { getSetting } from "../slot/slot.services/settings.service"
 import { getRaffleLocalizationData } from "../../modules/meta/meta.repo/raffle.repo"
+import { CardCollectionsDataCL, CollectibleCardSetDataCL, getAtlasForCollectibleCardSets, CollectibleCardsTradeDataCL, getCardSetClaimed, CollectibleCardDataCL } from "../slot/slot.services/card.service"
+import { chestToChestCL, getPremiumChest, getRegularChest } from "../slot/slot.services/chest.service"
 import { GameData, GoogleUser, PortalUser } from "./portal.types"
 
 export async function getUserByLoginAndPassword(login: string, password: string): Promise<any> {
@@ -206,6 +208,7 @@ export async function postPassword({id, password}: {id: number, password: string
   console.log('resp', resp)
   return resp
 }
+
 export async function postForgotPassword(email: string): Promise<void>{
   const password = await queryScalar(`
     select p.password 
@@ -255,6 +258,7 @@ export async function postEmail({id, email}: {id: number, email: string}): Promi
   console.log('resp', resp, resp2)
   return resp
 }
+
 export async function getWinners(): Promise<any> {
   const languageCode = await getSetting('languageCode', 'fr-FR')
   const url = getAssetsUrl()
@@ -295,6 +299,7 @@ export async function getWinners(): Promise<any> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return data
 }
+
 export async function postProfile(data: any): Promise<any>{
   delete data.imageUrl
   delete data.createdAt
@@ -311,34 +316,8 @@ export async function postProfile(data: any): Promise<any>{
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return camelcaseKeys(data)
- /* address: ""
-    adsFree: 0
-    agreements: 0
-    banned: 0
-    birthDate: "1900-01-01T04:16:48.000Z"
-    city: ""
-    country: ""
-    createdAt: "2021-01-24T23:18:56.000Z"
-    deviceId: "6373ad51-cfa8-4ccf-b6d3-8fa9f09c77f9"
-    deviceModel: ""
-    deviceName: ""
-    devicePlataform: ""
-    email: "jpsala@gmail.com"
-    firstName: "Juan Pablo"
-    id: 106553
-    imageUrl: "https://lh3.googleusercontent.com/a-/AOh14GilC43fO5FPldJ6Hp7rOCZ070u4dhmBMpezi4sT3A=s96-c"
-    isDev: 0
-    languageCode: "fr-FR"
-    lastName: "Sala"
-    modifiedAt: "2021-01-24T23:18:56.000Z"
-    password: ""
-    phoneNumber: ""
-    sendWinJackpotEventWhenProfileFilled: null
-    state: ""
-    title: ""
-    tutorialComplete: 0
-    zipCode: "" */
 }
+
 export async function getRaffles(email: string, onlyLive = false): Promise<RafflePrizeData[]> {
   const url = getAssetsUrl()
   const where = onlyLive ? ' CURRENT_TIMESTAMP() BETWEEN r.live_date and r.closing_date ' : ' true '
@@ -362,6 +341,7 @@ export async function getRaffles(email: string, onlyLive = false): Promise<Raffl
   }
   return camelcaseKeys(raffles)
 }
+
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function signUp(loginData: any): Promise<GameData>{
   loginData.givenName = loginData.name
@@ -468,4 +448,62 @@ async function getGameData(user: PortalUser, token?: string): Promise<GameData>{
     maxMultiplier: Number(maxMultiplier),
     token: _token
   }
+}
+
+export const getCards = async (userId: number):Promise <CardCollectionsDataCL> => {
+  let starsForTrade = 0
+  const languageId = Number((await queryScalar(`
+    select l.id from language l
+      inner join game_user gu on gu.language_code = l.language_code and gu.id = ${userId}
+  `)))
+  const assetsUrl = getAssetsUrl()
+  const cardSets: CollectibleCardSetDataCL[] = camelcaseKeys(
+    
+      await query(`
+      select cs.id, front_card_id, 
+          (select text from localization where item = 'cardSet' and item_id = cs.id and language_id = ?) as title,
+          cs.theme_color, cs.reward_type, cs.reward_amount
+        from card_set cs
+      `, [String(languageId)]
+      )
+  )
+
+  for (const cardSet of cardSets) {
+    //URGENT the line below is temporary, I have to assign a front card for all the card sets 
+    if(!cardSet.frontCardId ){
+      const frontCardId = Number(await queryScalar(`select id from card where card_set_id = ${cardSet.id} order by id desc limit 1`))
+      await queryExec(`update card_set set front_card_id = ${frontCardId} where id = ${cardSet.id}`)
+      cardSet.frontCardId = frontCardId
+    }
+    cardSet.ownedQuantity = 0
+    cardSet.rewardClaimed = await getCardSetClaimed(cardSet.id, userId)
+    // cardSet.atlasData = {} as Atlas
+    cardSet.cards = <CollectibleCardDataCL[]> camelcaseKeys(await query(`
+      select c.id, card_set_id as setId, c.texture_url, c.thumb_url, c.stars,
+        (select text from localization where item = 'card' and item_id = c.id and language_id = ${languageId}) as title,
+        (select count(*) from game_user_card gc where gc.game_user_id = ${userId} and gc.card_id = c.id) as ownedQuantity
+      from card c where c.card_set_id = ${cardSet.id}
+    `))
+    for (const card of cardSet.cards) {
+      cardSet.ownedQuantity += (card.ownedQuantity > 0 ? 1 : 0)
+      if(card.ownedQuantity > 1) starsForTrade += ((card.ownedQuantity - 1) * card.stars)
+    }
+  }
+  const chestRegular = await getRegularChest()
+  const chestPremium = await getPremiumChest()
+  const chestRegularCl = chestToChestCL(chestRegular)
+  const chestPremiumCl = chestToChestCL(chestPremium)
+  const tradeData: CollectibleCardsTradeDataCL = {
+    starsForTrade,
+    chestRegular: chestRegularCl,
+    chestPremium: chestPremiumCl
+  }
+  const cardCollectionsDataCL: any = { 
+    collectibleCardSets: cardSets,
+    tradeData,
+    assetsUrl
+  }
+   
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return cardCollectionsDataCL
 }

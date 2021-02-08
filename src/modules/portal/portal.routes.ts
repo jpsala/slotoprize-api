@@ -18,5 +18,6 @@ router.route('/portal_password').post(portalController.portalPasswordPost)
 router.route('/portal_forgot_password').post(portalController.portalForgotPasswordPost)
 router.route('/portal_email').post(portalController.portalEmailPost)
 router.route('/raffle_purchase').get(portalController.rafflePurchaseGet)
+router.route('/card_collections').get(portalController.portalCardCollectionsGet)
 
 export default router

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import createHttpError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
+import { getGameUserByDeviceEmail } from '../meta/meta.repo/gameUser.repo'
 import { rafflePurchase } from '../meta/meta.repo/raffle.repo'
 import * as portalService from './portal.service'
 
@@ -69,6 +70,12 @@ export async function portalRafflesGet(req: Request, res: Response): Promise<voi
   const user = await portalService.getPortalUserByEmail(req.query.email as string)
   if(!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found in rafflesPrizeDataGet')
   const data = await portalService.getRaffles(req.query.email as string, true)
+  res.status(200).send( data )
+}
+export async function portalCardCollectionsGet(req: Request, res: Response): Promise<void> {
+  const user = await getGameUserByDeviceEmail(req.query.email as string)
+  if(!user) throw createHttpError(StatusCodes.BAD_REQUEST, 'User not found in rafflesPrizeDataGet')
+  const data = await portalService.getCards(user.id)
   res.status(200).send( data )
 }
 export async function rafflePurchaseGet(req: Request, res: Response): Promise<any>{

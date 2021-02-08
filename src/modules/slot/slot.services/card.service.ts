@@ -440,7 +440,7 @@ export const buildCardSetAtlasThumbs = async (): Promise<Atlas> => {
   const atlas = await buildAtlas(thumbs, 'card_sets') 
   return atlas
 }
-const getAtlasForCollectibleCardSets = async (rebuild = false): Promise<Atlas> => {
+export const getAtlasForCollectibleCardSets = async (rebuild = false): Promise<Atlas> => {
   const thumbs: { id: string; image: string} [] = await getThumbsImagesForAtlas()
   const atlas = await getAtlas('card_sets', thumbs, rebuild) 
 
@@ -721,7 +721,8 @@ async function getUserRepeatedCards(userId: number):Promise<{id:number, stars: n
     group by c.id
   `)) as {id:number, stars: number, repeated:number}[]
 }
-async function getCardSetClaimed(setId: number, userId: number) {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function getCardSetClaimed(setId: number, userId: number) {
   return Number(await queryScalar(`
   select count(*) from card_set_claim where card_set_id = ${setId} and game_user_id = ${userId}
   `)) > 0
