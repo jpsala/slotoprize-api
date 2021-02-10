@@ -1,8 +1,11 @@
 import { Request, Response } from 'express'
 import createHttpError from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
+import { queryScalar } from '../../db'
+import { verifyToken } from '../../services/jwtService'
 import { getGameUserByDeviceEmail } from '../meta/meta.repo/gameUser.repo'
 import { rafflePurchase } from '../meta/meta.repo/raffle.repo'
+import { getCardTrade } from '../slot/slot.services/card.service'
 import * as portalService from './portal.service'
 
 export async function auth(req: Request, res: Response): Promise<void> {
@@ -79,11 +82,29 @@ export async function portalCardCollectionsGet(req: Request, res: Response): Pro
   res.status(200).send( data )
 }
 export async function rafflePurchaseGet(req: Request, res: Response): Promise<any>{
-  console.log('rafflePurchase query', req.query)
   const resp = await rafflePurchase(
     req.query.deviceId as string,
     Number(req.query.raffleId),
     Number(req.query.amount)
   )
   res.status(200).json(resp)
+}
+export async function cardTradeGet(req: Request, res: Response): Promise<void> {
+  // console.log('req', req)
+  // console.log('req', req.query)
+  // console.log('req', req.body)
+  const token = req.headers.token
+  const { decodedToken, error } = verifyToken(token as string)
+  console.log('decodedToken', decodedToken, error)
+  if(error) throw createHttpError(StatusCodes.BAD_REQUEST, 'invalide token')
+  const userId: string = decodedToken.id
+  const gameUserId = Number(await queryScalar(`
+      select gu.id from game_user gu
+        inner join game_user_portal gup on gup.email = gu.email
+      where gup.id = ${userId}
+  `))
+  const cardTradeData = await getCardTrade(req.query.regular as string, gameUserId)
+
+  res.status(200).send(cardTradeData)
+
 }
