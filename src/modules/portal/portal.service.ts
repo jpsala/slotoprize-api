@@ -451,6 +451,7 @@ async function getGameData(user: PortalUser, token?: string): Promise<GameData>{
 }
 
 export const getCards = async (userId: number):Promise <CardCollectionsDataCL> => {
+  console.log('userid', userId)
   let starsForTrade = 0
   const languageId = Number((await queryScalar(`
     select l.id from language l
