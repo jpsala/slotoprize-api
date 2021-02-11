@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes'
 import { queryScalar } from '../../db'
 import { verifyToken } from '../../services/jwtService'
 import { getGameUserByDeviceEmail } from '../meta/meta.repo/gameUser.repo'
-import { rafflePurchase } from '../meta/meta.repo/raffle.repo'
+import { getRafflePurchaseHistory, rafflePurchase } from '../meta/meta.repo/raffle.repo'
 import { getCardTrade } from '../slot/slot.services/card.service'
 import * as portalService from './portal.service'
 
@@ -107,4 +107,9 @@ export async function cardTradeGet(req: Request, res: Response): Promise<void> {
 
   res.status(200).send(cardTradeData)
 
+}
+
+export async function rafflePurchaseHistoryGet(req: Request, res: Response): Promise<any>{
+  const resp = await getRafflePurchaseHistory(req.query.deviceId as string)
+  res.status(200).json(resp)
 }
